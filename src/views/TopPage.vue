@@ -3,10 +3,9 @@
 </style>
 <template>
   <div style="position: relative;">
-    <div style="position: absolute; width: 400px; height: 400px;" ref="pixi_area" >
+    <div style="position: absolute; width: 320px; height: 240px;" ref="pixi_area" >
     </div>
-    <div>ほげほげ</div>
-    <div style="position: absolute; left: 10px; top: 10px; background-color: #0000ff66; color: #fff;">あいう</div>
+    <div style="position: absolute; left: 10px; top: 10px; background-color: #0000ff66; color: #fff;">矢印キーで移動</div>
   </div>
 </template>
 
@@ -19,7 +18,6 @@ class Character extends PIXI.Sprite {
   private _currentDirection = 2
   set currentDirection(value: number) {
     this._currentDirection = value
-    // this.animationFrame = 0
     this.syncTexture()
   }
   get currentDirection() {
@@ -28,6 +26,7 @@ class Character extends PIXI.Sprite {
   private animationStep = 0
   constructor(private sheet: PIXI.Spritesheet) {
     super(sheet.textures[`character-2-0`])
+    this.anchor.set(0.5, 0.5)
   }
   private syncTexture() {
     this.texture = this.sheet.textures[`character-${this.currentDirection}-${this.animationStep === 3 ? 1 : this.animationStep}`]
@@ -55,37 +54,36 @@ export default Vue.extend({
     }
   },
   mounted() {
+    PIXI.settings.RESOLUTION = window.devicePixelRatio;
+    PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
+
     window.onkeydown = this.onKeyDown
     window.onkeyup = this.onKeyUp
 
-    const size = {width: 340, height: 240}
+    const size = {width: 320, height: 240}
     const pixiApp: PIXI.Application = new PIXI.Application(size)
 
     const container = this.$refs['pixi_area'] as any
     container.appendChild(pixiApp.view);
 
-    // テキストオブジェクトを作る
-    const textobj: PIXI.Text = new PIXI.Text("Hello World!", {font:'bold 60pt Arial', fill:'white'});
-    textobj.position.x = size.width / 2;
-    textobj.position.y = size.height / 2;
-
-    // テキストオブジェクトをステージに乗せる
-    pixiApp.stage.addChild(textobj);
+    // 背景色
+    const bg = new PIXI.Sprite(PIXI.Texture.WHITE)
+    bg.width = 320
+    bg.height = 240
+    bg.tint = 0xcccccc
+    pixiApp.stage.addChild(bg)
 
     PIXI.Loader.shared
-      .add('/game/images/chara01.json')
+      .add('/arpg-sample/images/chara01.json')
       .load(() => {
-        const sheet = PIXI.Loader.shared.resources["/game/images/chara01.json"].spritesheet;
-        this.chara = new Character(PIXI.Loader.shared.resources["/game/images/chara01.json"].spritesheet!)
-        this.chara.position.set(100, 100)
+        const sheet = PIXI.Loader.shared.resources["/arpg-sample/images/chara01.json"].spritesheet;
+        this.chara = new Character(PIXI.Loader.shared.resources["/arpg-sample/images/chara01.json"].spritesheet!)
+        this.chara.position.set(160, 120)
         pixiApp.stage.addChild(this.chara)
       })
-    // this.chara = PIXI.Sprite.from('/game/images/chara01.png')
-    // pixiApp.stage.addChild(this.chara)
 
     // アニメーション開始
     pixiApp.ticker.add((delta) => {
-      textobj.rotation += 0.01;
       this.updateCharaState()
       this.chara?.update()
     })
