@@ -12,6 +12,10 @@ const routes = [
     path: '/top',
     component: () => import('../views/TopPage.vue')
   },
+  {
+    path: '/stages/001',
+    component: () => import('../views/stages/Stage001.vue')
+  },
 ]
 
 const router = new VueRouter({
