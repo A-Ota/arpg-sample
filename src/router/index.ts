@@ -19,15 +19,19 @@ const routes = [
   },
   {
     path: '/stages/001',
-    component: () => import('../views/stages/Stage001.vue')
+    component: () => import('../stages/001/View.vue')
   },
   {
     path: '/stages/002',
-    component: () => import('../views/stages/Stage002.vue')
+    component: () => import('../stages/002/View.vue')
   },
   {
     path: '/stages/003',
-    component: () => import('../views/stages/Stage003.vue')
+    component: () => import('../stages/003/View.vue')
+  },
+  {
+    path: '/stages/004',
+    component: () => import('../stages/004/View.vue')
   },
 ]
 
