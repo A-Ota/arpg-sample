@@ -3,7 +3,8 @@
 </style>
 <template>
   <div style="position: relative;">
-    <h3 @click="$router.push('/stages/001')">ステージ1</h3>
+    <h3 @click="$router.push('/stages/001')">キャラが8方向に歩くだけ</h3>
+    <h3 @click="$router.push('/stages/002')">影をつけた</h3>
   </div>
 </template>
 

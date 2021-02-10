@@ -16,6 +16,10 @@ const routes = [
     path: '/stages/001',
     component: () => import('../views/stages/Stage001.vue')
   },
+  {
+    path: '/stages/002',
+    component: () => import('../views/stages/Stage002.vue')
+  },
 ]
 
 const router = new VueRouter({
