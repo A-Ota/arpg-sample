@@ -6,11 +6,16 @@ Vue.use(VueRouter)
 const routes = [
   {
     path: '/',
-    redirect: '/top',
+    redirect: '/list',
   },
   {
+    path: '/list',
+    component: () => import('../views/ListPage.vue')
+  },
+  // 初回ツイートで/topにしてしまったばっかりに・・
+  {
     path: '/top',
-    component: () => import('../views/TopPage.vue')
+    redirect: '/stages/001',
   },
   {
     path: '/stages/001',
