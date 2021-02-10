@@ -10,55 +10,52 @@
 </template>
 
 <script lang="ts">
-import Vue from "vue";
-import * as PIXI from "pixi.js";
+import Vue from "vue"
+import * as PIXI from "pixi.js"
 
 // キャラクター
 class Character extends PIXI.Container {
-  private body!: PIXI.Sprite;
-  private shadow!: PIXI.Graphics;
-  private animationFrame = 0;
-  private _currentDirection = 2;
+  private body!: PIXI.Sprite
+  private shadow!: PIXI.Graphics
+  private animationFrame = 0
+  private _currentDirection = 2
   set currentDirection(value: number) {
-    this._currentDirection = value;
-    this.syncTexture();
+    this._currentDirection = value
+    this.syncTexture()
   }
   get currentDirection() {
-    return this._currentDirection;
+    return this._currentDirection
   }
-  private animationStep = 0;
+  private animationStep = 0
   constructor(private sheet: PIXI.Spritesheet, private routine: BaseRoutine) {
-    super();
+    super()
 
     routine.character = this
     // 本体
-    this.body = new PIXI.Sprite(sheet.textures[`character-2-0`]);
-    this.body.anchor.set(0.5, 0.5);
-    this.addChild(this.body);
+    this.body = new PIXI.Sprite(sheet.textures[`character-2-0`])
+    this.body.anchor.set(0.5, 0.5)
+    this.addChild(this.body)
 
     // 影
-    this.shadow = new PIXI.Graphics();
-    this.shadow.lineStyle(0); // lineStyleを0にすると枠線が描画されません。
-    this.shadow.beginFill(0x000000, 1);
-    this.shadow.drawEllipse(0, 28, 16, 10);
-    this.shadow.endFill();
-    this.shadow.alpha = 0.5;
-    this.addChildAt(this.shadow, 0);
+    this.shadow = new PIXI.Graphics()
+    this.shadow.lineStyle(0)
+    this.shadow.beginFill(0x000000, 1)
+    this.shadow.drawEllipse(0, 28, 16, 10)
+    this.shadow.endFill()
+    this.shadow.alpha = 0.5
+    this.addChildAt(this.shadow, 0)
   }
   private syncTexture() {
-    this.body.texture = this.sheet.textures[
-      `character-${this.currentDirection}-${
-        this.animationStep === 3 ? 1 : this.animationStep
-      }`
-    ];
+    this.body.texture = this.sheet.textures[`character-${this.currentDirection}-${this.animationStep === 3 ? 1 : this.animationStep}`]
   }
   public update() {
     this.routine.update()
-    ++this.animationFrame;
+    this.zIndex = this.position.y
+    ++this.animationFrame
     if (this.animationFrame > 30) {
-      this.animationFrame = 0;
-      this.animationStep = (this.animationStep + 1) % 4;
-      this.syncTexture();
+      this.animationFrame = 0
+      this.animationStep = (this.animationStep + 1) % 4
+      this.syncTexture()
     }
   }
 }
@@ -66,13 +63,13 @@ class Character extends PIXI.Container {
 // ルーチン
 abstract class BaseRoutine {
   public character!: Character
-  abstract update(): void;
+  abstract update(): void
 }
 
-const KEY_CODE_LEFT = 37;
-const KEY_CODE_UP = 38;
-const KEY_CODE_RIGHT = 39;
-const KEY_CODE_DOWN = 40;
+const KEY_CODE_LEFT = 37
+const KEY_CODE_UP = 38
+const KEY_CODE_RIGHT = 39
+const KEY_CODE_DOWN = 40
 
 // 方向とスピードからx,yの移動速度算出
 const calcMoveXY = function(direction: number, speed: number): [number, number] {
@@ -109,24 +106,24 @@ class PlayerRoutine extends BaseRoutine {
     // 向き取得
     if (this.pressedKeyCodeSet.has(KEY_CODE_LEFT)) {
       if (this.pressedKeyCodeSet.has(KEY_CODE_DOWN)) {
-        direction = 1;
+        direction = 1
       } else if (this.pressedKeyCodeSet.has(KEY_CODE_UP)) {
-        direction = 7;
+        direction = 7
       } else {
-        direction = 4;
+        direction = 4
       }
     } else if (this.pressedKeyCodeSet.has(KEY_CODE_RIGHT)) {
       if (this.pressedKeyCodeSet.has(KEY_CODE_DOWN)) {
-        direction = 3;
+        direction = 3
       } else if (this.pressedKeyCodeSet.has(KEY_CODE_UP)) {
-        direction = 9;
+        direction = 9
       } else {
-        direction = 6;
+        direction = 6
       }
     } else if (this.pressedKeyCodeSet.has(KEY_CODE_UP)) {
-      direction = 8;
+      direction = 8
     } else if (this.pressedKeyCodeSet.has(KEY_CODE_DOWN)) {
-      direction = 2;
+      direction = 2
     }
     // 向かせたり歩かせたり
     if (direction != null) {
@@ -177,27 +174,28 @@ export default Vue.extend({
     return {
       characters: [],
       pressedKeyCodeSet: new Set()
-    };
+    }
   },
   mounted() {
-    PIXI.settings.RESOLUTION = window.devicePixelRatio;
-    PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
+    PIXI.settings.RESOLUTION = window.devicePixelRatio
+    PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST
 
-    window.onkeydown = this.onKeyDown;
-    window.onkeyup = this.onKeyUp;
+    window.onkeydown = this.onKeyDown
+    window.onkeyup = this.onKeyUp
 
-    const size = { width: 320, height: 240 };
-    const pixiApp: PIXI.Application = new PIXI.Application(size);
+    const size = { width: 320, height: 240 }
+    const pixiApp: PIXI.Application = new PIXI.Application(size)
 
-    const container = this.$refs["pixi_area"] as any;
-    container.appendChild(pixiApp.view);
+    const container = this.$refs["pixi_area"] as any
+    container.appendChild(pixiApp.view)
+    pixiApp.stage.sortableChildren = true
 
     // 背景色
-    const bg = new PIXI.Sprite(PIXI.Texture.WHITE);
-    bg.width = 320;
-    bg.height = 240;
-    bg.tint = 0xcccccc;
-    pixiApp.stage.addChild(bg);
+    const bg = new PIXI.Sprite(PIXI.Texture.WHITE)
+    bg.width = 320
+    bg.height = 240
+    bg.tint = 0xcccccc
+    pixiApp.stage.addChild(bg)
 
     PIXI.Loader.shared
       .reset()
@@ -208,35 +206,35 @@ export default Vue.extend({
         const chara1 = new Character(
           PIXI.Loader.shared.resources["/arpg-sample/images/chara01.json"].spritesheet!,
           new PlayerRoutine(this.pressedKeyCodeSet)
-        );
-        chara1.position.set(180, 110);
-        pixiApp.stage.addChild(chara1);
-        this.characters.push(chara1);
+        )
+        chara1.position.set(180, 110)
+        pixiApp.stage.addChild(chara1)
+        this.characters.push(chara1)
         // NPC
         const chara2 = new Character(
           PIXI.Loader.shared.resources["/arpg-sample/images/chara02.json"].spritesheet!,
           new UroUroRoutine()
-        );
-        chara2.position.set(140, 90);
-        pixiApp.stage.addChild(chara2);
-        this.characters.push(chara2);
-      });
+        )
+        chara2.position.set(140, 90)
+        pixiApp.stage.addChild(chara2)
+        this.characters.push(chara2)
+      })
 
     // アニメーション開始
     pixiApp.ticker.add(delta => {
-      this.characters.forEach(chara => chara.update());
-    });
+      this.characters.forEach(chara => chara.update())
+    })
   },
   methods: {
     onKeyDown(event: KeyboardEvent) {
-      this.pressedKeyCodeSet.add(event.keyCode);
+      this.pressedKeyCodeSet.add(event.keyCode)
     },
     onKeyUp(event: any) {
-      this.pressedKeyCodeSet.delete(event.keyCode);
+      this.pressedKeyCodeSet.delete(event.keyCode)
     }
   },
   components: {},
   computed: {},
   props: []
-});
+})
 </script>
