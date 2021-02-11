@@ -14,6 +14,7 @@ import Vue from "vue"
 import * as PIXI from "pixi.js"
 import { Character, PlayerRoutine, UroUroRoutine } from '@/stages/004/Character'
 import { Field } from '@/stages/004/Field'
+import PixiFps from "pixi-fps";
 
 export default Vue.extend({
   data(): {
@@ -59,7 +60,6 @@ export default Vue.extend({
       .load(() => {
         // フィールド
         const mapchipTexture = PIXI.Loader.shared.resources["/arpg-sample/images/mapchip.png"].texture
-        // const mapchipTexture = PIXI.Loader.shared.resources["/arpg-sample/images/kusa.png"].texture
         this.field = new Field(mapchipTexture)
         this.pixiApp!.stage.addChild(this.field)
         // プレイヤー
@@ -76,6 +76,18 @@ export default Vue.extend({
         )
         chara2.position.set(140, 90)
         this.field.addCharacter(chara2)
+
+        // FPSカウンタ
+        /*
+        const fpsCounter = new PixiFps()
+        fpsCounter.position.x = 4
+        fpsCounter.position.y = 220
+        fpsCounter. style = {
+          fontSize: 16,
+          fill: '#FFF'
+        } as PIXI.TextStyle
+        this.pixiApp!.stage.addChild(fpsCounter)
+        */
       })
 
     // メインループ
