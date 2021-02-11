@@ -1,9 +1,11 @@
 import * as PIXI from "pixi.js"
+import { ISortable } from '@/stages/005/SortableParticleContainer'
 
 // キャラクター
-export class Character extends PIXI.Sprite {
+export class Character extends PIXI.Sprite implements ISortable {
   private animationFrame = 0
   private _currentDirection = 2
+  public zOrder = 0
   set currentDirection(value: number) {
     this._currentDirection = value
     this.syncTexture()
@@ -33,7 +35,7 @@ export class Character extends PIXI.Sprite {
   }
   public update() {
     this.routine.update()
-    this.zIndex = this.position.y
+    this.zOrder = this.position.y
     ++this.animationFrame
     if (this.animationFrame > 30) {
       this.animationFrame = 0

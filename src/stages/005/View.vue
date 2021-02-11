@@ -31,7 +31,6 @@ export default Vue.extend({
     }
   },
   mounted() {
-    this.id = Math.floor(Math.random() * 100)
     PIXI.settings.RESOLUTION = window.devicePixelRatio
     PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST
 
@@ -64,10 +63,12 @@ export default Vue.extend({
         const chara1 = new Character(allTexture, new PIXI.Point(0, 256), new PlayerRoutine(this.pressedKeyCodeSet))
         chara1.position.set(180, 110)
         this.field.addCharacter(chara1, true)
+        chara1.zOrder = 2
         // NPC
         const chara2 = new Character(allTexture, new PIXI.Point(192, 256), new UroUroRoutine())
         chara2.position.set(140, 90)
         this.field.addCharacter(chara2)
+        chara2.zOrder = 1
         // FPSカウンタ
         const fpsCounter = new PixiFps()
         fpsCounter.position.x = 4
