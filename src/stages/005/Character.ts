@@ -6,6 +6,7 @@ export class Character extends PIXI.Sprite implements ISortable {
   private animationFrame = 0
   private _currentDirection = 2
   public zOrder = 0
+  public shadowSprite!: PIXI.Sprite
   set currentDirection(value: number) {
     this._currentDirection = value
     this.syncTexture()
@@ -14,12 +15,17 @@ export class Character extends PIXI.Sprite implements ISortable {
     return this._currentDirection
   }
   private animationStep = 0
-  constructor(private myBaseTexture: PIXI.Texture, private textureOffset: PIXI.Point, private routine: BaseRoutine) {
+  constructor(public texture: PIXI.Texture, private textureOffset: PIXI.Point, private routine: BaseRoutine) {
     super()
 
-    this.texture = new PIXI.Texture(this.myBaseTexture.baseTexture, new PIXI.Rectangle(textureOffset.x, textureOffset.y, 32, 64))
+    this.texture = new PIXI.Texture(this.texture.baseTexture, new PIXI.Rectangle(textureOffset.x, textureOffset.y, 32, 64))
     routine.character = this
     this.anchor.set(0.5, 0.5)
+
+    const shadowTexture = new PIXI.Texture(this.texture.baseTexture, new PIXI.Rectangle(0, 224, 32, 32))
+    this.shadowSprite = PIXI.Sprite.from(shadowTexture)
+    this.shadowSprite.alpha = 0.5
+    this.shadowSprite.anchor.set(0.5, 0.5)
   }
   private syncTexture() {
     let offsetX = 0
@@ -35,6 +41,8 @@ export class Character extends PIXI.Sprite implements ISortable {
   }
   public update() {
     this.routine.update()
+    this.shadowSprite.x = this.x
+    this.shadowSprite.y = this.y + 28
     this.zOrder = this.position.y
     ++this.animationFrame
     if (this.animationFrame > 30) {
