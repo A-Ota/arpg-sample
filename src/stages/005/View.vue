@@ -55,10 +55,32 @@ export default Vue.extend({
       .reset()
       .add("/arpg-sample/images/stages/005/all.png")
       .load(() => {
+        // 影テクスチャ
+        /*
+        let shadowSprite: PIXI.Sprite | null = null
+        {
+          const renderTexture = PIXI.RenderTexture.create({ width: 32, height: 20 })
+
+          const shadowGraphic = new PIXI.Graphics()
+          shadowGraphic.lineStyle(0)
+          shadowGraphic.beginFill(0x000000, 1)
+          shadowGraphic.drawEllipse(16, 10, 16, 10)
+          shadowGraphic.endFill()
+          shadowGraphic.alpha = 0.5
+          this.pixiApp!.renderer.render(shadowGraphic, renderTexture, true);
+
+          PIXI.utils.TextureCache['shadow'] = renderTexture
+          shadowSprite = new PIXI.Sprite(renderTexture)
+          shadowSprite.position = new PIXI.Point(100, 100)
+        }
+        */
+
         // フィールド
         const allTexture = PIXI.Loader.shared.resources["/arpg-sample/images/stages/005/all.png"].texture
         this.field = new Field(allTexture)
         this.pixiApp!.stage.addChild(this.field)
+        // this.pixiApp!.stage.addChild(shadowSprite)
+
         // プレイヤー
         const chara1 = new Character(allTexture, new PIXI.Point(0, 256), new PlayerRoutine(this.pressedKeyCodeSet))
         chara1.position.set(180, 110)
