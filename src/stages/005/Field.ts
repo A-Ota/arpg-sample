@@ -82,7 +82,7 @@ export class Field extends PIXI.Container {
       const treeTexture = texture.clone()
       treeTexture.frame = new PIXI.Rectangle(32, 64, 64, 16)
       const treeSprite = PIXI.Sprite.from(treeTexture)
-      treeSprite.position = new PIXI.Point((this.horizontalGridNum * 16) / 2 - 32, (this.verticalGridNum * 16 / 2))
+      treeSprite.position = new PIXI.Point((this.horizontalGridNum * 16) / 2 - 32, (this.verticalGridNum * 18 / 2))
       this.bgLayerContainer.addChild(treeSprite)
     }
     // 木(上)
@@ -90,7 +90,24 @@ export class Field extends PIXI.Container {
       const treeTexture = texture.clone()
       treeTexture.frame = new PIXI.Rectangle(32, 0, 64, 64)
       const treeSprite = new PIXI.Sprite(treeTexture)
-      treeSprite.position = new PIXI.Point((this.horizontalGridNum * 16) / 2 - 32, (this.verticalGridNum * 16 / 2) - 64)
+      treeSprite.position = new PIXI.Point((this.horizontalGridNum * 16) / 2 - 32, (this.verticalGridNum * 18 / 2) - 64)
+      ;(treeSprite as any).zOrder = treeSprite.position.y + 48
+      this.layerContainer.addChild(treeSprite)
+    }
+    // 木(下)
+    {
+      const treeTexture = texture.clone()
+      treeTexture.frame = new PIXI.Rectangle(32, 64, 64, 16)
+      const treeSprite = PIXI.Sprite.from(treeTexture)
+      treeSprite.position = new PIXI.Point((this.horizontalGridNum * 14) / 2 - 32, (this.verticalGridNum * 15 / 2))
+      this.bgLayerContainer.addChild(treeSprite)
+    }
+    // 木(上)
+    {
+      const treeTexture = texture.clone()
+      treeTexture.frame = new PIXI.Rectangle(32, 0, 64, 64)
+      const treeSprite = new PIXI.Sprite(treeTexture)
+      treeSprite.position = new PIXI.Point((this.horizontalGridNum * 14) / 2 - 32, (this.verticalGridNum * 15 / 2) - 64)
       ;(treeSprite as any).zOrder = treeSprite.position.y + 48
       this.layerContainer.addChild(treeSprite)
     }
