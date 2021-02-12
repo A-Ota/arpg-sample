@@ -1,6 +1,7 @@
 import { Character } from '@/stages/005/Character'
 import { SortableParticleContainer } from '@/stages/005/SortableParticleContainer'
 import * as PIXI from "pixi.js"
+import { SortableSprite } from './SortableSprite'
 
 // まずはpixi-layersを使った場合を試し、次にpixi-tilemapを試す？
 export class Field extends PIXI.Container {
@@ -16,7 +17,7 @@ export class Field extends PIXI.Container {
 
     // XXX:uvsをtrueにするとtextureのframeの変更が即時反映される
     this.bgLayerContainer = new PIXI.ParticleContainer(20000, { uvs: false })
-    this.layerContainer = new SortableParticleContainer(20000, { uvs: true })
+    this.layerContainer = new SortableParticleContainer(20000, { uvs: true, vertices: true })
     this.addChild(this.bgLayerContainer)
     this.addChild(this.layerContainer)
     const fieldTexture = texture.clone()
@@ -76,13 +77,22 @@ export class Field extends PIXI.Container {
       sakueRightBottomSprite.position = new PIXI.Point(this.horizontalGridNum * 16 - 16, this.verticalGridNum * 16 - 16)
       this.bgLayerContainer.addChild(sakueRightBottomSprite)
     }
-    // 木
+    // 木(下)
     {
       const treeTexture = texture.clone()
-      treeTexture.frame = new PIXI.Rectangle(32, 0, 64, 80)
+      treeTexture.frame = new PIXI.Rectangle(32, 64, 64, 16)
       const treeSprite = PIXI.Sprite.from(treeTexture)
-      treeSprite.position = new PIXI.Point((this.horizontalGridNum * 16) / 2 - 32, (this.verticalGridNum * 16 / 2) - 40)
+      treeSprite.position = new PIXI.Point((this.horizontalGridNum * 16) / 2 - 32, (this.verticalGridNum * 16 / 2))
       this.bgLayerContainer.addChild(treeSprite)
+    }
+    // 木(上)
+    {
+      const treeTexture = texture.clone()
+      treeTexture.frame = new PIXI.Rectangle(32, 0, 64, 64)
+      const treeSprite = new PIXI.Sprite(treeTexture)
+      treeSprite.position = new PIXI.Point((this.horizontalGridNum * 16) / 2 - 32, (this.verticalGridNum * 16 / 2) - 64)
+      ;(treeSprite as any).zOrder = treeSprite.position.y + 48
+      this.layerContainer.addChild(treeSprite)
     }
   }
   public addCharacter(character: Character, isTarget: boolean = false) {
