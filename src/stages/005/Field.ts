@@ -90,7 +90,7 @@ export class Field extends PIXI.Container {
     if (isTarget) {
       this.targetCharacter = character
     }
-    this.layerContainer.addChildZ(character, 1)
+    this.layerContainer.addChildZ(character.bodySprite, 1)
     this.layerContainer.addChildZ(character.shadowSprite, 1)
   }
   public update() {

@@ -55,26 +55,6 @@ export default Vue.extend({
       .reset()
       .add("/arpg-sample/images/stages/005/all.png")
       .load(() => {
-        // 影テクスチャ
-        /*
-        let shadowSprite: PIXI.Sprite | null = null
-        {
-          const renderTexture = PIXI.RenderTexture.create({ width: 32, height: 20 })
-
-          const shadowGraphic = new PIXI.Graphics()
-          shadowGraphic.lineStyle(0)
-          shadowGraphic.beginFill(0x000000, 1)
-          shadowGraphic.drawEllipse(16, 10, 16, 10)
-          shadowGraphic.endFill()
-          shadowGraphic.alpha = 0.5
-          this.pixiApp!.renderer.render(shadowGraphic, renderTexture, true);
-
-          PIXI.utils.TextureCache['shadow'] = renderTexture
-          shadowSprite = new PIXI.Sprite(renderTexture)
-          shadowSprite.position = new PIXI.Point(100, 100)
-        }
-        */
-
         // フィールド
         const allTexture = PIXI.Loader.shared.resources["/arpg-sample/images/stages/005/all.png"].texture
         this.field = new Field(allTexture)
@@ -83,14 +63,14 @@ export default Vue.extend({
 
         // プレイヤー
         const chara1 = new Character(allTexture, new PIXI.Point(0, 256), new PlayerRoutine(this.pressedKeyCodeSet))
-        chara1.position.set(180, 110)
+        chara1.x = 180
+        chara1.y = 110
         this.field.addCharacter(chara1, true)
-        chara1.zOrder = 2
         // NPC
         const chara2 = new Character(allTexture, new PIXI.Point(192, 256), new UroUroRoutine())
-        chara2.position.set(140, 90)
+        chara2.x = 140
+        chara2.y = 90
         this.field.addCharacter(chara2)
-        chara2.zOrder = 1
         // FPSカウンタ
         const fpsCounter = new PixiFps()
         fpsCounter.position.x = 4

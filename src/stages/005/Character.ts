@@ -1,12 +1,26 @@
 import * as PIXI from "pixi.js"
-import { ISortable } from '@/stages/005/SortableParticleContainer'
+
+import { SortableSprite } from '@/stages/005/SortableSprite'
 
 // キャラクター
-export class Character extends PIXI.Sprite implements ISortable {
+export class Character {
   private animationFrame = 0
   private _currentDirection = 2
-  public zOrder = 0
+  public bodySprite!: SortableSprite
   public shadowSprite!: PIXI.Sprite
+
+  private x_: number = 0
+  set x(value: number) { 
+    this.x_ = value
+  }
+  get x() { return this.x_ }
+
+  private y_: number = 0
+  set y(value: number) {
+    this.y_ = value
+  }
+  get y() { return this.y_ }
+
   set currentDirection(value: number) {
     this._currentDirection = value
     this.syncTexture()
@@ -15,14 +29,13 @@ export class Character extends PIXI.Sprite implements ISortable {
     return this._currentDirection
   }
   private animationStep = 0
-  constructor(public texture: PIXI.Texture, private textureOffset: PIXI.Point, private routine: BaseRoutine) {
-    super()
-
-    this.texture = new PIXI.Texture(this.texture.baseTexture, new PIXI.Rectangle(textureOffset.x, textureOffset.y, 32, 64))
+  constructor(texture: PIXI.Texture, private textureOffset: PIXI.Point, private routine: BaseRoutine) {
+    this.bodySprite = new SortableSprite()
+    this.bodySprite.texture = new PIXI.Texture(texture.baseTexture, new PIXI.Rectangle(textureOffset.x, textureOffset.y, 32, 64))
     routine.character = this
-    this.anchor.set(0.5, 0.5)
+    this.bodySprite.anchor.set(0.5, 0.5)
 
-    const shadowTexture = new PIXI.Texture(this.texture.baseTexture, new PIXI.Rectangle(0, 224, 32, 32))
+    const shadowTexture = new PIXI.Texture(texture.baseTexture, new PIXI.Rectangle(0, 224, 32, 32))
     this.shadowSprite = PIXI.Sprite.from(shadowTexture)
     this.shadowSprite.alpha = 0.5
     this.shadowSprite.anchor.set(0.5, 0.5)
@@ -37,13 +50,15 @@ export class Character extends PIXI.Sprite implements ISortable {
       32,
       64
     )
-    this.texture.frame = frame
+    this.bodySprite.texture.frame = frame
   }
   public update() {
     this.routine.update()
+    this.bodySprite.x = this.x
+    this.bodySprite.y = this.y
     this.shadowSprite.x = this.x
     this.shadowSprite.y = this.y + 28
-    this.zOrder = this.position.y
+    this.bodySprite.zOrder = this.bodySprite.position.y
     ++this.animationFrame
     if (this.animationFrame > 30) {
       this.animationFrame = 0
@@ -122,8 +137,8 @@ export class PlayerRoutine extends BaseRoutine {
     if (direction != null) {
       this.character.currentDirection = direction
       const [moveX, moveY] = calcMoveXY(this.character.currentDirection, 1)
-      this.character.position.x += moveX
-      this.character.position.y += moveY
+      this.character.x += moveX
+      this.character.y += moveY
     }
   }
 }
@@ -137,12 +152,11 @@ export class UroUroRoutine extends BaseRoutine {
     super()
   }
   update() {
-    return
     // 移動中
     if (this.isMoving) {
       const [moveX, moveY] = calcMoveXY(this.character.currentDirection, 0.6)
-      this.character.position.x += moveX
-      this.character.position.y += moveY
+      this.character.x += moveX
+      this.character.y += moveY
       --this.frameCountToWait
       if (this.frameCountToWait <= 0) {
         this.frameCountToWait = 0
