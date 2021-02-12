@@ -43,6 +43,35 @@ export class Character {
   private syncTexture() {
     let offsetX = 0
     let offsetY = 0
+    switch(this.currentDirection) {
+      case 1:
+        offsetX = 96
+        break;
+      case 2:
+        break;
+      case 3:
+        offsetX = 96
+        offsetY = 64
+        break;
+      case 4:
+        offsetY = 64
+        break;
+      case 6:
+        offsetY = 128
+        break;
+      case 7:
+        offsetX = 96
+        offsetY = 128
+        break;
+      case 8:
+        offsetY = 192
+        break;
+      case 9:
+        offsetX = 96
+        offsetY = 192
+        break;
+    }
+
     offsetX += (this.animationStep === 3 ? 1 : this.animationStep) * 32
     const frame = new PIXI.Rectangle(
       this.textureOffset.x + offsetX,
