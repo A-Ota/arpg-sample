@@ -18,11 +18,12 @@ export class Field extends PIXI.Container {
     this.bgLayerContainer = new PIXI.ParticleContainer(20000, { uvs: false })
     this.layerContainer = new SortableParticleContainer(20000, { uvs: true, vertices: true, tint: true })
     this.debugLayerContainer = new PIXI.Container()
+    this.debugLayerContainer.visible = false
     this.addChild(this.bgLayerContainer)
     this.addChild(this.layerContainer)
     this.addChild(this.debugLayerContainer)
     const fieldTexture = texture.clone()
-    fieldTexture.frame = new PIXI.Rectangle(0, 0, 16, 16)
+    fieldTexture.frame = new PIXI.Rectangle(16, 0, 16, 16)
     // 地面
     for (let y = 0; y < this.verticalGridNum; ++y) {
       for (let x = 0; x < this.horizontalGridNum; ++x) {
@@ -113,6 +114,7 @@ export class Field extends PIXI.Container {
       this.layerContainer.addChild(treeSprite)
     }
     // みかん
+    /*
     {
       const mikanTexture = texture.clone()
       mikanTexture.frame = new PIXI.Rectangle(128, 0, 32, 32)
@@ -123,6 +125,7 @@ export class Field extends PIXI.Container {
       ;(mikanSprite as any).zOrder = mikanSprite.position.y + 14
       this.layerContainer.addChild(mikanSprite)
     }
+    */
   }
   public addCharacter(character: Character, isTarget: boolean = false) {
     this.characters.push(character)
@@ -131,6 +134,7 @@ export class Field extends PIXI.Container {
     }
     this.layerContainer.addChildZ(character.bodySprite, 1)
     this.layerContainer.addChildZ(character.shadowSprite, 1)
+    this.debugLayerContainer.addChild(character.debugCircle)
   }
   public update() {
     // preUpdate
@@ -189,5 +193,8 @@ export class Field extends PIXI.Container {
       const [x1, y1, x2, y2] = [targetCircle.x, targetCircle.y, character.hitCircle.x, character.hitCircle.y]
       return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)) > targetCircle.radius + character.hitCircle.radius
     })
+  }
+  public setDebugMode(flag: boolean) {
+    this.debugLayerContainer.visible = flag
   }
 }

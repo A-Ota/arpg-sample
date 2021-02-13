@@ -2,10 +2,15 @@
 </style>
 <template>
   <div style="position: relative;">
-    <div style="position: absolute; width: 320px; height: 240px;" ref="pixi_area"></div>
-    <div
-      style="position: absolute; left: 10px; top: 10px; background-color: #0000ff66; color: #fff;"
-    >矢印キーで移動</div>
+    <div style="position: absolute; width: 320px; height: 240px;" ref="pixi_area">
+      <div
+        style="position: absolute; left: 8px; top: 8px; background-color: #0000ff66; color: #fff;"
+      >矢印キーで移動</div>
+      <b-button
+        style="position: absolute; bottom: 8px; right: 8px;"
+        @click="onClickToggleDebugMode"
+      >{{ isDebugMode ? 'デバッグ非表示' : 'デバッグ表示' }}</b-button>
+    </div>
   </div>
 </template>
 
@@ -21,13 +26,13 @@ export default Vue.extend({
     pixiApp: PIXI.Application | null;
     field: Field | null;
     pressedKeyCodeSet: Set<number>;
-    id: number;
+    isDebugMode: boolean;
     } {
     return {
       pixiApp: null,
       field: null,
       pressedKeyCodeSet: new Set(),
-      id: 0
+      isDebugMode: false
     }
   },
   mounted() {
@@ -97,6 +102,10 @@ export default Vue.extend({
       if (this.field != null) {
         this.field.update()
       }
+    },
+    onClickToggleDebugMode() {
+      this.isDebugMode = !this.isDebugMode
+      this.field!.setDebugMode(this.isDebugMode)
     }
   },
   beforeDestroy() {

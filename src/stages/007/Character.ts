@@ -21,7 +21,7 @@ export class Character {
   public preUpdateInfo: PreUpdateInfo | null = null
   public bodySprite!: SortableSprite
   public shadowSprite!: PIXI.Sprite
-  public debugCircle: PIXI.Graphics = new PIXI.Graphics()
+  public debugCircle!: PIXI.Graphics
   set currentDirection(value: number) {
     this._currentDirection = value
     this.syncTexture()
@@ -44,6 +44,9 @@ export class Character {
     this.shadowSprite.anchor.set(0.5, 0.5)
 
     // 当たり判定
+    this.debugCircle = new PIXI.Graphics()
+    this.debugCircle.lineStyle(2, 0xFF5555, 1)
+    this.debugCircle.drawCircle(0, 0, 11)
   }
   private syncTexture() {
     let offsetX = 0
@@ -93,6 +96,7 @@ export class Character {
     ;[this.bodySprite.x, this.bodySprite.y] = [this.x, this.y + 8]
     ;[this.shadowSprite.x, this.shadowSprite.y] = [this.x, this.y]
     ;[this.hitCircle.x, this.hitCircle.y] = [this.x, this.y]
+    ;[this.debugCircle.x, this.debugCircle.y] = [this.x, this.y]
     this.bodySprite.zOrder = this.bodySprite.position.y
     ++this.animationFrame
     if (this.animationFrame > 30) {
