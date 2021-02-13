@@ -1,11 +1,13 @@
 import { Character } from '@/stages/007/Character'
 import { SortableParticleContainer } from '@/stages/005/SortableParticleContainer'
 import * as PIXI from "pixi.js"
+import PixiFps from "pixi-fps";
 
 export class Field extends PIXI.Container {
   private bgLayerContainer!: PIXI.ParticleContainer
   private layerContainer!: SortableParticleContainer
   private debugLayerContainer!: PIXI.Container
+  private fpsCounter!: PixiFps 
   private horizontalGridNum = 30
   private verticalGridNum = 30
   private targetCharacter: Character | null = null
@@ -22,6 +24,16 @@ export class Field extends PIXI.Container {
     this.addChild(this.bgLayerContainer)
     this.addChild(this.layerContainer)
     this.addChild(this.debugLayerContainer)
+    // FPSカウンタ
+    this.fpsCounter = new PixiFps()
+    this.fpsCounter.position.set(4, 220)
+    this.fpsCounter.style = {
+      fontSize: 16,
+      fill: '#FFF'
+    } as PIXI.TextStyle
+    this.fpsCounter.visible = false
+    this.addChild(this.fpsCounter)
+
     const fieldTexture = texture.clone()
     fieldTexture.frame = new PIXI.Rectangle(16, 0, 16, 16)
     // 地面
@@ -196,5 +208,6 @@ export class Field extends PIXI.Container {
   }
   public setDebugMode(flag: boolean) {
     this.debugLayerContainer.visible = flag
+    this.fpsCounter.visible = flag
   }
 }

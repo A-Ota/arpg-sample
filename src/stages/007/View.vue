@@ -19,7 +19,6 @@ import Vue from "vue"
 import * as PIXI from "pixi.js"
 import { Character, PlayerRoutine, UroUroRoutine } from '@/stages/007/Character'
 import { Field } from '@/stages/007/Field'
-import PixiFps from "pixi-fps";
 
 export default Vue.extend({
   data(): {
@@ -76,15 +75,6 @@ export default Vue.extend({
         chara2.x = 100
         chara2.y = 120
         this.field.addCharacter(chara2)
-        // FPSカウンタ
-        const fpsCounter = new PixiFps()
-        fpsCounter.position.x = 4
-        fpsCounter.position.y = 220
-        fpsCounter. style = {
-          fontSize: 16,
-          fill: '#FFF'
-        } as PIXI.TextStyle
-        this.pixiApp!.stage.addChild(fpsCounter)
       })
 
     // メインループ
