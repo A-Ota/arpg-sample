@@ -32,7 +32,6 @@ export class Field extends PIXI.Container {
       fill: '#FFF'
     } as PIXI.TextStyle
     this.fpsCounter.visible = false
-    this.addChild(this.fpsCounter)
 
     const fieldTexture = texture.clone()
     fieldTexture.frame = new PIXI.Rectangle(16, 0, 16, 16)
@@ -138,6 +137,9 @@ export class Field extends PIXI.Container {
       this.layerContainer.addChild(mikanSprite)
     }
     */
+    this.on('added', () => {
+      this.parent.addChild(this.fpsCounter)
+    })
   }
   public addCharacter(character: Character, isTarget: boolean = false) {
     this.characters.push(character)
