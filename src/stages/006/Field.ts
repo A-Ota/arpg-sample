@@ -1,9 +1,7 @@
-import { Character } from '@/stages/005/Character'
+import { Character } from '@/stages/006/Character'
 import { SortableParticleContainer } from '@/stages/005/SortableParticleContainer'
 import * as PIXI from "pixi.js"
-import { SortableSprite } from './SortableSprite'
 
-// まずはpixi-layersを使った場合を試し、次にpixi-tilemapを試す？
 export class Field extends PIXI.Container {
   private bgLayerContainer!: PIXI.ParticleContainer
   private layerContainer!: SortableParticleContainer
