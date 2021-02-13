@@ -119,7 +119,24 @@ export class Field extends PIXI.Container {
     this.layerContainer.addChildZ(character.shadowSprite, 1)
   }
   public update() {
-   this.characters.forEach(chara => chara.update())
+    // preUpdate
+    this.characters.forEach(chara => chara.preUpdate())
+    // 衝突判定など、ゲームの世界の都合でpreUpdateの内容に干渉しつつ、確定させる。
+    this.characters.forEach(chara => {
+      if (chara.preUpdateInfo != null) {
+        const [moveX, moveY] = [chara.preUpdateInfo.moveX, chara.preUpdateInfo.moveY]
+        if ((moveX != 0 || moveY != 0) && this.canMoveCharacter(chara, moveX, moveY)) {
+          chara.x += moveX
+          chara.y += moveY
+        }
+        chara.currentDirection = chara.preUpdateInfo.nextDirection
+        chara.preUpdateInfo = null
+        chara.update()
+      } else {
+        chara.update()
+      }
+    })
+
     const rightLimitX = 320 - 96
     const leftLimitX = 96
     const bottomLimitY = 240 - 96 
@@ -145,5 +162,18 @@ export class Field extends PIXI.Container {
     this.y = Math.floor(Math.min(0, Math.max(-(16 * this.verticalGridNum - 240), this.y)))
     // layerContainerについては自前でソートを行う
     this.layerContainer.sortChildren()
+  }
+  private canMoveCharacter(targetCharacter: Character, offsetX: number, offsetY: number) {
+    const targetCircle = targetCharacter.hitCircle.clone()
+    targetCircle.x += offsetX
+    targetCircle.y += offsetY
+    // まずは他キャラとの衝突判定
+    return this.characters.every(character => {
+      if (targetCharacter === character) {
+        return true
+      }
+      const [x1, y1, x2, y2] = [targetCircle.x, targetCircle.y, character.hitCircle.x, character.hitCircle.y]
+      return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)) > targetCircle.radius + character.hitCircle.radius
+    })
   }
 }

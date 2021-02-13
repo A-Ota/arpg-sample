@@ -2,25 +2,25 @@ import * as PIXI from "pixi.js"
 
 import { SortableSprite } from '@/stages/005/SortableSprite'
 
+// 次フレームで行動したい内容
+class PreUpdateInfo {
+  constructor(
+    public moveX: number,
+    public moveY: number,
+    public nextDirection: number
+    ) {}
+}
+
 // キャラクター
 export class Character {
+  public x: number = 0
+  public y: number = 0
+  public hitCircle: PIXI.Circle = new PIXI.Circle(0, 0, 12)
   private animationFrame = 0
   private _currentDirection = 2
+  public preUpdateInfo: PreUpdateInfo | null = null
   public bodySprite!: SortableSprite
   public shadowSprite!: PIXI.Sprite
-
-  private x_: number = 0
-  set x(value: number) { 
-    this.x_ = value
-  }
-  get x() { return this.x_ }
-
-  private y_: number = 0
-  set y(value: number) {
-    this.y_ = value
-  }
-  get y() { return this.y_ }
-
   set currentDirection(value: number) {
     this._currentDirection = value
     this.syncTexture()
@@ -81,12 +81,13 @@ export class Character {
     )
     this.bodySprite.texture.frame = frame
   }
+  public preUpdate() {
+    this.routine.preUpdate()
+  }
   public update() {
-    this.routine.update()
-    this.bodySprite.x = this.x
-    this.bodySprite.y = this.y
-    this.shadowSprite.x = this.x
-    this.shadowSprite.y = this.y + 28
+    ;[this.bodySprite.x, this.bodySprite.y] = [this.x, this.y - 28]
+    ;[this.shadowSprite.x, this.shadowSprite.y] = [this.x, this.y]
+    ;[this.hitCircle.x, this.hitCircle.y] = [this.x, this.y]
     this.bodySprite.zOrder = this.bodySprite.position.y
     ++this.animationFrame
     if (this.animationFrame > 30) {
@@ -100,7 +101,7 @@ export class Character {
 // ルーチン
 abstract class BaseRoutine {
   public character!: Character
-  abstract update(): void
+  abstract preUpdate(): void
 }
 
 const KEY_CODE_LEFT = 37
@@ -138,7 +139,7 @@ export class PlayerRoutine extends BaseRoutine {
     super()
   }
 
-  public update() {
+  public preUpdate() {
     let direction: number | null = null 
     // 向き取得
     if (this.pressedKeyCodeSet.has(KEY_CODE_LEFT)) {
@@ -164,10 +165,8 @@ export class PlayerRoutine extends BaseRoutine {
     }
     // 向かせたり歩かせたり
     if (direction != null) {
-      this.character.currentDirection = direction
-      const [moveX, moveY] = calcMoveXY(this.character.currentDirection, 1)
-      this.character.x += moveX
-      this.character.y += moveY
+      const [moveX, moveY] = calcMoveXY(direction, 1)
+      this.character.preUpdateInfo = new PreUpdateInfo(moveX, moveY, direction)
     }
   }
 }
@@ -180,12 +179,11 @@ export class UroUroRoutine extends BaseRoutine {
     private frameCountToMove: number = 60) {
     super()
   }
-  update() {
+  preUpdate() {
     // 移動中
     if (this.isMoving) {
       const [moveX, moveY] = calcMoveXY(this.character.currentDirection, 0.6)
-      this.character.x += moveX
-      this.character.y += moveY
+      this.character.preUpdateInfo = new PreUpdateInfo(moveX, moveY, this.character.currentDirection)
       --this.frameCountToWait
       if (this.frameCountToWait <= 0) {
         this.frameCountToWait = 0
@@ -199,7 +197,8 @@ export class UroUroRoutine extends BaseRoutine {
       if (this.frameCountToMove <= 0) {
         this.frameCountToMove = 0
         this.frameCountToWait = 60
-        this.character.currentDirection = [1, 2, 3, 4, 6, 7, 8, 9][Math.floor(Math.random() * 8)]
+        const direction = [1, 2, 3, 4, 6, 7, 8, 9][Math.floor(Math.random() * 8)]
+        this.character.preUpdateInfo = new PreUpdateInfo(0, 0, direction)
         this.isMoving = true
       }
     }

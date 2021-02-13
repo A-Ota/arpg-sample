@@ -63,13 +63,13 @@ export default Vue.extend({
 
         // プレイヤー
         const chara1 = new Character(allTexture, new PIXI.Point(0, 256), new PlayerRoutine(this.pressedKeyCodeSet))
-        chara1.x = 180
-        chara1.y = 110
+        chara1.x = 200
+        chara1.y = 140
         this.field.addCharacter(chara1, true)
         // NPC
         const chara2 = new Character(allTexture, new PIXI.Point(192, 256), new UroUroRoutine())
-        chara2.x = 140
-        chara2.y = 90
+        chara2.x = 160
+        chara2.y = 120
         this.field.addCharacter(chara2)
         // FPSカウンタ
         const fpsCounter = new PixiFps()
