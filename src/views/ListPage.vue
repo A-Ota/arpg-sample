@@ -8,6 +8,7 @@
     <h3 @click="$router.push('/stages/003')">NPCも追加したし、追加された彼は最初から8方向に歩く</h3>
     <h3 @click="$router.push('/stages/004')">地形、スクロール追加</h3>
     <h3 @click="$router.push('/stages/005')">地形を多層レイヤー化</h3>
+    <h3 @click="$router.push('/stages/006')">キャラ同士の衝突判定</h3>
   </div>
 </template>
 
