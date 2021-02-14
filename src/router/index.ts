@@ -49,6 +49,10 @@ const routes = [
     path: '/stages/008',
     component: () => import('../stages/008/View.vue')
   },
+  {
+    path: '/stages/009',
+    component: () => import('../stages/009/View.vue')
+  },
 ]
 
 const router = new VueRouter({
