@@ -8,8 +8,8 @@ export class Field extends PIXI.Container {
   private layerContainer!: SortableParticleContainer
   private debugLayerContainer!: PIXI.Container
   private fpsCounter!: PixiFps 
-  private horizontalGridNum = 30
-  private verticalGridNum = 30
+  private horizontalGridNum = 26
+  private verticalGridNum = 22
   private targetCharacter: Character | null = null
   private characters: Array<Character> = []
   private walls: Array<PIXI.Rectangle> = []
@@ -35,7 +35,7 @@ export class Field extends PIXI.Container {
     this.fpsCounter.visible = false
 
     const fieldTexture = texture.clone()
-    fieldTexture.frame = new PIXI.Rectangle(16, 0, 16, 16)
+    fieldTexture.frame = new PIXI.Rectangle(176, 0, 16, 16)
     // 地面
     for (let y = 0; y < this.verticalGridNum; ++y) {
       for (let x = 0; x < this.horizontalGridNum; ++x) {
@@ -44,112 +44,83 @@ export class Field extends PIXI.Container {
         this.bgLayerContainer.addChild(fieldSprite)
       }
     }
-    // 柵
+    // 壁
     {
-      const sakuLeftTexture = texture.clone()
-      sakuLeftTexture.frame = new PIXI.Rectangle(96, 64, 16, 16)
-      const sakuRightTexture = texture.clone()
-      sakuRightTexture.frame = new PIXI.Rectangle(112, 64, 16, 16)
-      for (let y = 1; y < this.verticalGridNum - 1; ++y) {
-        const sakuLeftSprite = PIXI.Sprite.from(sakuLeftTexture)
-        sakuLeftSprite.position = new PIXI.Point(0, y * 16)
-        this.bgLayerContainer.addChild(sakuLeftSprite)
-        const sakuRightSprite = PIXI.Sprite.from(sakuRightTexture)
-        sakuRightSprite.position = new PIXI.Point(this.horizontalGridNum * 16 - 16, y * 16)
-        this.bgLayerContainer.addChild(sakuRightSprite)
-      }
-      const sakuTopTexture = texture.clone()
-      sakuTopTexture.frame = new PIXI.Rectangle(96, 96, 16, 16)
-      const sakuBottomTexture = texture.clone()
-      sakuBottomTexture.frame = new PIXI.Rectangle(112, 96, 16, 16)
+      const upperWallTexture = texture.clone()
+      upperWallTexture.frame = new PIXI.Rectangle(176, 48, 16, 48)
+      const bottomWallTexture = texture.clone()
+      bottomWallTexture.frame = new PIXI.Rectangle(176, 16, 16, 32)
+      // 上下
       for (let x = 1; x < this.horizontalGridNum - 1; ++x) {
-        const sakuTopSprite = PIXI.Sprite.from(sakuTopTexture)
-        sakuTopSprite.position = new PIXI.Point(x * 16, 0)
-        this.bgLayerContainer.addChild(sakuTopSprite)
-        const sakuBottomSprite = PIXI.Sprite.from(sakuBottomTexture)
-        sakuBottomSprite.position = new PIXI.Point(x * 16, this.verticalGridNum * 16 - 16)
-        this.bgLayerContainer.addChild(sakuBottomSprite)
+        const upperWallSprite = PIXI.Sprite.from(upperWallTexture)
+        upperWallSprite.position.set(x * 16, 0)
+        this.bgLayerContainer.addChild(upperWallSprite)
+        const bottomWallSprite = PIXI.Sprite.from(bottomWallTexture)
+        bottomWallSprite.position.set(x * 16, this.verticalGridNum * 16 - 32)
+        this.layerContainer.addChildZ(bottomWallSprite, Number.MAX_VALUE)
       }
-      const sakueLeftTopTexture = texture.clone()
-      sakueLeftTopTexture.frame = new PIXI.Rectangle(96, 48, 16, 16)
-      const sakueLeftTopSprite = PIXI.Sprite.from(sakueLeftTopTexture)
-      sakueLeftTopSprite.position = new PIXI.Point(0, 0)
-      this.bgLayerContainer.addChild(sakueLeftTopSprite)
-      const sakueRightTopTexture = texture.clone()
-      sakueRightTopTexture.frame = new PIXI.Rectangle(112, 48, 16, 16)
-      const sakueRightTopSprite = PIXI.Sprite.from(sakueRightTopTexture)
-      sakueRightTopSprite.position = new PIXI.Point(this.horizontalGridNum * 16 - 16, 0)
-      this.bgLayerContainer.addChild(sakueRightTopSprite)
-      const sakueLeftBottomTexture = texture.clone()
-      sakueLeftBottomTexture.frame = new PIXI.Rectangle(96, 80, 16, 16)
-      const sakueLeftBottomSprite = PIXI.Sprite.from(sakueLeftBottomTexture)
-      sakueLeftBottomSprite.position = new PIXI.Point(0, this.verticalGridNum * 16 - 16)
-      this.bgLayerContainer.addChild(sakueLeftBottomSprite)
-      const sakueRightBottomTexture = texture.clone()
-      sakueRightBottomTexture.frame = new PIXI.Rectangle(112, 80, 16, 16)
-      const sakueRightBottomSprite = PIXI.Sprite.from(sakueRightBottomTexture)
-      sakueRightBottomSprite.position = new PIXI.Point(this.horizontalGridNum * 16 - 16, this.verticalGridNum * 16 - 16)
-      this.bgLayerContainer.addChild(sakueRightBottomSprite)
+      const leftWallTexture = texture.clone()
+      leftWallTexture.frame = new PIXI.Rectangle(192, 32, 16, 16)
+      const rightWallTexture = texture.clone()
+      rightWallTexture.frame = new PIXI.Rectangle(160, 32, 16, 32)
+      // 左右
+      for (let y = 1; y < this.verticalGridNum - 2; ++y) {
+        const leftWallSprite = PIXI.Sprite.from(leftWallTexture)
+        leftWallSprite.position.set(0, y * 16)
+        this.layerContainer.addChildZ(leftWallSprite, Number.MAX_VALUE)
+        const rightWallSprite = PIXI.Sprite.from(rightWallTexture)
+        rightWallSprite.position.set(this.horizontalGridNum * 16 - 16, y * 16)
+        this.layerContainer.addChildZ(rightWallSprite, Number.MAX_VALUE)
+      }
+      const blackTexture = texture.clone()
+      blackTexture.frame = new PIXI.Rectangle(176, 32, 16, 16)
+      // 左上
+      const leftTopWallTexture = texture.clone()
+      leftTopWallTexture.frame = new PIXI.Rectangle(192, 64, 16, 16)
+      const leftTopWallSprite = PIXI.Sprite.from(leftTopWallTexture)
+      this.layerContainer.addChildZ(leftTopWallSprite, Number.MAX_VALUE)
+      // 右上
+      const rightTopWallTexture = texture.clone()
+      rightTopWallTexture.frame = new PIXI.Rectangle(208, 64, 16, 16)
+      const rightTopWallSprite = PIXI.Sprite.from(rightTopWallTexture)
+      rightTopWallSprite.position.set(this.horizontalGridNum * 16 - 16, 0)
+      this.layerContainer.addChildZ(rightTopWallSprite, Number.MAX_VALUE)
+      // 左下
+      const leftBottomWallTexture = texture.clone()
+      leftBottomWallTexture.frame = new PIXI.Rectangle(192, 80, 16, 16)
+      const leftBottomWallSprite = PIXI.Sprite.from(leftBottomWallTexture)
+      leftBottomWallSprite.position.set(0, this.verticalGridNum * 16 - 32)
+      this.layerContainer.addChildZ(leftBottomWallSprite, Number.MAX_VALUE)
+      const leftBottomBlackSprite = PIXI.Sprite.from(blackTexture)
+      leftBottomBlackSprite.position.set(0, this.verticalGridNum * 16 - 16)
+      this.layerContainer.addChildZ(leftBottomBlackSprite, Number.MAX_VALUE)
+      // 右下
+      const rightBottomWallTexture = texture.clone()
+      rightBottomWallTexture.frame = new PIXI.Rectangle(208, 80, 16, 16)
+      const rightBottomWallSprite = PIXI.Sprite.from(rightBottomWallTexture)
+      rightBottomWallSprite.position.set(this.horizontalGridNum * 16 -16, this.verticalGridNum * 16 - 32)
+      this.layerContainer.addChildZ(rightBottomWallSprite, Number.MAX_VALUE)
+      const rightBottomBlackSprite = PIXI.Sprite.from(blackTexture)
+      rightBottomBlackSprite.position.set(this.horizontalGridNum * 16 - 16, this.verticalGridNum * 16 - 16)
+      this.layerContainer.addChildZ(rightBottomBlackSprite, Number.MAX_VALUE)
     }
-    // 木(下)
-    {
-      const treeTexture = texture.clone()
-      treeTexture.frame = new PIXI.Rectangle(32, 64, 64, 16)
-      const treeSprite = PIXI.Sprite.from(treeTexture)
-      treeSprite.position = new PIXI.Point((this.horizontalGridNum * 16) / 2 - 32, (this.verticalGridNum * 18 / 2))
-      this.bgLayerContainer.addChild(treeSprite)
-    }
-    // 木(上)
-    {
-      const treeTexture = texture.clone()
-      treeTexture.frame = new PIXI.Rectangle(32, 0, 64, 64)
-      const treeSprite = new PIXI.Sprite(treeTexture)
-      treeSprite.position = new PIXI.Point((this.horizontalGridNum * 16) / 2 - 32, (this.verticalGridNum * 18 / 2) - 64)
-      ;(treeSprite as any).zOrder = treeSprite.position.y + 68
-      this.layerContainer.addChild(treeSprite)
-    }
-    // 木(下)
-    {
-      const treeTexture = texture.clone()
-      treeTexture.frame = new PIXI.Rectangle(32, 64, 64, 16)
-      const treeSprite = PIXI.Sprite.from(treeTexture)
-      treeSprite.position = new PIXI.Point((this.horizontalGridNum * 14) / 2 - 32, (this.verticalGridNum * 15 / 2))
-      this.bgLayerContainer.addChild(treeSprite)
-    }
-    // 木(上)
-    {
-      const treeTexture = texture.clone()
-      treeTexture.frame = new PIXI.Rectangle(32, 0, 64, 64)
-      const treeSprite = new PIXI.Sprite(treeTexture)
-      treeSprite.position = new PIXI.Point((this.horizontalGridNum * 14) / 2 - 32, (this.verticalGridNum * 15 / 2) - 64)
-      ;(treeSprite as any).zOrder = treeSprite.position.y + 68
-      this.layerContainer.addChild(treeSprite)
-    }
-    // みかん
-    /*
-    {
-      const mikanTexture = texture.clone()
-      mikanTexture.frame = new PIXI.Rectangle(128, 0, 32, 32)
-      const mikanSprite = new PIXI.Sprite(mikanTexture)
-      mikanSprite.anchor.set(0.5, 0.5)
-      // mikanSprite.position = new PIXI.Point((this.horizontalGridNum * 10) / 2 - 32, (this.verticalGridNum * 10 / 2) - 64)
-      mikanSprite.position.set(150, 60)
-      ;(mikanSprite as any).zOrder = mikanSprite.position.y + 14
-      this.layerContainer.addChild(mikanSprite)
-    }
-    */
     // 障害物設定
     {
-      const rect = new PIXI.Rectangle(32, 96, 32, 128)
-      this.walls.push(rect)
-      const wallGraphic = new PIXI.Graphics()
-      wallGraphic.lineStyle(2, 0x5555FF, 1)
-      wallGraphic.drawRect(rect.x + 1, rect.y + 1, rect.width - 2, rect.height - 2)
-      this.debugLayerContainer.addChild(wallGraphic)
+      this.addWall(new PIXI.Rectangle(0, 0, 16, this.verticalGridNum * 16))
+      this.addWall(new PIXI.Rectangle(this.horizontalGridNum * 16 - 16, 0, 16, this.verticalGridNum * 16))
+      this.addWall(new PIXI.Rectangle(16, 0, this.horizontalGridNum * 16 - 32, 48))
+      this.addWall(new PIXI.Rectangle(16, this.verticalGridNum * 16, this.horizontalGridNum * 16 - 32, 16))
     }
     this.on('added', () => {
       this.parent.addChild(this.fpsCounter)
     })
+  }
+  private addWall(rect: PIXI.Rectangle) {
+    this.walls.push(rect)
+    const wallGraphic = new PIXI.Graphics()
+    wallGraphic.lineStyle(2, 0x5555FF, 1)
+    wallGraphic.drawRect(rect.x + 1, rect.y + 1, rect.width - 2, rect.height - 2)
+    this.debugLayerContainer.addChild(wallGraphic)
   }
   public addCharacter(character: Character, isTarget: boolean = false) {
     this.characters.push(character)

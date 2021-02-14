@@ -16,7 +16,7 @@ export class Character {
   public x: number = 0
   public y: number = 0
   public hitCircle: PIXI.Circle = new PIXI.Circle(0, 0, 12)
-  public hitRect: PIXI.Rectangle = new PIXI.Rectangle(-8, -8, 16, 16)
+  public hitRect: PIXI.Rectangle = new PIXI.Rectangle(-12, -12, 24, 24)
   private animationFrame = 0
   private _currentDirection = 2
   public preUpdateInfo: PreUpdateInfo | null = null
@@ -104,7 +104,7 @@ export class Character {
     ;[this.shadowSprite.x, this.shadowSprite.y] = [this.x, this.y]
     ;[this.hitCircle.x, this.hitCircle.y] = [this.x, this.y]
     ;[this.debugCircle.x, this.debugCircle.y] = [this.x, this.y]
-    ;[this.hitRect.x, this.hitRect.y] = [this.x - 8, this.y - 8]
+    ;[this.hitRect.x, this.hitRect.y] = [this.x - 12, this.y - 12]
     ;[this.debugRect.x, this.debugRect.y] = [this.x, this.y]
     this.bodySprite.zOrder = this.bodySprite.position.y
     ++this.animationFrame
