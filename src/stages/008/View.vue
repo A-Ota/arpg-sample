@@ -68,12 +68,12 @@ export default Vue.extend({
         // プレイヤー
         const chara1 = new Character(allTexture, new PIXI.Point(0, 256), new PlayerRoutine(this.pressedKeyCodeSet))
         chara1.x = 200
-        chara1.y = 140
+        chara1.y = 160
         this.field.addCharacter(chara1, true)
         // NPC
         const chara2 = new Character(allTexture, new PIXI.Point(192, 256), new UroUroRoutine())
-        chara2.x = 100
-        chara2.y = 120
+        chara2.x = 240
+        chara2.y = 180
         this.field.addCharacter(chara2)
       })
 

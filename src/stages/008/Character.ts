@@ -198,7 +198,6 @@ export class UroUroRoutine extends BaseRoutine {
     super()
   }
   preUpdate() {
-    return
     // 移動中
     if (this.isMoving) {
       const [moveX, moveY] = calcMoveXY(this.character.currentDirection, 0.6)
