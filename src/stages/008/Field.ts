@@ -113,6 +113,53 @@ export class Field extends PIXI.Container {
           this.layerContainer.addChildZ(hakoSprite, hakoSprite.position.y)
         }
       }
+      // 影
+      const shadowTexture = texture.clone()
+      shadowTexture.frame = new PIXI.Rectangle(0, 208, 16, 16)
+      for (let x = 1; x < this.horizontalGridNum - 1; ++x) {
+        const shadowSprite = PIXI.Sprite.from(shadowTexture)
+        shadowSprite.alpha = 0.3
+        shadowSprite.position.set(16 * x, 48)
+        this.bgLayerContainer.addChild(shadowSprite)
+      }
+      for (let y = 4; y < this.verticalGridNum - 1; ++y) {
+        const shadowSprite = PIXI.Sprite.from(shadowTexture)
+        shadowSprite.alpha = 0.3
+        shadowSprite.position.set(16, 16 * y)
+        this.bgLayerContainer.addChild(shadowSprite)
+      }
+      const shadowSmallBottomTexture = texture.clone()
+      shadowSmallBottomTexture.frame = new PIXI.Rectangle(16, 192, 16, 16)
+      const shadowSmallRightTexture = texture.clone()
+      shadowSmallRightTexture.frame = new PIXI.Rectangle(32, 192, 16, 16)
+      const shadowSmallRightBottomTexture = texture.clone()
+      shadowSmallRightBottomTexture.frame = new PIXI.Rectangle(16, 208, 16, 16)
+      for (let x = 2; x < 7; ++x) {
+        const shadowSprite = PIXI.Sprite.from(shadowSmallBottomTexture)
+        shadowSprite.alpha = 0.3
+        shadowSprite.position.set(16 * x, 224)
+        this.bgLayerContainer.addChild(shadowSprite)
+      }
+      {
+        const shadowSprite = PIXI.Sprite.from(shadowSmallRightBottomTexture)
+        shadowSprite.alpha = 0.3
+        shadowSprite.position.set(16 * 7, 224)
+        this.bgLayerContainer.addChild(shadowSprite)
+      }
+      {
+        const shadowSprite = PIXI.Sprite.from(shadowSmallRightTexture)
+        shadowSprite.alpha = 0.3
+        shadowSprite.position.set(16 * 7, 208)
+        this.bgLayerContainer.addChild(shadowSprite)
+      }
+      {
+        const shadowSmallCornerTexture = texture.clone()
+        shadowSmallCornerTexture.frame = new PIXI.Rectangle(0, 192, 16, 16)
+        const shadowSprite = PIXI.Sprite.from(shadowSmallCornerTexture)
+        shadowSprite.alpha = 0.3
+        shadowSprite.position.set(16 * 7, 192)
+        this.bgLayerContainer.addChild(shadowSprite)
+      }
     }
     // 障害物設定
     {
