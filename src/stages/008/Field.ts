@@ -103,6 +103,16 @@ export class Field extends PIXI.Container {
       const rightBottomBlackSprite = PIXI.Sprite.from(blackTexture)
       rightBottomBlackSprite.position.set(this.horizontalGridNum * 16 - 16, this.verticalGridNum * 16 - 16)
       this.layerContainer.addChildZ(rightBottomBlackSprite, Number.MAX_VALUE)
+      // 木箱
+      {
+        const hakoTexture = texture.clone()
+        hakoTexture.frame = new PIXI.Rectangle(128, 32, 32, 32)
+        for (let x = 0; x < 3; ++x) {
+          const hakoSprite = PIXI.Sprite.from(hakoTexture)
+          hakoSprite.position.set(16 + (x * 32), 16 * 12)
+          this.layerContainer.addChildZ(hakoSprite, hakoSprite.position.y)
+        }
+      }
     }
     // 障害物設定
     {
@@ -110,6 +120,7 @@ export class Field extends PIXI.Container {
       this.addWall(new PIXI.Rectangle(this.horizontalGridNum * 16 - 16, 0, 16, this.verticalGridNum * 16))
       this.addWall(new PIXI.Rectangle(16, 0, this.horizontalGridNum * 16 - 32, 48))
       this.addWall(new PIXI.Rectangle(16, this.verticalGridNum * 16, this.horizontalGridNum * 16 - 32, 16))
+      this.addWall(new PIXI.Rectangle(16, 16 * 12, 96, 32))
     }
     this.on('added', () => {
       this.parent.addChild(this.fpsCounter)
