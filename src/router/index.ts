@@ -53,6 +53,10 @@ const routes = [
     path: '/stages/009',
     component: () => import('../stages/009/View.vue')
   },
+  {
+    path: '/stages/010',
+    component: () => import('../stages/010/View.vue')
+  },
 ]
 
 const router = new VueRouter({
