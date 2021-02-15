@@ -32,7 +32,7 @@ export class Character {
     return this._currentDirection
   }
   private animationStep = 0
-  constructor(texture: PIXI.Texture, private textureOffset: PIXI.Point, private routine: BaseRoutine) {
+  constructor(texture: PIXI.Texture, private textureOffset: PIXI.Point, public routine: BaseRoutine) {
     // 体
     this.bodySprite = new SortableSprite()
     this.bodySprite.texture = new PIXI.Texture(texture.baseTexture, new PIXI.Rectangle(textureOffset.x, textureOffset.y, 32, 64))
@@ -183,42 +183,26 @@ export class PlayerRoutine extends BaseRoutine {
     }
     // 向かせたり歩かせたり
     if (direction != null) {
-      const [moveX, moveY] = calcMoveXY(direction, 2)
+      const [moveX, moveY] = calcMoveXY(direction, 5)
       this.character.preUpdateInfo = new PreUpdateInfo(moveX, moveY, direction)
     }
   }
 }
 
-// うろうろルーチン
-export class UroUroRoutine extends BaseRoutine {
-  constructor(
-    private isMoving = false,
-    private frameCountToWait: number = 0,
-    private frameCountToMove: number = 60) {
+export class DashRoutine extends BaseRoutine {
+  constructor(private isMoving = false) {
     super()
+  }
+  public dash() {
+    this.isMoving = true
+  }
+  public stop() {
+    this.isMoving = false
   }
   preUpdate() {
     // 移動中
     if (this.isMoving) {
-      const [moveX, moveY] = calcMoveXY(this.character.currentDirection, 0.6)
-      this.character.preUpdateInfo = new PreUpdateInfo(moveX, moveY, this.character.currentDirection)
-      --this.frameCountToWait
-      if (this.frameCountToWait <= 0) {
-        this.frameCountToWait = 0
-        this.frameCountToMove = 60 + 30 * Math.floor(Math.random() * 3)
-        this.isMoving = false
-      }
-    }
-    // 待機中
-    else {
-      --this.frameCountToMove
-      if (this.frameCountToMove <= 0) {
-        this.frameCountToMove = 0
-        this.frameCountToWait = 60
-        const direction = [1, 2, 3, 4, 6, 7, 8, 9][Math.floor(Math.random() * 8)]
-        this.character.preUpdateInfo = new PreUpdateInfo(0, 0, direction)
-        this.isMoving = true
-      }
+      this.character.preUpdateInfo = new PreUpdateInfo(-15, 0, 4)
     }
   }
 }

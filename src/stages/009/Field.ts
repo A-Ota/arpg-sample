@@ -3,6 +3,7 @@ import { SortableParticleContainer } from '@/stages/005/SortableParticleContaine
 import * as PIXI from "pixi.js"
 
 export class Field extends PIXI.Container {
+  public exactlyMove = false
   private bgLayerContainer!: PIXI.ParticleContainer
   private layerContainer!: SortableParticleContainer
   private debugLayerContainer!: PIXI.Container
@@ -189,29 +190,42 @@ export class Field extends PIXI.Container {
         const [moveX, moveY] = [chara.preUpdateInfo.moveX, chara.preUpdateInfo.moveY]
         if ((moveX != 0 || moveY != 0)) {
           if (!this.hitOtherCaracter(chara, moveX, moveY)) {
-            const [hit, excessX, excessY] = this.hitWall(chara, moveX, moveY)
-            // ぶつからなかった
-            if (!hit) {
-              chara.x += moveX
-              chara.y += moveY
-            }
-            // ぶつかった 
-            else {
-              // 上下左右移動時は押し戻しに従う
-              if (excessX === 0 || excessY === 0) {
-                chara.x += (moveX - excessX)
-                chara.y += (moveY - excessY)
+            if (this.exactlyMove) {
+              const [hit, excessX, excessY] = this.hitWall(chara, moveX, moveY)
+              // ぶつからなかった
+              if (!hit) {
+                chara.x += moveX
+                chara.y += moveY
               }
-              // 斜め移動時は片方のみの移動を試みる
+              // ぶつかった 
               else {
-                if (!this.hitWall(chara, 0, moveY)[0]) {
-                  chara.y += moveY
-                  chara.x += (moveX - excessX) // 移動しなかった方向についても押し戻しは適用
+                // 上下左右移動時は押し戻しに従う
+                if (excessX === 0 || excessY === 0) {
+                  chara.x += (moveX - excessX)
+                  chara.y += (moveY - excessY)
                 }
-                else if (!this.hitWall(chara, moveX, 0)[0]) {
-                  chara.x += moveX
-                  chara.y += (moveY - excessY) // 移動しなかった方向についても押し戻しは適用
+                // 斜め移動時は片方のみの移動を試みる
+                else {
+                  if (!this.hitWall(chara, 0, moveY)[0]) {
+                    chara.y += moveY
+                    chara.x += (moveX - excessX) // 移動しなかった方向についても押し戻しは適用
+                  }
+                  else if (!this.hitWall(chara, moveX, 0)[0]) {
+                    chara.x += moveX
+                    chara.y += (moveY - excessY) // 移動しなかった方向についても押し戻しは適用
+                  }
                 }
+              }
+            } else {
+              if (!this.hitWall(chara, moveX, moveY)[0]) {
+                chara.x += moveX
+                chara.y += moveY
+              }
+              else if (!this.hitWall(chara, 0, moveY)[0]) {
+                chara.y += moveY
+              }
+              else if (!this.hitWall(chara, moveX, 0)[0]) {
+                chara.x += moveX
               }
             }
           }

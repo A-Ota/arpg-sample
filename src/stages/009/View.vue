@@ -1,15 +1,19 @@
 <style scoped lang="scss">
+.button {
+  margin: 4px;
+}
 </style>
 <template>
   <div style="position: relative;">
     <div style="width: 320px; height: 240px;" ref="pixi_area">
     </div>
-    <div v-if="isDebugMode" style="position: absolute; left: 4px; top: 4px; color: #fff;">{{ (1000 / fpsCounter.averageMs).toFixed(2) }} fps</div>
-    <div style="margin: 4px;">矢印キーで8方向に移動</div>
-      <b-button
-        style="bottom: 8px; right: 8px;"
-        @click="onClickToggleDebugMode"
-      >{{ isDebugMode ? 'デバッグ非表示' : 'デバッグ表示' }}</b-button>
+    <b-button class="button" style="bottom: 8px; right: 8px;" @click="onClickRun">走る</b-button>
+    <b-button class="button" style="bottom: 8px; right: 8px;" @click="onClickReset">リセット</b-button>
+    <b-form-checkbox
+      id="exactly-move"
+      v-model="exactlyMove"
+      @change="onChangeExactryMove"
+    >移動中に壁に衝突時に、ぴったり張り付く。</b-form-checkbox>
   </div>
 </template>
 
@@ -17,7 +21,7 @@
 // 高速歩きで壁にぶつかった場合、移動しないのではなくx, yについて移動できるところまで戻してあげる。
 import Vue from "vue"
 import * as PIXI from "pixi.js"
-import { Character, PlayerRoutine, UroUroRoutine } from '@/stages/009/Character'
+import { Character, PlayerRoutine, DashRoutine } from '@/stages/009/Character'
 import { Field } from '@/stages/009/Field'
 
 class FpsCounter {
@@ -43,15 +47,17 @@ export default Vue.extend({
     pixiApp: PIXI.Application | null;
     field: Field | null;
     pressedKeyCodeSet: Set<number>;
-    isDebugMode: boolean;
     fpsCounter: FpsCounter;
+    npc: Character | null;
+    exactlyMove: boolean;
     } {
     return {
       pixiApp: null,
       field: null,
       pressedKeyCodeSet: new Set(),
-      isDebugMode: false,
-      fpsCounter: new FpsCounter()
+      fpsCounter: new FpsCounter(),
+      npc: null,
+      exactlyMove: false
     }
   },
   mounted() {
@@ -108,14 +114,16 @@ export default Vue.extend({
         // プレイヤー
         const chara1 = new Character(renderTexture, new PIXI.Point(0, 128), new PlayerRoutine(this.pressedKeyCodeSet))
         chara1.x = 200
-        chara1.y = 160
+        chara1.y = 120
         this.field.addCharacter(chara1, true)
         // NPC
-        const chara2 = new Character(renderTexture, new PIXI.Point(192, 128), new UroUroRoutine())
-        chara2.x = 240
-        chara2.y = 180
-        this.field.addCharacter(chara2)
+        this.npc = new Character(renderTexture, new PIXI.Point(192, 128), new DashRoutine())
+        this.npc.x = 272
+        this.npc.y = 208
+        this.npc.currentDirection = 4
+        this.field.addCharacter(this.npc)
 
+        this.field!.setDebugMode(true)
       })
 
     // メインループ
@@ -134,14 +142,21 @@ export default Vue.extend({
         this.field.update()
       }
     },
-    onClickToggleDebugMode() {
-      this.isDebugMode = !this.isDebugMode
-      this.field!.setDebugMode(this.isDebugMode)
+    onClickRun() {
+      (this.npc!.routine as DashRoutine).dash()
+    },
+    onClickReset() {
+      (this.npc!.routine as DashRoutine).stop()
+      this.npc!.x = 272
+      this.npc!.y = 208
+      this.npc!.currentDirection = 4
+    },
+    onChangeExactryMove(flag: boolean) {
+      this.field!.exactlyMove = flag
     }
   },
   beforeDestroy() {
     // this.pixiApp!.ticker.remove(this.update)
-    console.log('bdd')
     this.pixiApp!.destroy(true)
   },
   components: {},
