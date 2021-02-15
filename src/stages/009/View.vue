@@ -13,7 +13,7 @@
       id="exactly-move"
       v-model="exactlyMove"
       @change="onChangeExactryMove"
-    >移動中に壁に衝突時に、ぴったり張り付く。</b-form-checkbox>
+    >高速で壁に衝突しても、隙間が空かない。</b-form-checkbox>
   </div>
 </template>
 

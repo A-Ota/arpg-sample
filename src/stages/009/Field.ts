@@ -187,10 +187,18 @@ export class Field extends PIXI.Container {
     // 衝突判定など、ゲームの世界の都合でpreUpdateの内容に干渉しつつ、確定させる。
     this.characters.forEach(chara => {
       if (chara.preUpdateInfo != null) {
-        const [moveX, moveY] = [chara.preUpdateInfo.moveX, chara.preUpdateInfo.moveY]
+        let [moveX, moveY] = [chara.preUpdateInfo.moveX, chara.preUpdateInfo.moveY]
         if ((moveX != 0 || moveY != 0)) {
-          if (!this.hitOtherCaracter(chara, moveX, moveY)) {
-            if (this.exactlyMove) {
+          if (this.exactlyMove) {
+            // キャラ
+            const [hitCharacter, hitDistanceRate] = this.hitOtherCaracter(chara, moveX, moveY)
+            if (hitCharacter) {
+              // キャラにめり込んだ分を戻す
+              moveX = (moveX - (moveX * hitDistanceRate))
+              moveY = (moveY - (moveY * hitDistanceRate))
+            }
+            // 地形
+            {
               const [hit, excessX, excessY] = this.hitWall(chara, moveX, moveY)
               // ぶつからなかった
               if (!hit) {
@@ -216,7 +224,9 @@ export class Field extends PIXI.Container {
                   }
                 }
               }
-            } else {
+            }
+          } else {
+            if (!this.hitOtherCaracter(chara, moveX, moveY)[0]) {
               if (!this.hitWall(chara, moveX, moveY)[0]) {
                 chara.x += moveX
                 chara.y += moveY
@@ -265,17 +275,22 @@ export class Field extends PIXI.Container {
     this.layerContainer.sortChildren()
   }
   // 他キャラとの衝突判定
-  private hitOtherCaracter(targetCharacter: Character, offsetX: number, offsetY: number) {
+  private hitOtherCaracter(targetCharacter: Character, offsetX: number, offsetY: number): [boolean, number] {
     const targetCircle = targetCharacter.hitCircle.clone()
     targetCircle.x += offsetX
     targetCircle.y += offsetY
-    return this.characters.some(character => {
+    let hitDistance = 0
+    const hit = this.characters.some(character => {
       if (targetCharacter === character) {
         return false
       }
       const [x1, y1, x2, y2] = [targetCircle.x, targetCircle.y, character.hitCircle.x, character.hitCircle.y]
-      return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)) <= targetCircle.radius + character.hitCircle.radius
+      // めり込んだ距離(の2乗)
+      hitDistance = (targetCircle.radius + character.hitCircle.radius) - Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))
+      const hit = hitDistance >= 0
+      return hit
     })
+    return [hit, hit ? hitDistance / Math.sqrt(Math.pow(offsetX, 2) + Math.pow(offsetY, 2)) : 0]
   }
   // 壁との衝突判定
   private hitWall(targetCharacter: Character, offsetX: number, offsetY: number): [boolean, number, number] {
