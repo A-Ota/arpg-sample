@@ -189,15 +189,30 @@ export class Field extends PIXI.Container {
         const [moveX, moveY] = [chara.preUpdateInfo.moveX, chara.preUpdateInfo.moveY]
         if ((moveX != 0 || moveY != 0)) {
           if (!this.hitOtherCaracter(chara, moveX, moveY)) {
-            if (!this.hitWall(chara, moveX, moveY)) {
+            const [hit, excessX, excessY] = this.hitWall(chara, moveX, moveY)
+            // ぶつからなかった
+            if (!hit) {
               chara.x += moveX
               chara.y += moveY
             }
-            else if (!this.hitWall(chara, 0, moveY)) {
-              chara.y += moveY
-            }
-            else if (!this.hitWall(chara, moveX, 0)) {
-              chara.x += moveX
+            // ぶつかった 
+            else {
+              // 上下左右移動時は押し戻しに従う
+              if (excessX === 0 || excessY === 0) {
+                chara.x += (moveX - excessX)
+                chara.y += (moveY - excessY)
+              }
+              // 斜め移動時は片方のみの移動を試みる
+              else {
+                if (!this.hitWall(chara, 0, moveY)[0]) {
+                  chara.y += moveY
+                  chara.x += (moveX - excessX) // 移動しなかった方向についても押し戻しは適用
+                }
+                else if (!this.hitWall(chara, moveX, 0)[0]) {
+                  chara.x += moveX
+                  chara.y += (moveY - excessY) // 移動しなかった方向についても押し戻しは適用
+                }
+              }
             }
           }
         }
@@ -249,15 +264,32 @@ export class Field extends PIXI.Container {
     })
   }
   // 壁との衝突判定
-  private hitWall(targetCharacter: Character, offsetX: number, offsetY: number) {
+  private hitWall(targetCharacter: Character, offsetX: number, offsetY: number): [boolean, number, number] {
     const targetRect = targetCharacter.hitRect.clone()
     targetRect.x += offsetX
     targetRect.y += offsetY
-    return this.walls.some(wall => {
-      const hHit = targetRect.left <= wall.right && targetRect.right >= wall.left
-      const vHit = targetRect.top <= wall.bottom && targetRect.bottom >= wall.top
-      return hHit && vHit
+    let excessX = 0 // めり込んだ量X
+    let excessY = 0 // めり込んだ量Y
+    const hit = this.walls.some(wall => {
+      const hHit = targetRect.left < wall.right && targetRect.right > wall.left
+      const vHit = targetRect.top < wall.bottom && targetRect.bottom > wall.top
+      const hit = hHit && vHit
+      // 衝突した場合はめり込み量計算
+      if (hit) {
+        if (offsetX < 0) {
+          excessX = targetRect.left - wall.right
+        } else if (offsetX > 0) {
+          excessX = targetRect.right - wall.left
+        }
+        if (offsetY < 0) {
+          excessY = targetRect.top - wall.bottom
+        } else if (offsetY > 0) {
+          excessY = targetRect.bottom - wall.top
+        }
+      }
+      return hit
     })
+    return [hit, excessX, excessY]
   }
   public setDebugMode(flag: boolean) {
     this.debugLayerContainer.visible = flag

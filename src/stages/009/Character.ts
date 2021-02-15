@@ -183,7 +183,7 @@ export class PlayerRoutine extends BaseRoutine {
     }
     // 向かせたり歩かせたり
     if (direction != null) {
-      const [moveX, moveY] = calcMoveXY(direction, 1)
+      const [moveX, moveY] = calcMoveXY(direction, 2)
       this.character.preUpdateInfo = new PreUpdateInfo(moveX, moveY, direction)
     }
   }
