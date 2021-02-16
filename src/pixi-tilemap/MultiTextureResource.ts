@@ -1,3 +1,4 @@
+// @ts-nocheck
 /// <reference path="types.d.ts" />
 
 import { ALPHA_MODES } from '@pixi/constants';
