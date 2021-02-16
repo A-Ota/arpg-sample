@@ -1,3 +1,4 @@
+// @ts-nocheck
 /// <reference path="types.d.ts" />
 
 import { Container, Bounds } from '@pixi/display';

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { WRAP_MODES } from '@pixi/constants';
 import { BaseTexture, Buffer, resources, ObjectRenderer, Texture, Renderer } from '@pixi/core';
 import { Constant } from './Constant';
