@@ -1,6 +1,7 @@
 import { Character } from '@/stages/010/Character'
 import { SortableParticleContainer } from '@/stages/005/SortableParticleContainer'
 import * as PIXI from "pixi.js"
+import { pixi_tilemap } from '@/index'
 
 export class Field extends PIXI.Container {
   private bgLayerContainer!: PIXI.Container
@@ -11,6 +12,8 @@ export class Field extends PIXI.Container {
   constructor(private texture: PIXI.Texture) {
     super()
     this.sortableChildren = true
+    console.log(pixi_tilemap)
+    pixi_tilemap.Constant.maxTextures = 4;
 
     this.bgLayerContainer = new PIXI.ParticleContainer(20000, { uvs: false })
     // this.bgLayerContainer = new PIXI.Container()
