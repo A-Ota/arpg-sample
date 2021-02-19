@@ -1,32 +1,43 @@
 import { Character } from '@/stages/010/Character'
 import { SortableParticleContainer } from '@/stages/005/SortableParticleContainer'
 import * as PIXI from "pixi.js"
-import { pixi_tilemap } from '@/index'
+import * as pixi_tilemap from '@/pixi-tilemap/index'
 
 export class Field extends PIXI.Container {
   private bgLayerContainer!: PIXI.Container
   private debugLayerContainer!: PIXI.Container
-  private horizontalGridNum = 500
-  private verticalGridNum = 500
+  private horizontalGridNum = 80
+  private verticalGridNum = 200
   private step = 0
+  private tilemap!: pixi_tilemap.CompositeRectTileLayer
   constructor(private texture: PIXI.Texture) {
     super()
     this.sortableChildren = true
-    console.log(pixi_tilemap)
-    pixi_tilemap.Constant.maxTextures = 4;
-    const fieldTexture = texture.clone()
-    fieldTexture.frame = new PIXI.Rectangle(0, 0, 16, 16)
-    var tilemap = new pixi_tilemap.CompositeRectTileLayer(0, [texture]);
-    // tilemap.addChild(PIXI.Sprite.from(texture))
+    pixi_tilemap.Constant.maxTextures = 1
+    this.tilemap = new pixi_tilemap.CompositeRectTileLayer(0, [texture])
+    // [points[5], points[17]] = [points[17], points[5]]とかで表示順は変更できる
+    /*
+    const fieldTexture1 = texture.clone()
+    fieldTexture1.frame = new PIXI.Rectangle(0, 0, 32, 16)
+    tilemap.addFrame(fieldTexture1, 32, 32)
+    const fieldTexture2 = texture.clone()
+    fieldTexture2.frame = new PIXI.Rectangle(0, 16, 32, 32)
+    tilemap.addFrame(fieldTexture2, 48, 32)
+    */
     // 地面
     for (let y = 0; y < this.verticalGridNum; ++y) {
       for (let x = 0; x < this.horizontalGridNum; ++x) {
         const fieldTexture = texture.clone()
-        fieldTexture.frame = new PIXI.Rectangle(16 * Math.floor(Math.random() * 16), 16 * Math.floor(Math.random() * 8), 16, 16)
-        tilemap.addFrame(fieldTexture, x * 16, y * 16)
+        fieldTexture.frame = new PIXI.Rectangle(16 , 0, 16, 16)
+        // fieldTexture.frame = new PIXI.Rectangle(16 * Math.floor(Math.random() * 16), 16 * Math.floor(Math.random() * 8), 16, 16)
+        this.tilemap.addFrame(fieldTexture, x * 16, y * 16)
       }
     }
-    this.addChild(tilemap)
+    this.addChild(this.tilemap)
+    // アニメ
+    const testTexture = texture.clone()
+    testTexture.frame = new PIXI.Rectangle(0, 0, 16, 16)
+    this.tilemap.addFrame(testTexture, 32, 32).tileAnimX(16, 100)
 
     /*
     this.bgLayerContainer = new PIXI.ParticleContainer(20000, { uvs: false })
@@ -51,6 +62,7 @@ export class Field extends PIXI.Container {
     })
   }
   public update() {
+    return
     switch(this.step) {
       case 0:
         this.x -= 1

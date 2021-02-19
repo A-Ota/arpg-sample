@@ -48,14 +48,16 @@ export default Vue.extend({
     field: Field | null;
     pressedKeyCodeSet: Set<number>;
     fpsCounter: FpsCounter;
-      isDebugMode: boolean;
+    isDebugMode: boolean;
+    frame: number;
     } {
     return {
       pixiApp: null,
       field: null,
       pressedKeyCodeSet: new Set(),
       fpsCounter: new FpsCounter(),
-      isDebugMode: true
+      isDebugMode: true,
+      frame: 0
     }
   },
   mounted() {
@@ -70,7 +72,6 @@ export default Vue.extend({
     this.pixiApp = new PIXI.Application(size)
     this.pixiApp.ticker.maxFPS = 240
     this.pixiApp.ticker.minFPS = 240
-
     const container = this.$refs["pixi_area"] as any
     container.appendChild(this.pixiApp.view)
 
@@ -104,7 +105,10 @@ export default Vue.extend({
     update(delta: number) {
       this.fpsCounter.checkPoint()
       if (this.field != null) {
+        this.pixiApp!.renderer.plugins.tilemap.tileAnim[0] = this.frame
+        this.pixiApp!.renderer.plugins.tilemap.tileAnim[1] = this.frame
         this.field.update()
+        this.frame++
       }
     },
     onClickToggleDebugMode() {
