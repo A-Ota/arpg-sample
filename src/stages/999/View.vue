@@ -21,8 +21,8 @@
 // 高速歩きで壁にぶつかった場合、移動しないのではなくx, yについて移動できるところまで戻してあげる。
 import Vue from "vue"
 import * as PIXI from "pixi.js"
-import { Character, PlayerRoutine, UroUroRoutine } from '@/stages/010/Character'
-import { Field } from '@/stages/010/Field'
+import { Character, PlayerRoutine, UroUroRoutine } from '@/stages/999/Character'
+import { Field } from '@/stages/999/Field'
 
 class FpsCounter {
   private ms = 0
@@ -85,10 +85,10 @@ export default Vue.extend({
     PIXI.utils.clearTextureCache()
     PIXI.Loader.shared
       .reset()
-      .add("/arpg-sample/images/stages/010/mapchip.png")
+      .add("/arpg-sample/images/stages/999/mapchip.png")
       .load(() => {
         // フィールド
-        this.field = new Field(PIXI.Loader.shared.resources["/arpg-sample/images/stages/010/mapchip.png"].texture)
+        this.field = new Field(PIXI.Loader.shared.resources["/arpg-sample/images/stages/999/mapchip.png"].texture)
         this.pixiApp!.stage.addChild(this.field)
       })
 

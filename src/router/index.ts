@@ -54,12 +54,12 @@ const routes = [
     component: () => import('../stages/009/View.vue')
   },
   {
-    path: '/stages/010',
-    component: () => import('../stages/010/View.vue')
+    path: '/stages/999',
+    component: () => import('../stages/999/View.vue')
   },
   {
-    path: '/stages/011',
-    component: () => import('../stages/011/View.vue')
+    path: '/stages/998',
+    component: () => import('../stages/998/View.vue')
   },
 ]
 

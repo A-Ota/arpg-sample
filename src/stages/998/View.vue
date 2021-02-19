@@ -51,8 +51,8 @@ export default Vue.extend({
     PIXI.utils.clearTextureCache()
     PIXI.Loader.shared
       .reset()
-      .add('atlas', '/arpg-sample/images/stages/011/atlas.json')
-      .add('button', '/arpg-sample/images/stages/011/button.png')
+      .add('atlas', '/arpg-sample/images/stages/998/atlas.json')
+      .add('button', '/arpg-sample/images/stages/998/button.png')
       .load(() => {
         this.tilemap = new pixi_tilemap.CompositeRectTileLayer();
         this.pixiApp!.stage.addChild(this.tilemap)
