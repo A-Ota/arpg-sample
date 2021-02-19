@@ -4,19 +4,23 @@ import * as PIXI from "pixi.js"
 import * as PIXITilemap from '@/pixi-tilemap/index'
 
 export class Field extends PIXI.Container {
+  private step = 0
   private bgLayerContainer!: PIXITilemap.CompositeRectTileLayer
   private airLayerContainer!: PIXITilemap.CompositeRectTileLayer
-
   private layerContainer!: SortableParticleContainer
   private debugLayerContainer!: PIXI.Container
-  private horizontalGridNum = 100
-  private verticalGridNum = 100
+  public horizontalGridNum = 200
+  public verticalGridNum = 200
   private targetCharacter: Character | null = null
   private characters: Array<Character> = []
   private walls: Array<PIXI.Rectangle> = []
   private textureMap: Map<String, PIXI.Texture> = new Map()
   constructor(private texture: PIXI.Texture) {
     super()
+
+    // 150,000チップ以上使えるようにする
+    PIXITilemap.Constant.use32bitIndex = true;
+
     this.sortableChildren = true
     this.bgLayerContainer = new PIXITilemap.CompositeRectTileLayer(0, [texture])
     this.layerContainer = new SortableParticleContainer(20000, { uvs: true, vertices: true, tint: true })
@@ -86,7 +90,19 @@ export class Field extends PIXI.Container {
   public update() {
     // preUpdate
     this.characters.forEach(chara => chara.preUpdate())
+    // update
+    this.characters.forEach(chara => {
+      if (chara.preUpdateInfo != null) {
+        let [moveX, moveY] = [chara.preUpdateInfo.moveX, chara.preUpdateInfo.moveY]
+        chara.x += moveX
+        chara.y += moveY
+        chara.currentDirection = chara.preUpdateInfo.nextDirection
+        chara.preUpdateInfo = null
+      }
+      chara.update()
+    })
     // 衝突判定など、ゲームの世界の都合でpreUpdateの内容に干渉しつつ、確定させる。
+    /*
     this.characters.forEach(chara => {
       if (chara.preUpdateInfo != null) {
         let [moveX, moveY] = [chara.preUpdateInfo.moveX, chara.preUpdateInfo.moveY]
@@ -134,30 +150,36 @@ export class Field extends PIXI.Container {
         chara.update()
       }
     })
+    */
 
-    const rightLimitX = 640 - 160
-    const leftLimitX = 160
-    const bottomLimitY = 480 - 160 
-    const topLimitY = 160
-    // 視点移動
-    if (this.targetCharacter) {
-      const offsetX = this.targetCharacter.x + this.x
-      if (offsetX > rightLimitX) {
-        this.x = -(this.targetCharacter.x - rightLimitX)
-      }
-      else if (offsetX < leftLimitX) {
-        this.x = -(this.targetCharacter.x - leftLimitX)
-      }
-      const offsetY = this.targetCharacter.y + this.y
-      if (offsetY > bottomLimitY) {
-        this.y = -(this.targetCharacter.y - bottomLimitY)
-      }
-      else if (offsetY < topLimitY) {
-        this.y = -(this.targetCharacter.y - topLimitY)
-      }
+    // 視点スクロール
+    const speed = 4
+    switch(this.step) {
+      case 0:
+        this.x -= speed
+        if (this.x <= - (16 * this.horizontalGridNum - 640)) {
+          this.step = 1
+        }
+        break;
+      case 1:
+        this.y -= speed
+        if (this.y <= - (16 * this.verticalGridNum - 480)) {
+          this.step = 2
+        }
+        break;
+      case 2:
+        this.x += speed
+        if (this.x >= 0) {
+          this.step = 3
+        }
+        break;
+      case 3:
+        this.y += speed
+        if (this.y >= 0) {
+          this.step = 0
+        }
+        break;
     }
-    this.x = Math.floor(Math.min(0, Math.max(-(16 * this.horizontalGridNum - 320), this.x)))
-    this.y = Math.floor(Math.min(0, Math.max(-(16 * this.verticalGridNum - 240), this.y)))
     // layerContainerについては自前でソートを行う
     this.layerContainer.sortChildren()
   }

@@ -7,11 +7,13 @@
   <div style="position: relative;">
     <div style="width: 640px; height: 480px;" ref="pixi_area">
     </div>
-    <div v-if="isDebugMode" style="position: absolute; left: 4px; top: 4px; color: #fff;">{{ (1000 / fpsCounter.averageMs).toFixed(2) }} fps</div>
+    <div v-if="true" style="position: absolute; left: 4px; top: 4px; color: #fff;">{{ (1000 / fpsCounter.averageMs).toFixed(2) }} fps</div>
+    <!--
     <b-button
       style="margin: 8px;"
       @click="onClickToggleDebugMode"
     >{{ isDebugMode ? 'デバッグ非表示' : 'デバッグ表示' }}</b-button>
+    -->
   </div>
 </template>
 
@@ -109,18 +111,11 @@ export default Vue.extend({
         this.field = new Field(renderTexture)
         this.pixiApp!.stage.addChild(this.field)
 
-        // プレイヤー
-        const chara1 = new Character(renderTexture, new PIXI.Point(0, 128), new PlayerRoutine(this.pressedKeyCodeSet))
-        chara1.x = 200
-        chara1.y = 120
-        this.field.addCharacter(chara1, true)
         // NPC
-        for (let i = 0; i < 10; ++i) {
-          this.npc = new Character(renderTexture, new PIXI.Point(192, 128), new UroUroRoutine())
-          this.npc.x = 100 + Math.floor(Math.random() * 400);
-          this.npc.y = 100 + Math.floor(Math.random() * 400);
-          // this.npc.x = 100;
-          // this.npc.y = 100;
+        for (let i = 0; i < 200; ++i) {
+          this.npc = new Character(renderTexture, Math.random() < 0.5 ? new PIXI.Point(0, 128) : new PIXI.Point(192, 128), new UroUroRoutine())
+          this.npc.x = 16 + 16 * Math.floor(Math.random() * (this.field!.horizontalGridNum - 2));
+          this.npc.y = 16 + 16 * Math.floor(Math.random() * (this.field!.verticalGridNum - 2));
           this.npc.currentDirection = 4
           this.field.addCharacter(this.npc)
         }
