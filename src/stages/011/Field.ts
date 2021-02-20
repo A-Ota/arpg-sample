@@ -14,7 +14,7 @@ export class Field extends PIXI.Container {
   private targetCharacter: Character | null = null
   private characters: Array<Character> = []
   private walls: Array<PIXI.Rectangle> = []
-  private textureMap: Map<String, PIXI.Texture> = new Map()
+  private textureMap: Map<string, PIXI.Texture> = new Map()
   constructor(private texture: PIXI.Texture) {
     super()
 
@@ -75,7 +75,7 @@ export class Field extends PIXI.Container {
       this.addWall(new PIXI.Rectangle(16, this.verticalGridNum * 16, this.horizontalGridNum * 16 - 32, 16))
     }
   }
-  public addCharacter(character: Character, isTarget: boolean = false) {
+  public addCharacter(character: Character, isTarget = false) {
     this.characters.push(character)
     if (isTarget) {
       this.targetCharacter = character
@@ -91,7 +91,7 @@ export class Field extends PIXI.Container {
     // update
     this.characters.forEach(chara => {
       if (chara.preUpdateInfo != null) {
-        let [moveX, moveY] = [chara.preUpdateInfo.moveX, chara.preUpdateInfo.moveY]
+        const [moveX, moveY] = [chara.preUpdateInfo.moveX, chara.preUpdateInfo.moveY]
         chara.x += moveX
         chara.y += moveY
         chara.currentDirection = chara.preUpdateInfo.nextDirection
@@ -151,8 +151,8 @@ export class Field extends PIXI.Container {
     // 視点移動
     const rightLimitX = 640 - 128
     const leftLimitX = 128
-    const bottomLimitY = 480 - 128 
-    const topLimitY = 128
+    const bottomLimitY = 480 - 96 
+    const topLimitY = 96
     if (this.targetCharacter) {
       const offsetX = this.targetCharacter.x + this.x
       if (offsetX > rightLimitX) {

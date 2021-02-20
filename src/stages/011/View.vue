@@ -69,8 +69,12 @@ export default Vue.extend({
     window.onkeydown = this.onKeyDown
     window.onkeyup = this.onKeyUp
 
-    const size = { width: 640, height: 480 }
-    this.pixiApp = new PIXI.Application(size)
+    const opt = { 
+      width: 640,
+      height: 480,
+      autoDensity: true
+    }
+    this.pixiApp = new PIXI.Application(opt)
     this.pixiApp.ticker.maxFPS = 60
     this.pixiApp.ticker.minFPS = 60
 
