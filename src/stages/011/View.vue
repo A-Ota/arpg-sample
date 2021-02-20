@@ -9,6 +9,7 @@
     </div>
     <div v-if="true" style="position: absolute; left: 4px; top: 4px; color: #fff;">{{ (1000 / fpsCounter.averageMs).toFixed(2) }} fps</div>
     <b-button style="margin: 8px;" @click="onClickReload">再読み込み</b-button>
+    <MapChip imagePath="/arpg-sample/images/stages/009/mapchip.png" :gridSizeX="16" :gridSizeY="16" />
     <!--
     <b-button
       style="margin: 8px;"
@@ -24,6 +25,7 @@ import Vue from "vue"
 import * as PIXI from "pixi.js"
 import { Character, PlayerRoutine, UroUroRoutine } from '@/stages/011/Character'
 import { Field } from '@/stages/011/Field'
+import MapChip from '@/stages/011/components/MapChip.vue'
 
 class FpsCounter {
   private ms = 0
@@ -144,7 +146,9 @@ export default Vue.extend({
     // this.pixiApp!.ticker.remove(this.update)
     this.pixiApp!.destroy(true)
   },
-  components: {},
+  components: {
+    MapChip
+  },
   computed: {},
   props: []
 })
