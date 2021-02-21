@@ -100,8 +100,7 @@ export default Vue.extend({
     const container = this.$refs["pixi_area"] as any
     container.appendChild(this.pixiApp.view)
 
-    this.mapData!.bgLayerChips = new Array(24 * 16).fill(null)
-    this.mapData!.airLayerChips = new Array(24 * 16).fill(null)
+    this.mapData!.layerChipsList = [new Array(24 * 16).fill(null), new Array(24 * 16).fill(null), new Array(24 * 16).fill(null)]
 
     PIXI.utils.clearTextureCache()
     PIXI.Loader.shared

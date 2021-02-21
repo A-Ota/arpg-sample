@@ -22,23 +22,42 @@
 <template>
   <div class="root">
     <div class="map-area" @mouseup="onMouseUp" @mouseleave="onMouseUp" @mousemove="onMouseMove" @mousedown="onMouseDown">
-      <canvas
-        :width="horizontalGridNum * gridSizeX"
-        :height="verticalGridNum * gridSizeY"
-        ref="canvas"></canvas>
+      <div style="position: relative;">
+        <canvas
+          v-show="layerVisibles[0]"
+          style="position:absolute;"
+          :width="horizontalGridNum * gridSizeX"
+          :height="verticalGridNum * gridSizeY"
+          ref="canvas0"></canvas>
+        <canvas
+          v-show="layerVisibles[1]"
+          style="position:absolute;"
+          :width="horizontalGridNum * gridSizeX"
+          :height="verticalGridNum * gridSizeY"
+          ref="canvas1"></canvas>
+        <canvas
+          v-show="layerVisibles[2]"
+          style="position:absolute;"
+          :width="horizontalGridNum * gridSizeX"
+          :height="verticalGridNum * gridSizeY"
+          ref="canvas2"></canvas>
+      </div>
     </div>
     <div class="layer-area">
       <div 
         class="item"
-        :class="{ 'active' : selectedLayerIndex === 0 }"
-        @click="selectedLayerIndex = 0">
-        <b-check :checked="layerVisibles[0]" style="display: inline;"></b-check>背景レイヤー
+        :class="{ 'active' : selectedLayerIndex === 0 }">
+        <b-check v-model="layerVisibles[0]" style="display: inline;"></b-check><span @click="selectedLayerIndex = 0">下層地形レイヤー</span>
       </div>
       <div
         class="item"
-        :class="{ 'active' : selectedLayerIndex === 1 }"
-        @click="selectedLayerIndex = 1">
-        <b-check :checked="layerVisibles[1]" style="display: inline;"></b-check>上空レイヤー
+        :class="{ 'active' : selectedLayerIndex === 1 }">
+        <b-check v-model="layerVisibles[1]" style="display: inline;"></b-check><span @click="selectedLayerIndex = 1">上層地形レイヤー</span>
+      </div>
+      <div
+        class="item"
+        :class="{ 'active' : selectedLayerIndex === 2 }">
+        <b-check v-model="layerVisibles[2]" style="display: inline;"></b-check><span @click="selectedLayerIndex = 2">上空レイヤー</span>
       </div>
     </div>
   </div>
@@ -49,8 +68,7 @@ import Vue from 'vue';
 import * as PIXI from "pixi.js"
 
 export class MapData {
-  bgLayerChips: Array<number | null> = []
-  airLayerChips: Array<number | null> = []
+  layerChipsList: Array<Array<number | null>> = []
 }
 
 export default Vue.extend({
@@ -58,37 +76,36 @@ export default Vue.extend({
     'imagePath', 'gridSizeX', 'gridSizeY', 'horizontalGridNum', 'verticalGridNum', 'chipSelectedInfo', 'mapData'
   ],
   data(): {
-    canvas: HTMLCanvasElement | null;
-    ctx: CanvasRenderingContext2D | null;
+    ctxList: Array<CanvasRenderingContext2D>;
     image: HTMLImageElement | null;
     selectedLayerIndex: number;
     layerVisibles: Array<boolean>;
   } {
     return {
-      canvas: null,
-      ctx: null,
+      ctxList: [],
       image: null,
       selectedLayerIndex: 0,
-      layerVisibles: [true, true]
+      layerVisibles: [true, true, true]
     }
   },
   mounted() {
-    this.canvas = this.$refs.canvas as HTMLCanvasElement
-    this.ctx = this.canvas.getContext('2d')
+    const canvasList = [this.$refs.canvas0 as HTMLCanvasElement, this.$refs.canvas1 as HTMLCanvasElement, this.$refs.canvas2 as HTMLCanvasElement]
+    this.ctxList = canvasList.map(canvas => canvas.getContext('2d')!)
     this.image = new Image()
     this.image.src = this.imagePath
   },
   methods: {
     onMouseDown(event: MouseEvent) {
       if (this.chipSelectedInfo != null) {
+        const ctx = this.ctxList[this.selectedLayerIndex]
         const targetGrid = new PIXI.Point(Math.floor(event.offsetX / this.gridSizeX), Math.floor(event.offsetY / this.gridSizeY))
         // 描画範囲のグリッドをいったんクリア
-        this.ctx!.clearRect(targetGrid.x * this.gridSizeX,
+        ctx!.clearRect(targetGrid.x * this.gridSizeX,
           targetGrid.y * this.gridSizeY,
           this.chipSelectedInfo.gridRect.width * this.gridSizeX,
           this.chipSelectedInfo.gridRect.height * this.gridSizeY)
         // 描画範囲のグリッドを描画
-        this.ctx!.drawImage(
+        ctx!.drawImage(
           this.image!,
           this.chipSelectedInfo.gridRect.x * this.gridSizeX,
           this.chipSelectedInfo.gridRect.y * this.gridSizeY,
@@ -100,9 +117,10 @@ export default Vue.extend({
           this.chipSelectedInfo.gridRect.height * this.gridSizeY)
         // 配置データを更新
         let index = 0
+        const targetLayerChips = this.mapData.layerChipsList[this.selectedLayerIndex]
         for (let gridY = targetGrid.y; gridY < targetGrid.y + this.chipSelectedInfo.gridRect.height; ++gridY) {
           for (let gridX = targetGrid.x; gridX < targetGrid.x + this.chipSelectedInfo.gridRect.width; ++gridX) {
-            this.mapData.bgLayerChips[gridY * this.horizontalGridNum + gridX] = this.chipSelectedInfo.chipIndexList[index]
+            targetLayerChips[gridY * this.horizontalGridNum + gridX] = this.chipSelectedInfo.chipIndexList[index]
             ++index
           }
         }
