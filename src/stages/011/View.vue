@@ -9,14 +9,9 @@
     </div>
     <div v-if="true" style="position: absolute; left: 4px; top: 4px; color: #fff;">{{ (1000 / fpsCounter.averageMs).toFixed(2) }} fps</div>
     <b-button style="margin: 8px;" @click="onClickReload">再読み込み</b-button>
-    <Map imagePath="/arpg-sample/images/stages/009/mapchip.png" />
-    <MapChip imagePath="/arpg-sample/images/stages/009/mapchip.png" :gridSizeX="16" :gridSizeY="16" />
-    <!--
-    <b-button
-      style="margin: 8px;"
-      @click="onClickToggleDebugMode"
-    >{{ isDebugMode ? 'デバッグ非表示' : 'デバッグ表示' }}</b-button>
-    -->
+    <Map imagePath="/arpg-sample/images/stages/009/mapchip.png" :selectedMapChipGrid="selectedMapChipGrid" :gridSizeX="16" :gridSizeY="16"  />
+    <MapChip imagePath="/arpg-sample/images/stages/009/mapchip.png" v-bind:selectedMapChipGrid.sync="selectedMapChipGrid" :gridSizeX="16" :gridSizeY="16" />
+    {{ selectedMapChipGrid }}
   </div>
 </template>
 
@@ -55,6 +50,7 @@ export default Vue.extend({
     fpsCounter: FpsCounter;
     npc: Character | null;
     isDebugMode: boolean;
+    selectedMapChipGrid: PIXI.Rectangle | null;
     } {
     return {
       pixiApp: null,
@@ -62,7 +58,8 @@ export default Vue.extend({
       pressedKeyCodeSet: new Set(),
       fpsCounter: new FpsCounter(),
       npc: null,
-      isDebugMode: false
+      isDebugMode: false,
+      selectedMapChipGrid: null
     }
   },
   mounted() {

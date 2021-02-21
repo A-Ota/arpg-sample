@@ -34,7 +34,7 @@ import * as PIXI from "pixi.js"
 
 export default Vue.extend({
   props: [
-    'imagePath', 'gridSizeX', 'gridSizeY'
+    'imagePath', 'gridSizeX', 'gridSizeY', 'selectedMapChipGrid'
   ],
   data(): {
     selectedGrid: PIXI.Rectangle | null;
@@ -49,13 +49,12 @@ export default Vue.extend({
   },
   computed: {
     focusElementStyle(): unknown {
-      console.log('getStyle')
       if (this.selectedGrid != null) {
         return {
-          left:  `${this.selectedGrid.x * 16}px`,
-          top: `${this.selectedGrid.y * 16}px`,
-          width: `${this.selectedGrid.width * 16}px`,
-          height: `${this.selectedGrid.height * 16}px`
+          left:  `${this.selectedGrid.x * this.gridSizeX}px`,
+          top: `${this.selectedGrid.y * this.gridSizeY}px`,
+          width: `${this.selectedGrid.width * this.gridSizeX}px`,
+          height: `${this.selectedGrid.height * this.gridSizeY}px`
         }
       } else {
         return {}
@@ -98,9 +97,11 @@ export default Vue.extend({
             this.selectedGrid!.top !== newSelectedGrid.top ||
             this.selectedGrid!.bottom !== newSelectedGrid.bottom) {
               this.selectedGrid = newSelectedGrid
+              this.$emit('update:selectedMapChipGrid', this.selectedGrid)
           }
         } else {
           this.selectedGrid = new PIXI.Rectangle(this.dragStartGrid!.x, this.dragStartGrid!.y, 1, 1)
+          this.$emit('update:selectedMapChipGrid', this.selectedGrid)
         }
       }
     }
