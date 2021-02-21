@@ -26,20 +26,20 @@
         <canvas
           v-show="layerVisibles[0]"
           style="position:absolute;"
-          :width="horizontalGridNum * gridSizeX"
-          :height="verticalGridNum * gridSizeY"
+          :width="mapData.horizontalGridNum * mapData.gridSizeX"
+          :height="mapData.verticalGridNum * mapData.gridSizeY"
           ref="canvas0"></canvas>
         <canvas
           v-show="layerVisibles[1]"
           style="position:absolute;"
-          :width="horizontalGridNum * gridSizeX"
-          :height="verticalGridNum * gridSizeY"
+          :width="mapData.horizontalGridNum * mapData.gridSizeX"
+          :height="mapData.verticalGridNum * mapData.gridSizeY"
           ref="canvas1"></canvas>
         <canvas
           v-show="layerVisibles[2]"
           style="position:absolute;"
-          :width="horizontalGridNum * gridSizeX"
-          :height="verticalGridNum * gridSizeY"
+          :width="mapData.horizontalGridNum * mapData.gridSizeX"
+          :height="mapData.verticalGridNum * mapData.gridSizeY"
           ref="canvas2"></canvas>
       </div>
     </div>
@@ -67,13 +67,9 @@
 import Vue from 'vue';
 import * as PIXI from "pixi.js"
 
-export class MapData {
-  layerChipsList: Array<Array<number | null>> = []
-}
-
 export default Vue.extend({
   props: [
-    'imagePath', 'gridSizeX', 'gridSizeY', 'horizontalGridNum', 'verticalGridNum', 'chipSelectedInfo', 'mapData'
+    'imagePath', 'chipSelectedInfo', 'mapData'
   ],
   data(): {
     ctxList: Array<CanvasRenderingContext2D>;
@@ -98,29 +94,29 @@ export default Vue.extend({
     onMouseDown(event: MouseEvent) {
       if (this.chipSelectedInfo != null) {
         const ctx = this.ctxList[this.selectedLayerIndex]
-        const targetGrid = new PIXI.Point(Math.floor(event.offsetX / this.gridSizeX), Math.floor(event.offsetY / this.gridSizeY))
+        const targetGrid = new PIXI.Point(Math.floor(event.offsetX / this.mapData.gridSizeX), Math.floor(event.offsetY / this.mapData.gridSizeY))
         // 描画範囲のグリッドをいったんクリア
-        ctx!.clearRect(targetGrid.x * this.gridSizeX,
-          targetGrid.y * this.gridSizeY,
-          this.chipSelectedInfo.gridRect.width * this.gridSizeX,
-          this.chipSelectedInfo.gridRect.height * this.gridSizeY)
+        ctx!.clearRect(targetGrid.x * this.mapData.gridSizeX,
+          targetGrid.y * this.mapData.gridSizeY,
+          this.chipSelectedInfo.gridRect.width * this.mapData.gridSizeX,
+          this.chipSelectedInfo.gridRect.height * this.mapData.gridSizeY)
         // 描画範囲のグリッドを描画
         ctx!.drawImage(
           this.image!,
-          this.chipSelectedInfo.gridRect.x * this.gridSizeX,
-          this.chipSelectedInfo.gridRect.y * this.gridSizeY,
-          this.chipSelectedInfo.gridRect.width * this.gridSizeX,
-          this.chipSelectedInfo.gridRect.height * this.gridSizeY,
-          targetGrid.x * this.gridSizeX,
-          targetGrid.y * this.gridSizeY,
-          this.chipSelectedInfo.gridRect.width * this.gridSizeX,
-          this.chipSelectedInfo.gridRect.height * this.gridSizeY)
+          this.chipSelectedInfo.gridRect.x * this.mapData.gridSizeX,
+          this.chipSelectedInfo.gridRect.y * this.mapData.gridSizeY,
+          this.chipSelectedInfo.gridRect.width * this.mapData.gridSizeX,
+          this.chipSelectedInfo.gridRect.height * this.mapData.gridSizeY,
+          targetGrid.x * this.mapData.gridSizeX,
+          targetGrid.y * this.mapData.gridSizeY,
+          this.chipSelectedInfo.gridRect.width * this.mapData.gridSizeX,
+          this.chipSelectedInfo.gridRect.height * this.mapData.gridSizeY)
         // 配置データを更新
         let index = 0
         const targetLayerChips = this.mapData.layerChipsList[this.selectedLayerIndex]
         for (let gridY = targetGrid.y; gridY < targetGrid.y + this.chipSelectedInfo.gridRect.height; ++gridY) {
           for (let gridX = targetGrid.x; gridX < targetGrid.x + this.chipSelectedInfo.gridRect.width; ++gridX) {
-            targetLayerChips[gridY * this.horizontalGridNum + gridX] = this.chipSelectedInfo.chipIndexList[index]
+            targetLayerChips[gridY * this.mapData.horizontalGridNum + gridX] = this.chipSelectedInfo.chipIndexList[index]
             ++index
           }
         }

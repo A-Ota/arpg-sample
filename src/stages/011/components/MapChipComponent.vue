@@ -46,7 +46,7 @@ export class ChipSelectedInfo {
 
 export default Vue.extend({
   props: [
-    'imagePath', 'gridSizeX', 'gridSizeY', 'horizontalGridNum', 'verticalGridNum', 'chipSelectedInfo'
+    'imagePath', 'mapChipData', 'chipSelectedInfo'
   ],
   data(): {
     selectedGrid: PIXI.Rectangle | null;
@@ -63,10 +63,10 @@ export default Vue.extend({
     focusElementStyle(): unknown {
       if (this.selectedGrid != null) {
         return {
-          left:  `${this.selectedGrid.x * this.gridSizeX}px`,
-          top: `${this.selectedGrid.y * this.gridSizeY}px`,
-          width: `${this.selectedGrid.width * this.gridSizeX}px`,
-          height: `${this.selectedGrid.height * this.gridSizeY}px`
+          left:  `${this.selectedGrid.x * this.mapChipData.gridSizeX}px`,
+          top: `${this.selectedGrid.y * this.mapChipData.gridSizeY}px`,
+          width: `${this.selectedGrid.width * this.mapChipData.gridSizeX}px`,
+          height: `${this.selectedGrid.height * this.mapChipData.gridSizeY}px`
         }
       } else {
         return {}
@@ -78,18 +78,18 @@ export default Vue.extend({
   methods: {
     onMouseDown(event: MouseEvent) {
       this.selectedGrid = null
-      this.dragStartGrid = new PIXI.Point(Math.floor(event.offsetX / this.gridSizeX), Math.floor(event.offsetY / this.gridSizeY))
+      this.dragStartGrid = new PIXI.Point(Math.floor(event.offsetX / this.mapChipData.gridSizeX), Math.floor(event.offsetY / this.mapChipData.gridSizeY))
       this.upddateSelectedGrid()
     },
     onMouseMove(event: MouseEvent) {
       if (this.dragStartGrid != null) {
-        this.dragEndGrid = new PIXI.Point(Math.floor(event.offsetX / this.gridSizeX), Math.floor(event.offsetY / this.gridSizeY))
+        this.dragEndGrid = new PIXI.Point(Math.floor(event.offsetX / this.mapChipData.gridSizeX), Math.floor(event.offsetY / this.mapChipData.gridSizeY))
         this.upddateSelectedGrid()
       }
     },
     onMouseUp(event: MouseEvent) {
       if (this.dragStartGrid != null) {
-        this.dragEndGrid = new PIXI.Point(Math.floor(event.offsetX / this.gridSizeX), Math.floor(event.offsetY / this.gridSizeY))
+        this.dragEndGrid = new PIXI.Point(Math.floor(event.offsetX / this.mapChipData.gridSizeX), Math.floor(event.offsetY / this.mapChipData.gridSizeY))
         this.upddateSelectedGrid()
         this.dragStartGrid = null
         this.dragEndGrid = null
@@ -122,7 +122,7 @@ export default Vue.extend({
       const chipIndexList = []
       for (let y = this.selectedGrid!.top; y < this.selectedGrid!.bottom; ++y) {
         for (let x = this.selectedGrid!.left; x < this.selectedGrid!.right; ++x) {
-          chipIndexList.push(y * this.horizontalGridNum + x)
+          chipIndexList.push(y * this.mapChipData.horizontalGridNum + x)
         }
       }
       return new ChipSelectedInfo(this.selectedGrid!, chipIndexList)

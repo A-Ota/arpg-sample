@@ -8,26 +8,17 @@
     <div style="width: 320px; height: 240px;" ref="pixi_area">
     </div>
     <div v-if="true" style="position: absolute; left: 4px; top: 4px; color: #fff;">{{ (1000 / fpsCounter.averageMs).toFixed(2) }} fps</div>
-    <b-button style="margin: 8px;" @click="onClickReload">再読み込み</b-button>
-    <Map
+    <b-button style="margin: 8px;" @click="onClickReload">マップ読み込み</b-button>
+    <MapComponent
       imagePath="/arpg-sample/images/stages/010/mapchip.png"
       :chipSelectedInfo="chipSelectedInfo"
       :mapData.sync="mapData"
-      :gridSizeX="16"
-      :gridSizeY="16"
-      :horizontalGridNum="24"
-      :verticalGridNum="16"
     />
-    <MapChip
+    <MapChipComponent
       imagePath="/arpg-sample/images/stages/010/mapchip.png"
       v-bind:chipSelectedInfo.sync="chipSelectedInfo"
-      :gridSizeX="16"
-      :gridSizeY="16"
-      :horizontalGridNum="16"
-      :verticalGridNum="8"
+      :mapChipData="mapChipData"
     />
-    {{ chipSelectedInfo }}<br>
-    {{ mapData }}
   </div>
 </template>
 
@@ -37,8 +28,9 @@ import Vue from "vue"
 import * as PIXI from "pixi.js"
 import { Character, PlayerRoutine, UroUroRoutine } from '@/stages/011/Character'
 import { Field } from '@/stages/011/Field'
-import MapChip, { ChipSelectedInfo } from '@/stages/011/components/MapChip.vue'
-import Map, { MapData } from '@/stages/011/components/Map.vue'
+import MapChipComponent from '@/stages/011/components/MapChipComponent.vue'
+import MapComponent from '@/stages/011/components/MapComponent.vue'
+import { MapChipData, MapData, ChipSelectedInfo } from '@/stages/011/Model'
 
 class FpsCounter {
   private ms = 0
@@ -68,6 +60,7 @@ export default Vue.extend({
     isDebugMode: boolean;
     chipSelectedInfo: ChipSelectedInfo | null;
     mapData: MapData | null;
+    mapChipData: MapChipData | null;
     } {
     return {
       pixiApp: null,
@@ -77,7 +70,8 @@ export default Vue.extend({
       npc: null,
       isDebugMode: false,
       chipSelectedInfo: null,
-      mapData: new MapData()
+      mapData: new MapData(),
+      mapChipData: new MapChipData()
     }
   },
   mounted() {
@@ -100,7 +94,16 @@ export default Vue.extend({
     const container = this.$refs["pixi_area"] as any
     container.appendChild(this.pixiApp.view)
 
+    this.mapData!.gridSizeX = 16
+    this.mapData!.gridSizeY = 16
+    this.mapData!.horizontalGridNum = 24
+    this.mapData!.verticalGridNum = 16
     this.mapData!.layerChipsList = [new Array(24 * 16).fill(null), new Array(24 * 16).fill(null), new Array(24 * 16).fill(null)]
+
+    this.mapChipData!.gridSizeX = 16
+    this.mapChipData!.gridSizeY = 16
+    this.mapChipData!.horizontalGridNum = 16
+    this.mapChipData!.verticalGridNum = 8
 
     PIXI.utils.clearTextureCache()
     PIXI.Loader.shared
@@ -127,7 +130,7 @@ export default Vue.extend({
         this.pixiApp!.renderer.render(sprite02, renderTexture, false)
 
         // フィールド
-        this.field = new Field(renderTexture)
+        this.field = new Field(renderTexture, this.mapChipData!, this.mapData!)
         this.pixiApp!.stage.addChild(this.field)
 
         // プレイヤー
@@ -158,7 +161,7 @@ export default Vue.extend({
       this.field!.setDebugMode(this.isDebugMode)
     },
     onClickReload() {
-      this.field!.reloadMap({})
+      this.field!.reloadMap(this.mapData!)
     }
   },
   beforeDestroy() {
@@ -166,7 +169,7 @@ export default Vue.extend({
     this.pixiApp!.destroy(true)
   },
   components: {
-    MapChip, Map
+    MapChipComponent, MapComponent
   },
   computed: {},
   props: []

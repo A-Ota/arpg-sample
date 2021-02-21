@@ -2,6 +2,7 @@ import { Character } from '@/stages/011/Character'
 import { SortableParticleContainer } from '@/stages/005/SortableParticleContainer'
 import * as PIXI from "pixi.js"
 import * as PIXITilemap from '@/pixi-tilemap/index'
+import { MapData, MapChipData } from '@/stages/011/Model'
 
 export class Field extends PIXI.Container {
   private step = 0
@@ -15,7 +16,8 @@ export class Field extends PIXI.Container {
   private characters: Array<Character> = []
   private walls: Array<PIXI.Rectangle> = []
   private textureMap: Map<string, PIXI.Texture> = new Map()
-  constructor(private texture: PIXI.Texture) {
+  private textureList: Array<PIXI.Texture> = []
+  constructor(private texture: PIXI.Texture, private mapChipData: MapChipData, private mapData: MapData) {
     super()
 
     // 150,000チップ以上使えるようにする
@@ -44,7 +46,8 @@ export class Field extends PIXI.Container {
     wallGraphic.drawRect(rect.x + 1, rect.y + 1, rect.width - 2, rect.height - 2)
     this.debugLayerContainer.addChild(wallGraphic)
   }
-  public reloadMap(mapInfo: any) {
+  public reloadMap(mapData: MapData) {
+    this.mapData = mapData
     this.clearMap()
     this.generateMap()
   }
@@ -56,6 +59,48 @@ export class Field extends PIXI.Container {
     this.walls.length = 0
   }
   public generateMap() {
+    // まずは全てのチップをテクスチャ化
+    this.textureList.forEach(texture => texture.destroy())
+    this.textureList.length = 0
+    for (let gridY = 0; gridY < this.mapChipData.verticalGridNum; ++gridY) {
+      for (let gridX = 0; gridX < this.mapChipData.horizontalGridNum; ++gridX) {
+        const texture = this.texture.clone()
+        texture.frame = new PIXI.Rectangle(
+          this.mapChipData.gridSizeX * gridX,
+          this.mapChipData.gridSizeY * gridY,
+          this.mapChipData.gridSizeX,
+          this.mapChipData.gridSizeY)
+        this.textureList.push(texture)
+      }
+    }
+    // チップを配置
+    for (let gridY = 0; gridY < this.mapData.verticalGridNum; ++gridY) {
+      for (let gridX = 0; gridX < this.mapData.horizontalGridNum; ++gridX) {
+        const mapChipIndex = gridX + gridY * this.mapData.horizontalGridNum
+        // 下層地形
+        {
+          const textureIndex = this.mapData.layerChipsList[0][mapChipIndex]
+          if (textureIndex != null) {
+            this.bgLayerContainer.addFrame(this.textureList[textureIndex], gridX * 16, gridY * 16)
+          }
+        }
+        // 上層地形
+        {
+          const textureIndex = this.mapData.layerChipsList[1][mapChipIndex]
+          if (textureIndex != null) {
+            this.bgLayerContainer.addFrame(this.textureList[textureIndex], gridX * 16, gridY * 16)
+          }
+        }
+        // 上空
+        {
+          const textureIndex = this.mapData.layerChipsList[2][mapChipIndex]
+          if (textureIndex != null) {
+            this.airLayerContainer.addFrame(this.textureList[textureIndex], gridX * 16, gridY * 16)
+          }
+        }
+      }
+    }
+    /*
     this.textureMap.set('field', this.texture.clone())
     this.textureMap.get('field')!.frame = new PIXI.Rectangle(16 * Math.floor(Math.random() * 2), 0, 16, 16)
     for (let y = 0; y < this.verticalGridNum; ++y) {
@@ -74,6 +119,7 @@ export class Field extends PIXI.Container {
       this.addWall(new PIXI.Rectangle(0, -16, this.horizontalGridNum * 16, 16))
       this.addWall(new PIXI.Rectangle(16, this.verticalGridNum * 16, this.horizontalGridNum * 16 - 32, 16))
     }
+    */
   }
   public addCharacter(character: Character, isTarget = false) {
     this.characters.push(character)
