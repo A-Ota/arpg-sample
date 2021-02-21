@@ -10,11 +10,13 @@
     <div v-if="true" style="position: absolute; left: 4px; top: 4px; color: #fff;">{{ (1000 / fpsCounter.averageMs).toFixed(2) }} fps</div>
     <b-button style="margin: 8px;" @click="onClickReload">マップ読み込み</b-button>
     <MapComponent
+      style="background-color: #ccd;"
       imagePath="/arpg-sample/images/stages/010/mapchip.png"
       :chipSelectedInfo="chipSelectedInfo"
       :mapData.sync="mapData"
     />
     <MapChipComponent
+      style="background-color: #cdc;"
       imagePath="/arpg-sample/images/stages/010/mapchip.png"
       v-bind:chipSelectedInfo.sync="chipSelectedInfo"
       :mapChipData="mapChipData"
