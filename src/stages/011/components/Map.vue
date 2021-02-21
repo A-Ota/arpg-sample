@@ -35,6 +35,10 @@ export default Vue.extend({
     onMouseDown(event: MouseEvent) {
       if (this.selectedMapChipGrid != null) {
         const grid = new PIXI.Point(Math.floor(event.offsetX / this.gridSizeX), Math.floor(event.offsetY / this.gridSizeY))
+        this.ctx!.clearRect(grid.x * this.gridSizeX,
+          grid.y * this.gridSizeY,
+          this.selectedMapChipGrid.width * this.gridSizeX,
+          this.selectedMapChipGrid.height * this.gridSizeY)
         this.ctx!.drawImage(
           this.image!,
           this.selectedMapChipGrid.x * this.gridSizeX,
