@@ -1,12 +1,17 @@
 <style scoped lang="scss">
+img, div {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
 .root {
   position: relative;
 }
 .mapchip-image {
   pointer-events: none;
   image-rendering: pixelated;
-  -webkit-user-drag: none;
-  -webkit-user-select: none;
 }
 .focus {
   pointer-events: none;
