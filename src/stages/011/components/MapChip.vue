@@ -24,7 +24,7 @@
 <template>
   <div class="root" @mouseup="onMouseUp" @mouseleave="onMouseUp" @mousemove="onMouseMove" @mousedown="onMouseDown">
     <img class="mapchip-image" :src="imagePath">
-    <div ref="focus" class="focus"></div>
+    <div v-if="selectedGrid" :style="focusElementStyle" class="focus"></div>
   </div>
 </template>
 
@@ -40,17 +40,29 @@ export default Vue.extend({
     selectedGrid: PIXI.Rectangle | null;
     dragStartGrid: PIXI.Point | null;
     dragEndGrid: PIXI.Point | null;
-    focusElement: HTMLElement | null;
   } {
     return {
       selectedGrid: null,
       dragStartGrid: null,
-      dragEndGrid: null,
-      focusElement: null
+      dragEndGrid: null
+    }
+  },
+  computed: {
+    focusElementStyle(): unknown {
+      console.log('getStyle')
+      if (this.selectedGrid != null) {
+        return {
+          left:  `${this.selectedGrid.x * 16}px`,
+          top: `${this.selectedGrid.y * 16}px`,
+          width: `${this.selectedGrid.width * 16}px`,
+          height: `${this.selectedGrid.height * 16}px`
+        }
+      } else {
+        return {}
+      }
     }
   },
   mounted() {
-    this.focusElement = (this.$refs.focus as HTMLElement)
   },
   methods: {
     onMouseDown(event: MouseEvent) {
@@ -74,7 +86,6 @@ export default Vue.extend({
     },
     upddateSelectedGrid() {
       if (this.dragStartGrid != null) {
-        let changed = false
         if (this.dragEndGrid != null) {
           const newSelectedGrid = new PIXI.Rectangle(
             Math.min(this.dragStartGrid.x, this.dragEndGrid.x),
@@ -87,22 +98,11 @@ export default Vue.extend({
             this.selectedGrid!.top !== newSelectedGrid.top ||
             this.selectedGrid!.bottom !== newSelectedGrid.bottom) {
               this.selectedGrid = newSelectedGrid
-              changed = true
           }
         } else {
           this.selectedGrid = new PIXI.Rectangle(this.dragStartGrid!.x, this.dragStartGrid!.y, 1, 1)
-          changed = true
-        }
-        if (changed) {
-          this.updateFocus()
         }
       }
-    },
-    updateFocus() {
-      this.focusElement!.style.left = `${this.selectedGrid!.x * 16}px`
-      this.focusElement!.style.top = `${this.selectedGrid!.y * 16}px`
-      this.focusElement!.style.width = `${this.selectedGrid!.width * 16}px`
-      this.focusElement!.style.height = `${this.selectedGrid!.height * 16}px`
     }
   },
   components: {
