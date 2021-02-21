@@ -9,17 +9,15 @@
     </div>
     <div v-if="true" style="position: absolute; left: 4px; top: 4px; color: #fff;">{{ (1000 / fpsCounter.averageMs).toFixed(2) }} fps</div>
     <b-button style="margin: 8px;" @click="onClickReload">再読み込み</b-button>
-    <div style="width: 320px; height: 240px; overflow: scroll;">
-      <Map
-        imagePath="/arpg-sample/images/stages/010/mapchip.png"
-        :chipSelectedInfo="chipSelectedInfo"
-        :mapData.sync="mapData"
-        :gridSizeX="16"
-        :gridSizeY="16"
-        :horizontalGridNum="24"
-        :verticalGridNum="16"
-      />
-    </div>
+    <Map
+      imagePath="/arpg-sample/images/stages/010/mapchip.png"
+      :chipSelectedInfo="chipSelectedInfo"
+      :mapData.sync="mapData"
+      :gridSizeX="16"
+      :gridSizeY="16"
+      :horizontalGridNum="24"
+      :verticalGridNum="16"
+    />
     <MapChip
       imagePath="/arpg-sample/images/stages/010/mapchip.png"
       v-bind:chipSelectedInfo.sync="chipSelectedInfo"

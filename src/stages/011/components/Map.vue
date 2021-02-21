@@ -1,15 +1,46 @@
 <style scoped lang="scss">
 .root {
+  display: flex;
+  flex-direction: row;
+}
+.map-area {
   width: 320px;
   height: 320px;
+  overflow: scroll;
+}
+.layer-area {
+  display: flex;
+  flex-direction: column;
+  > .item {
+    height: 32px;
+    &.active {
+      background-color: #ccc;
+    }
+  }
 }
 </style>
 <template>
-  <div class="root" @mouseup="onMouseUp" @mouseleave="onMouseUp" @mousemove="onMouseMove" @mousedown="onMouseDown">
-    <canvas
-      :width="horizontalGridNum * gridSizeX"
-      :height="verticalGridNum * gridSizeY"
-      ref="canvas"></canvas>
+  <div class="root">
+    <div class="map-area" @mouseup="onMouseUp" @mouseleave="onMouseUp" @mousemove="onMouseMove" @mousedown="onMouseDown">
+      <canvas
+        :width="horizontalGridNum * gridSizeX"
+        :height="verticalGridNum * gridSizeY"
+        ref="canvas"></canvas>
+    </div>
+    <div class="layer-area">
+      <div 
+        class="item"
+        :class="{ 'active' : selectedLayerIndex === 0 }"
+        @click="selectedLayerIndex = 0">
+        <b-check :checked="layerVisibles[0]" style="display: inline;"></b-check>背景レイヤー
+      </div>
+      <div
+        class="item"
+        :class="{ 'active' : selectedLayerIndex === 1 }"
+        @click="selectedLayerIndex = 1">
+        <b-check :checked="layerVisibles[1]" style="display: inline;"></b-check>上空レイヤー
+      </div>
+    </div>
   </div>
 </template>
 
@@ -30,11 +61,15 @@ export default Vue.extend({
     canvas: HTMLCanvasElement | null;
     ctx: CanvasRenderingContext2D | null;
     image: HTMLImageElement | null;
+    selectedLayerIndex: number;
+    layerVisibles: Array<boolean>;
   } {
     return {
       canvas: null,
       ctx: null,
-      image: null
+      image: null,
+      selectedLayerIndex: 0,
+      layerVisibles: [true, true]
     }
   },
   mounted() {
