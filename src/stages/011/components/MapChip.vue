@@ -39,7 +39,7 @@ import * as PIXI from "pixi.js"
 
 export default Vue.extend({
   props: [
-    'imagePath', 'gridSizeX', 'gridSizeY', 'selectedMapChipGrid'
+    'imagePath', 'gridSizeX', 'gridSizeY', 'horizontalGridNum', 'verticalGridNum', 'selectedMapChipGrid'
   ],
   data(): {
     selectedGrid: PIXI.Rectangle | null;

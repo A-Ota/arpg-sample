@@ -1,8 +1,15 @@
 <style scoped lang="scss">
+.root {
+  width: 320px;
+  height: 320px;
+}
 </style>
 <template>
   <div class="root" @mouseup="onMouseUp" @mouseleave="onMouseUp" @mousemove="onMouseMove" @mousedown="onMouseDown">
-    <canvas ref="canvas"></canvas>
+    <canvas
+      :width="horizontalGridNum * gridSizeX"
+      :height="verticalGridNum * gridSizeY"
+      ref="canvas"></canvas>
   </div>
 </template>
 
@@ -10,9 +17,14 @@
 import Vue from 'vue';
 import * as PIXI from "pixi.js"
 
+export class MapData {
+  bgLayerChips: Array<number | null> = []
+  airLayerChips: Array<number | null> = []
+}
+
 export default Vue.extend({
   props: [
-    'imagePath', 'gridSizeX', 'gridSizeY', 'selectedMapChipGrid'
+    'imagePath', 'gridSizeX', 'gridSizeY', 'horizontalGridNum', 'verticalGridNum', 'selectedMapChipGrid', 'mapData'
   ],
   data(): {
     canvas: HTMLCanvasElement | null;

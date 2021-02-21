@@ -5,13 +5,28 @@
 </style>
 <template>
   <div style="position: relative;">
-    <div style="width: 640px; height: 480px;" ref="pixi_area">
+    <div style="width: 320px; height: 240px;" ref="pixi_area">
     </div>
     <div v-if="true" style="position: absolute; left: 4px; top: 4px; color: #fff;">{{ (1000 / fpsCounter.averageMs).toFixed(2) }} fps</div>
     <b-button style="margin: 8px;" @click="onClickReload">再読み込み</b-button>
-    <Map imagePath="/arpg-sample/images/stages/009/mapchip.png" :selectedMapChipGrid="selectedMapChipGrid" :gridSizeX="16" :gridSizeY="16"  />
-    <MapChip imagePath="/arpg-sample/images/stages/009/mapchip.png" v-bind:selectedMapChipGrid.sync="selectedMapChipGrid" :gridSizeX="16" :gridSizeY="16" />
-    {{ selectedMapChipGrid }}
+    <Map
+      imagePath="/arpg-sample/images/stages/010/mapchip.png"
+      :selectedMapChipGrid="selectedMapChipGrid"
+      :mapData.sync="mapData"
+      :gridSizeX="16"
+      :gridSizeY="16"
+      :horizontalGridNum="32"
+      :verticalGridNum="24"
+    />
+    <MapChip
+      imagePath="/arpg-sample/images/stages/010/mapchip.png"
+      v-bind:selectedMapChipGrid.sync="selectedMapChipGrid"
+      :gridSizeX="16"
+      :gridSizeY="16"
+      :horizontalGridNum="16"
+      :verticalGridNum="8"
+    />
+    {{ mapData }}
   </div>
 </template>
 
@@ -22,7 +37,7 @@ import * as PIXI from "pixi.js"
 import { Character, PlayerRoutine, UroUroRoutine } from '@/stages/011/Character'
 import { Field } from '@/stages/011/Field'
 import MapChip from '@/stages/011/components/MapChip.vue'
-import Map from '@/stages/011/components/Map.vue'
+import Map, { MapData } from '@/stages/011/components/Map.vue'
 
 class FpsCounter {
   private ms = 0
@@ -51,6 +66,7 @@ export default Vue.extend({
     npc: Character | null;
     isDebugMode: boolean;
     selectedMapChipGrid: PIXI.Rectangle | null;
+    mapData: MapData | null;
     } {
     return {
       pixiApp: null,
@@ -59,7 +75,8 @@ export default Vue.extend({
       fpsCounter: new FpsCounter(),
       npc: null,
       isDebugMode: false,
-      selectedMapChipGrid: null
+      selectedMapChipGrid: null,
+      mapData: new MapData()
     }
   },
   mounted() {
@@ -71,8 +88,8 @@ export default Vue.extend({
     window.onkeyup = this.onKeyUp
 
     const opt = { 
-      width: 640,
-      height: 480,
+      width: 320,
+      height: 240,
       autoDensity: true
     }
     this.pixiApp = new PIXI.Application(opt)

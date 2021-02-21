@@ -149,10 +149,10 @@ export class Field extends PIXI.Container {
     })
 
     // 視点移動
-    const rightLimitX = 640 - 128
-    const leftLimitX = 128
-    const bottomLimitY = 480 - 96 
-    const topLimitY = 96
+    const rightLimitX = 320 - 96
+    const leftLimitX = 96
+    const bottomLimitY = 240 - 64 
+    const topLimitY = 64
     if (this.targetCharacter) {
       const offsetX = this.targetCharacter.x + this.x
       if (offsetX > rightLimitX) {
