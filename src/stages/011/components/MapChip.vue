@@ -37,9 +37,16 @@ img, div {
 import Vue from 'vue';
 import * as PIXI from "pixi.js"
 
+export class ChipSelectedInfo {
+  constructor(
+    public gridRect: PIXI.Rectangle,
+    public chipIndexList: Array<number>
+  ) {}
+}
+
 export default Vue.extend({
   props: [
-    'imagePath', 'gridSizeX', 'gridSizeY', 'horizontalGridNum', 'verticalGridNum', 'selectedMapChipGrid'
+    'imagePath', 'gridSizeX', 'gridSizeY', 'horizontalGridNum', 'verticalGridNum', 'chipSelectedInfo'
   ],
   data(): {
     selectedGrid: PIXI.Rectangle | null;
@@ -102,13 +109,23 @@ export default Vue.extend({
             this.selectedGrid!.top !== newSelectedGrid.top ||
             this.selectedGrid!.bottom !== newSelectedGrid.bottom) {
               this.selectedGrid = newSelectedGrid
-              this.$emit('update:selectedMapChipGrid', this.selectedGrid)
+              this.$emit('update:chipSelectedInfo', this.createChipSelectedInfo())
           }
         } else {
           this.selectedGrid = new PIXI.Rectangle(this.dragStartGrid!.x, this.dragStartGrid!.y, 1, 1)
-          this.$emit('update:selectedMapChipGrid', this.selectedGrid)
+          this.$emit('update:chipSelectedInfo', this.createChipSelectedInfo())
         }
       }
+    },
+    createChipSelectedInfo() {
+      // 選択中のチップのIndex一覧
+      const chipIndexList = []
+      for (let y = this.selectedGrid!.top; y < this.selectedGrid!.bottom; ++y) {
+        for (let x = this.selectedGrid!.left; x < this.selectedGrid!.right; ++x) {
+          chipIndexList.push(y * this.horizontalGridNum + x)
+        }
+      }
+      return new ChipSelectedInfo(this.selectedGrid!, chipIndexList)
     }
   },
   components: {

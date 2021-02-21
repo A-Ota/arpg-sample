@@ -24,7 +24,7 @@ export class MapData {
 
 export default Vue.extend({
   props: [
-    'imagePath', 'gridSizeX', 'gridSizeY', 'horizontalGridNum', 'verticalGridNum', 'selectedMapChipGrid', 'mapData'
+    'imagePath', 'gridSizeX', 'gridSizeY', 'horizontalGridNum', 'verticalGridNum', 'chipSelectedInfo', 'mapData'
   ],
   data(): {
     canvas: HTMLCanvasElement | null;
@@ -45,22 +45,32 @@ export default Vue.extend({
   },
   methods: {
     onMouseDown(event: MouseEvent) {
-      if (this.selectedMapChipGrid != null) {
-        const grid = new PIXI.Point(Math.floor(event.offsetX / this.gridSizeX), Math.floor(event.offsetY / this.gridSizeY))
-        this.ctx!.clearRect(grid.x * this.gridSizeX,
-          grid.y * this.gridSizeY,
-          this.selectedMapChipGrid.width * this.gridSizeX,
-          this.selectedMapChipGrid.height * this.gridSizeY)
+      if (this.chipSelectedInfo != null) {
+        const targetGrid = new PIXI.Point(Math.floor(event.offsetX / this.gridSizeX), Math.floor(event.offsetY / this.gridSizeY))
+        // 描画範囲のグリッドをいったんクリア
+        this.ctx!.clearRect(targetGrid.x * this.gridSizeX,
+          targetGrid.y * this.gridSizeY,
+          this.chipSelectedInfo.gridRect.width * this.gridSizeX,
+          this.chipSelectedInfo.gridRect.height * this.gridSizeY)
+        // 描画範囲のグリッドを描画
         this.ctx!.drawImage(
           this.image!,
-          this.selectedMapChipGrid.x * this.gridSizeX,
-          this.selectedMapChipGrid.y * this.gridSizeY,
-          this.selectedMapChipGrid.width * this.gridSizeX,
-          this.selectedMapChipGrid.height * this.gridSizeY,
-          grid.x * this.gridSizeX,
-          grid.y * this.gridSizeY,
-          this.selectedMapChipGrid.width * this.gridSizeX,
-          this.selectedMapChipGrid.height * this.gridSizeY)
+          this.chipSelectedInfo.gridRect.x * this.gridSizeX,
+          this.chipSelectedInfo.gridRect.y * this.gridSizeY,
+          this.chipSelectedInfo.gridRect.width * this.gridSizeX,
+          this.chipSelectedInfo.gridRect.height * this.gridSizeY,
+          targetGrid.x * this.gridSizeX,
+          targetGrid.y * this.gridSizeY,
+          this.chipSelectedInfo.gridRect.width * this.gridSizeX,
+          this.chipSelectedInfo.gridRect.height * this.gridSizeY)
+        // 配置データを更新
+        let index = 0
+        for (let gridY = targetGrid.y; gridY < targetGrid.y + this.chipSelectedInfo.gridRect.height; ++gridY) {
+          for (let gridX = targetGrid.x; gridX < targetGrid.x + this.chipSelectedInfo.gridRect.width; ++gridX) {
+            this.mapData.bgLayerChips[gridY * this.horizontalGridNum + gridX] = this.chipSelectedInfo.chipIndexList[index]
+            ++index
+          }
+        }
       }
     },
     onMouseMove(event: MouseEvent) {
