@@ -21,7 +21,7 @@
 // 高速歩きで壁にぶつかった場合、移動しないのではなくx, yについて移動できるところまで戻してあげる。
 import Vue from "vue"
 import * as PIXI from "pixi.js"
-import { Character, PlayerRoutine, UroUroRoutine } from '@/stages/010/Character'
+import { Character, PlayerRoutine, UroUroRoutine } from '@/stages/012/Character'
 import { Field } from '@/stages/012/Field'
 
 class FpsCounter {
@@ -93,11 +93,12 @@ export default Vue.extend({
       .add("/arpg-sample/images/stages/009/chara01.png")
       .add("/arpg-sample/images/stages/009/chara02.png")
       .add("/arpg-sample/images/stages/012/mapchip.png")
+      .add("/arpg-sample/images/stages/012/mapchip.json")
       .add("/arpg-sample/images/stages/012/map01.json")
       .load(() => {
 
         // RenderTextureに必要な画像すべてを描き込む
-        const renderTexture = PIXI.RenderTexture.create({ width: 512, height: 512 })
+        const renderTexture = PIXI.RenderTexture.create({ width: 1024, height: 1024 })
         const renderSprite = PIXI.Sprite.from(renderTexture)
 
         // mapchipを描き込む
@@ -105,17 +106,21 @@ export default Vue.extend({
         this.pixiApp!.renderer.render(spriteMapChip, renderTexture, false)
         // chara01を書き込む
         const sprite01 = PIXI.Sprite.from(PIXI.Loader.shared.resources["/arpg-sample/images/stages/009/chara01.png"].texture)
-        sprite01.position.set(0, 128)
+        sprite01.position.set(256, 0)
         this.pixiApp!.renderer.render(sprite01, renderTexture, false)
-        // chara02を書き込む
-        const sprite02 = PIXI.Sprite.from(PIXI.Loader.shared.resources["/arpg-sample/images/stages/009/chara02.png"].texture)
-        sprite02.position.set(192, 128)
-        this.pixiApp!.renderer.render(sprite02, renderTexture, false)
 
         // フィールド
-        this.field = new Field(renderTexture, PIXI.Loader.shared.resources["/arpg-sample/images/stages/012/map01.json"])
+        this.field = new Field(
+          renderTexture,
+          PIXI.Loader.shared.resources["/arpg-sample/images/stages/012/mapchip.json"].data,
+          PIXI.Loader.shared.resources["/arpg-sample/images/stages/012/map01.json"].data)
         this.pixiApp!.stage.addChild(this.field)
 
+        // プレイヤー
+        const chara1 = new Character(renderTexture, new PIXI.Point(256, 0), new PlayerRoutine(this.pressedKeyCodeSet))
+        chara1.x = 200
+        chara1.y = 120
+        this.field.addCharacter(chara1, true)
       })
 
     // メインループ

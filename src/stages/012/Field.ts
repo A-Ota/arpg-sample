@@ -1,4 +1,4 @@
-import { Character } from '@/stages/011/Character'
+import { Character } from '@/stages/012/Character'
 import { SortableParticleContainer } from '@/stages/005/SortableParticleContainer'
 import * as PIXI from "pixi.js"
 import * as PIXITilemap from '@/pixi-tilemap/index'
@@ -15,7 +15,7 @@ export class Field extends PIXI.Container {
   private walls: Array<PIXI.Rectangle> = []
   private textureMap: Map<string, PIXI.Texture> = new Map()
   private textureList: Array<PIXI.Texture> = []
-  constructor(private texture: PIXI.Texture, private mapData: any) {
+  constructor(private texture: PIXI.Texture, private mapChipData: any, private mapData: any) {
     super()
 
     // 150,000チップ以上使えるようにする
@@ -60,47 +60,42 @@ export class Field extends PIXI.Container {
     // まずは全てのチップをテクスチャ化
     this.textureList.forEach(texture => texture.destroy())
     this.textureList.length = 0
-    // TODO:
-    /*
-    for (let gridY = 0; gridY < this.mapChipData.verticalGridNum; ++gridY) {
-      for (let gridX = 0; gridX < this.mapChipData.horizontalGridNum; ++gridX) {
+
+    for (let gridY = 0, gridYCount = Math.floor(this.mapChipData.imageheight / this.mapChipData.tileheight); gridY < gridYCount; ++gridY) {
+      for (let gridX = 0, gridXCount = Math.floor(this.mapChipData.imagewidth / this.mapChipData.tilewidth); gridX < gridXCount; ++gridX) {
         const texture = this.texture.clone()
         texture.frame = new PIXI.Rectangle(
-          this.mapChipData.gridSizeX * gridX,
-          this.mapChipData.gridSizeY * gridY,
-          this.mapChipData.gridSizeX,
-          this.mapChipData.gridSizeY)
+          this.mapChipData.tilewidth * gridX,
+          this.mapChipData.tileheight * gridY,
+          this.mapChipData.tilewidth,
+          this.mapChipData.tileheight)
         this.textureList.push(texture)
       }
     }
     // チップを配置
-    for (let gridY = 0; gridY < this.mapData.verticalGridNum; ++gridY) {
-      for (let gridX = 0; gridX < this.mapData.horizontalGridNum; ++gridX) {
-        const mapChipIndex = gridX + gridY * this.mapData.horizontalGridNum
-        // 下層地形
-        {
-          const textureIndex = this.mapData.layerChipsList[0][mapChipIndex]
-          if (textureIndex != null) {
-            this.bgLayerContainer.addFrame(this.textureList[textureIndex], gridX * 16, gridY * 16)
+    {
+      this.horizontalGridNum = this.mapData.width
+      this.verticalGridNum = this.mapData.height
+      for (let gridY = 0; gridY < this.verticalGridNum; ++gridY) {
+        for (let gridX = 0; gridX < this.horizontalGridNum; ++gridX) {
+          const mapChipIndex = gridX + gridY * this.horizontalGridNum
+          // 下層、中層、上層地形
+          for (let layerIndex = 0; layerIndex < 3; ++layerIndex) {
+            const textureIndex = this.mapData.layers[layerIndex].data[mapChipIndex]
+            if (textureIndex > 0) {
+              this.bgLayerContainer.addFrame(this.textureList[textureIndex - 1], gridX * this.mapChipData.tilewidth, gridY * this.mapChipData.tileheight)
+            }
           }
-        }
-        // 上層地形
-        {
-          const textureIndex = this.mapData.layerChipsList[1][mapChipIndex]
-          if (textureIndex != null) {
-            this.bgLayerContainer.addFrame(this.textureList[textureIndex], gridX * 16, gridY * 16)
-          }
-        }
-        // 上空
-        {
-          const textureIndex = this.mapData.layerChipsList[2][mapChipIndex]
-          if (textureIndex != null) {
-            this.airLayerContainer.addFrame(this.textureList[textureIndex], gridX * 16, gridY * 16)
+          // 上空
+          {
+            const textureIndex = this.mapData.layers[3].data[mapChipIndex]
+            if (textureIndex > 0) {
+              this.airLayerContainer.addFrame(this.textureList[textureIndex - 1], gridX * this.mapChipData.tilewidth, gridY * this.mapChipData.tileheight)
+            }
           }
         }
       }
     }
-    */
   }
   public addCharacter(character: Character, isTarget = false) {
     this.characters.push(character)
@@ -176,10 +171,10 @@ export class Field extends PIXI.Container {
     })
 
     // 視点移動
-    const rightLimitX = 320 - 96
-    const leftLimitX = 96
-    const bottomLimitY = 240 - 64 
-    const topLimitY = 64
+    const rightLimitX = 649 - 128
+    const leftLimitX = 128
+    const bottomLimitY = 480 - 96
+    const topLimitY = 96
     if (this.targetCharacter) {
       const offsetX = this.targetCharacter.x + this.x
       if (offsetX > rightLimitX) {
@@ -196,8 +191,8 @@ export class Field extends PIXI.Container {
         this.y = -(this.targetCharacter.y - topLimitY)
       }
     }
-    this.x = Math.floor(Math.min(0, Math.max(-(16 * this.horizontalGridNum - 320), this.x)))
-    this.y = Math.floor(Math.min(0, Math.max(-(16 * this.verticalGridNum - 240), this.y)))
+    this.x = Math.floor(Math.min(0, Math.max(-(this.mapData.tilewidth * this.horizontalGridNum - 640), this.x)))
+    this.y = Math.floor(Math.min(0, Math.max(-(this.mapData.tileheight * this.verticalGridNum - 480), this.y)))
     // layerContainerについては自前でソートを行う
     this.layerContainer.sortChildren()
   }
