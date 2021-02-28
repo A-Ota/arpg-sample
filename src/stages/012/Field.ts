@@ -204,10 +204,10 @@ export class Field extends PIXI.Container {
     })
 
     // 視点移動
-    const rightLimitX = 649 - 160
-    const leftLimitX = 160
-    const bottomLimitY = 480 - 128
-    const topLimitY = 128
+    const rightLimitX = 640 - 240
+    const leftLimitX = 240
+    const bottomLimitY = 480 - 160
+    const topLimitY = 160
     if (this.targetCharacter) {
       const offsetX = this.targetCharacter.x + this.x
       if (offsetX > rightLimitX) {
@@ -251,6 +251,7 @@ export class Field extends PIXI.Container {
     const [gridX, gridY] = [Math.floor(targetCharacter.x / this.mapData.tilewidth), Math.floor(targetCharacter.y / this.mapData.tileheight)]
     const areaGrid = [Math.floor(gridX / AREA_DIVIDE_GRID_NUM), Math.floor(gridY / AREA_DIVIDE_GRID_NUM)]
     const collisions = this.getCollisionsByAreaGrid(areaGrid)
+    // const collisions = this.collisions
     console.log(collisions.length)
 
     const targetRect = targetCharacter.hitRect.clone()

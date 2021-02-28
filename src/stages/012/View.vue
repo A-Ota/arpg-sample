@@ -108,6 +108,11 @@ export default Vue.extend({
         const sprite01 = PIXI.Sprite.from(PIXI.Loader.shared.resources["/arpg-sample/images/stages/009/chara01.png"].texture)
         sprite01.position.set(256, 0)
         this.pixiApp!.renderer.render(sprite01, renderTexture, false)
+        // chara02を書き込む
+        const sprite02 = PIXI.Sprite.from(PIXI.Loader.shared.resources["/arpg-sample/images/stages/009/chara02.png"].texture)
+        sprite02.position.set(256 + 192, 0)
+        this.pixiApp!.renderer.render(sprite02, renderTexture, false)
+
 
         // フィールド
         this.field = new Field(
@@ -121,6 +126,15 @@ export default Vue.extend({
         chara1.x = 200
         chara1.y = 120
         this.field.addCharacter(chara1, true)
+        
+        // NPC
+        for (let i = 0; i < 20; ++i) {
+          const npc = new Character(renderTexture, new PIXI.Point(256 + 192, 0), new UroUroRoutine())
+          npc.x = 16 + 16 * Math.floor(Math.random() * (this.field!.horizontalGridNum - 2));
+          npc.y = 16 + 16 * Math.floor(Math.random() * (this.field!.verticalGridNum - 2));
+          npc.currentDirection = 4
+          this.field.addCharacter(npc)
+        }
       })
 
     // メインループ

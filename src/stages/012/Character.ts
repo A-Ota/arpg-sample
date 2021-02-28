@@ -183,7 +183,7 @@ export class PlayerRoutine extends BaseRoutine {
     }
     // 向かせたり歩かせたり
     if (direction != null) {
-      const [moveX, moveY] = calcMoveXY(direction, 5)
+      const [moveX, moveY] = calcMoveXY(direction, 3)
       this.character.preUpdateInfo = new PreUpdateInfo(moveX, moveY, direction)
     }
   }
@@ -200,7 +200,7 @@ export class UroUroRoutine extends BaseRoutine {
   preUpdate() {
     // 移動中
     if (this.isMoving) {
-      const [moveX, moveY] = calcMoveXY(this.character.currentDirection, 0.6)
+      const [moveX, moveY] = calcMoveXY(this.character.currentDirection, 1)
       this.character.preUpdateInfo = new PreUpdateInfo(moveX, moveY, this.character.currentDirection)
       --this.frameCountToWait
       if (this.frameCountToWait <= 0) {
