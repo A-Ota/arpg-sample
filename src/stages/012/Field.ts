@@ -500,16 +500,4 @@ export class Field extends PIXI.Container {
       }
     }
   }
-  public showCharacter() {
-    this.fieldCharacters.forEach(fieldCharacter => {
-      this.layerContainer.addChild(fieldCharacter.character.bodySprite)
-      this.layerContainer.addChild(fieldCharacter.character.shadowSprite)
-    })
-  }
-  public hideCharacter() {
-    this.fieldCharacters.forEach(fieldCharacter => {
-      this.layerContainer.removeChild(fieldCharacter.character.bodySprite)
-      this.layerContainer.removeChild(fieldCharacter.character.shadowSprite)
-    })
-  }
 }

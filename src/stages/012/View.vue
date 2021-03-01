@@ -8,8 +8,6 @@
     <div style="width: 640px; height: 480px;" ref="pixi_area">
     </div>
     <div v-if="true" style="position: absolute; left: 4px; top: 4px; color: #fff;">{{ (1000 / fpsCounter.averageMs).toFixed(2) }} fps</div>
-    <b-button @click="onHide">キャラクター非表示</b-button>
-    <b-button @click="onShow">キャラクター表示</b-button>
     <!--
     <b-button
       style="margin: 8px;"
@@ -167,12 +165,6 @@ export default Vue.extend({
     onClickToggleDebugMode() {
       this.isDebugMode = !this.isDebugMode
       this.field!.setDebugMode(this.isDebugMode)
-    },
-    onShow() {
-      this.field!.showCharacter()
-    },
-    onHide() {
-      this.field!.hideCharacter()
     }
   },
   beforeDestroy() {
