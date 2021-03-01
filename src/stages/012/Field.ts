@@ -140,7 +140,7 @@ export class Field extends PIXI.Container {
         for (let gridX = 0; gridX < this.horizontalGridNum; ++gridX) {
           const collision = this.collisions[gridY * this.horizontalGridNum + gridX]
           if (collision != null) {
-            const areaGridString = this.girdToAreaGrid(Math.floor(gridX / AREA_DIVIDE_GRID_NUM), Math.floor(gridY / AREA_DIVIDE_GRID_NUM)).toString()
+            const areaGridString = this.gridToAreaGrid(gridX, gridY).toString()
             if (this.collisionsByArea.has(areaGridString)) {
               this.collisionsByArea.get(areaGridString)!.push(collision)
             } else {
@@ -252,6 +252,9 @@ export class Field extends PIXI.Container {
     // layerContainerについては自前でソートを行う
     this.layerContainer.sortChildren()
 
+    if (this.frameCount % 600 === 0) {
+      console.log(`${t1sum}, ${t2sum}`)
+    }
     ++ this.frameCount
 
   }
@@ -274,8 +277,7 @@ export class Field extends PIXI.Container {
     return [hit, hit ? hitDistance / Math.sqrt(Math.pow(offsetX, 2) + Math.pow(offsetY, 2)) : 0]
   }
   private hitWall(targetCharacter: Character, offsetX: number, offsetY: number): [boolean, number, number] {
-    const [gridX, gridY] = [Math.floor(targetCharacter.x / this.mapData.tilewidth), Math.floor(targetCharacter.y / this.mapData.tileheight)]
-    const areaGrid = this.girdToAreaGrid(Math.floor(gridX / AREA_DIVIDE_GRID_NUM), Math.floor(gridY / AREA_DIVIDE_GRID_NUM))
+    const areaGrid = this.positionToAreaGrid(targetCharacter.x, targetCharacter.y)
     const collisions = this.getCollisionsByAreaGrid(areaGrid)
     // const collisions = this.collisions
     // console.log(collisions.length)
@@ -362,7 +364,7 @@ export class Field extends PIXI.Container {
     const fieldCharacters = this.fieldCharactersByArea.get(areaGridString)!
     this.fieldCharactersByArea.set(areaGridString, fieldCharacters.filter(fieldCharacter2 => fieldCharacter2 !== fieldCharacter))
   }
-  private girdToAreaGrid(gridX: number, gridY: number) {
+  private gridToAreaGrid(gridX: number, gridY: number) {
     return [Math.floor(gridX / AREA_DIVIDE_GRID_NUM), Math.floor(gridY / AREA_DIVIDE_GRID_NUM)]
   }
   private positionToAreaGrid(x: number, y: number) {
