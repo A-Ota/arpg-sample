@@ -166,6 +166,7 @@ export class Field extends PIXI.Container {
     }
     this.layerContainer.addChildZ(character.bodySprite, 1)
     this.layerContainer.addChildZ(character.shadowSprite, 1)
+    character.update()
     this.debugLayerContainer.addChild(character.debugCircle)
     this.debugLayerContainer.addChild(character.debugRect)
   }
