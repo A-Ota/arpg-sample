@@ -139,8 +139,8 @@ export default Vue.extend({
         // NPC
         for (let i = 0; i < 1000; ++i) {
           const npc = new Character(renderTexture, new PIXI.Point(256 + 192, 0), new UroUroRoutine())
-          npc.x = 16 + 16 * Math.floor(Math.random() * (this.field!.horizontalGridNum - 2));
-          npc.y = 16 + 16 * Math.floor(Math.random() * (this.field!.verticalGridNum - 2));
+          npc.x = 32 + 16 * Math.floor(Math.random() * (this.field!.horizontalGridNum - 4));
+          npc.y = 32 + 16 * Math.floor(Math.random() * (this.field!.verticalGridNum - 4));
           npc.currentDirection = 4
           this.field.addCharacter(npc)
         }
