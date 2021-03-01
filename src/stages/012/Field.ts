@@ -4,6 +4,10 @@ import * as PIXI from "pixi.js"
 import * as PIXITilemap from '@/pixi-tilemap/index'
 
 const AREA_DIVIDE_GRID_NUM = 3
+const GAME_AREA_WIDTH = 640
+const GAME_AREA_HEIGHT = 480
+const SIGHT_MOVE_X = GAME_AREA_WIDTH / 3
+const SIGHT_MOVE_Y = GAME_AREA_HEIGHT / 3
 
 class Collosion {
   constructor(
@@ -166,15 +170,19 @@ export class Field extends PIXI.Container {
     this.debugLayerContainer.addChild(character.debugRect)
   }
   public update() {
+    const t1 = performance.now()
+    const fieldCharacters = this.getInSightFieldCharacters()
     // preUpdate
-    this.fieldCharacters.forEach(fieldCharacter => fieldCharacter.character.preUpdate())
+    fieldCharacters.forEach(fieldCharacter => fieldCharacter.character.preUpdate())
     // 衝突判定など、ゲームの世界の都合でpreUpdateの内容に干渉しつつ、確定させる。
-    this.fieldCharacters.forEach(fieldCharacter => {
+    fieldCharacters.forEach(fieldCharacter => {
       if (fieldCharacter.character.preUpdateInfo != null) {
         let [moveX, moveY] = [fieldCharacter.character.preUpdateInfo.moveX, fieldCharacter.character.preUpdateInfo.moveY]
         if ((moveX != 0 || moveY != 0)) {
           // キャラ
+          // const t1 = performance.now()
           const [hitCharacter, hitDistanceRate] = this.hitOtherCaracter(fieldCharacter, moveX, moveY)
+          // t1sum += (performance.now() - t1)
           if (hitCharacter) {
             // キャラにめり込んだ分を戻す
             moveX = (moveX - (moveX * hitDistanceRate))
@@ -182,7 +190,9 @@ export class Field extends PIXI.Container {
           }
           // 地形
           {
+            // const t2 = performance.now()
             const [hit, excessX, excessY] = this.hitWall(fieldCharacter.character, moveX, moveY)
+            // t2sum += (performance.now() - t2)
             // ぶつからなかった
             if (!hit) {
               fieldCharacter.character.x += moveX
@@ -227,10 +237,10 @@ export class Field extends PIXI.Container {
     })
 
     // 視点移動
-    const rightLimitX = 640 - 240
-    const leftLimitX = 240
-    const bottomLimitY = 480 - 160
-    const topLimitY = 160
+    const rightLimitX = GAME_AREA_WIDTH - SIGHT_MOVE_X
+    const leftLimitX = SIGHT_MOVE_X
+    const bottomLimitY = GAME_AREA_HEIGHT - SIGHT_MOVE_Y
+    const topLimitY = SIGHT_MOVE_Y
     if (this.targetCharacter) {
       const offsetX = this.targetCharacter.x + this.x
       if (offsetX > rightLimitX) {
@@ -247,13 +257,13 @@ export class Field extends PIXI.Container {
         this.y = -(this.targetCharacter.y - topLimitY)
       }
     }
-    this.x = Math.floor(Math.min(0, Math.max(-(this.mapData.tilewidth * this.horizontalGridNum - 640), this.x)))
-    this.y = Math.floor(Math.min(0, Math.max(-(this.mapData.tileheight * this.verticalGridNum - 480), this.y)))
+    this.x = Math.floor(Math.min(0, Math.max(-(this.mapData.tilewidth * this.horizontalGridNum - GAME_AREA_WIDTH), this.x)))
+    this.y = Math.floor(Math.min(0, Math.max(-(this.mapData.tileheight * this.verticalGridNum - GAME_AREA_HEIGHT), this.y)))
     // layerContainerについては自前でソートを行う
     this.layerContainer.sortChildren()
 
-    if (this.frameCount % 600 === 0) {
-      console.log(`${t1sum}, ${t2sum}`)
+    if (this.frameCount % 200 === 0) {
+      console.log(`${performance.now() - t1}`)
     }
     ++ this.frameCount
 
@@ -372,5 +382,22 @@ export class Field extends PIXI.Container {
   }
   public setDebugMode(flag: boolean) {
     this.debugLayerContainer.visible = flag
+  }
+  // 視界内のキャラクター一覧取得
+  private getInSightFieldCharacters(): Array<FieldCharacter> {
+    const inSightLeftAreaGridX = Math.max(0, -Math.floor(this.x / (AREA_DIVIDE_GRID_NUM * this.mapData.tilewidth)) - 2)
+    const inSightRightAreaGridX = inSightLeftAreaGridX + Math.ceil(GAME_AREA_WIDTH / (AREA_DIVIDE_GRID_NUM * this.mapData.tilewidth)) + 4
+    const inSightTopAreaGridY = Math.max(0, -Math.floor(this.y / (AREA_DIVIDE_GRID_NUM * this.mapData.tileheight)) - 2)
+    const inSightBottomAreaGridY = inSightTopAreaGridY + Math.ceil(GAME_AREA_HEIGHT / (AREA_DIVIDE_GRID_NUM * this.mapData.tileheight)) + 4
+    const fieldCharacters: Array<FieldCharacter> = []
+    for (let areaGridY = inSightTopAreaGridY; areaGridY <= inSightBottomAreaGridY; ++areaGridY) {
+      for (let areaGridX = inSightLeftAreaGridX; areaGridX <= inSightRightAreaGridX; ++areaGridX) {
+        const areaGridString = [areaGridX, areaGridY].toString()
+        if (this.fieldCharactersByArea.has(areaGridString)) {
+          Array.prototype.push.apply(fieldCharacters, this.fieldCharactersByArea.get(areaGridString)!)
+        }
+      }
+    }
+    return fieldCharacters
   }
 }
