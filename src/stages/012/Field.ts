@@ -15,6 +15,14 @@ class Collosion {
   ) {}
 }
 
+class FieldCharacter {
+  constructor(
+    public character: Character,
+    public areaGridX: number,
+    public areaGridY: number
+  ) {}
+}
+
 export class Field extends PIXI.Container {
   private bgLayerContainer!: PIXITilemap.CompositeRectTileLayer
   private airLayerContainer!: PIXITilemap.CompositeRectTileLayer
@@ -23,12 +31,15 @@ export class Field extends PIXI.Container {
   public horizontalGridNum = 200
   public verticalGridNum = 200
   private targetCharacter: Character | null = null
-  private characters: Array<Character> = []
+  private fieldCharacters: Array<FieldCharacter> = []
+
   private walls: Array<PIXI.Rectangle> = []
   private collisions: Array<Collosion> = []
-  private collisionsByArea: Map<string, Array<Collosion>> = new Map() 
+  private collisionsByArea: Map<string, Array<Collosion>> = new Map()
+  private fieldCharactersByArea: Map<string, Array<FieldCharacter>> = new Map()
   private textureMap: Map<string, PIXI.Texture> = new Map()
   private textureList: Array<PIXI.Texture> = []
+  private frameCount = 0
   constructor(private texture: PIXI.Texture, private mapChipData: any, private mapData: any) {
     super()
 
@@ -129,7 +140,7 @@ export class Field extends PIXI.Container {
         for (let gridX = 0; gridX < this.horizontalGridNum; ++gridX) {
           const collision = this.collisions[gridY * this.horizontalGridNum + gridX]
           if (collision != null) {
-            const areaGridString = [Math.floor(gridX / AREA_DIVIDE_GRID_NUM), Math.floor(gridY / AREA_DIVIDE_GRID_NUM)].toString()
+            const areaGridString = this.girdToAreaGrid(Math.floor(gridX / AREA_DIVIDE_GRID_NUM), Math.floor(gridY / AREA_DIVIDE_GRID_NUM)).toString()
             if (this.collisionsByArea.has(areaGridString)) {
               this.collisionsByArea.get(areaGridString)!.push(collision)
             } else {
@@ -138,11 +149,14 @@ export class Field extends PIXI.Container {
           }
         }
       }
-      console.log(this.collisionsByArea.size)
+      console.log(`衝突判定のエリア分けの数:${this.collisionsByArea.size}`)
     }
   }
   public addCharacter(character: Character, isTarget = false) {
-    this.characters.push(character)
+    const [areaGridX, areaGridY] = this.positionToAreaGrid(character.x, character.y)
+    const fieldCharacter = new FieldCharacter(character, areaGridX, areaGridY)
+    this.fieldCharacters.push(fieldCharacter)
+    this.addFieldCharacterToArea(fieldCharacter, areaGridX, areaGridY)
     if (isTarget) {
       this.targetCharacter = character
     }
@@ -153,14 +167,14 @@ export class Field extends PIXI.Container {
   }
   public update() {
     // preUpdate
-    this.characters.forEach(chara => chara.preUpdate())
+    this.fieldCharacters.forEach(fieldCharacter => fieldCharacter.character.preUpdate())
     // 衝突判定など、ゲームの世界の都合でpreUpdateの内容に干渉しつつ、確定させる。
-    this.characters.forEach(chara => {
-      if (chara.preUpdateInfo != null) {
-        let [moveX, moveY] = [chara.preUpdateInfo.moveX, chara.preUpdateInfo.moveY]
+    this.fieldCharacters.forEach(fieldCharacter => {
+      if (fieldCharacter.character.preUpdateInfo != null) {
+        let [moveX, moveY] = [fieldCharacter.character.preUpdateInfo.moveX, fieldCharacter.character.preUpdateInfo.moveY]
         if ((moveX != 0 || moveY != 0)) {
           // キャラ
-          const [hitCharacter, hitDistanceRate] = this.hitOtherCaracter(chara, moveX, moveY)
+          const [hitCharacter, hitDistanceRate] = this.hitOtherCaracter(fieldCharacter, moveX, moveY)
           if (hitCharacter) {
             // キャラにめり込んだ分を戻す
             moveX = (moveX - (moveX * hitDistanceRate))
@@ -168,38 +182,47 @@ export class Field extends PIXI.Container {
           }
           // 地形
           {
-            const [hit, excessX, excessY] = this.hitWall(chara, moveX, moveY)
+            const [hit, excessX, excessY] = this.hitWall(fieldCharacter.character, moveX, moveY)
             // ぶつからなかった
             if (!hit) {
-              chara.x += moveX
-              chara.y += moveY
+              fieldCharacter.character.x += moveX
+              fieldCharacter.character.y += moveY
             }
             // ぶつかった 
             else {
               // 上下左右移動時は押し戻しに従う
               if (excessX === 0 || excessY === 0) {
-                chara.x += (moveX - excessX)
-                chara.y += (moveY - excessY)
+                fieldCharacter.character.x += (moveX - excessX)
+                fieldCharacter.character.y += (moveY - excessY)
               }
               // 斜め移動時は片方のみの移動を試みる
               else {
-                if (!this.hitWall(chara, 0, moveY)[0]) {
-                  chara.y += moveY
-                  chara.x += (moveX - excessX) // 移動しなかった方向についても押し戻しは適用
+                if (!this.hitWall(fieldCharacter.character, 0, moveY)[0]) {
+                  fieldCharacter.character.y += moveY
+                  fieldCharacter.character.x += (moveX - excessX) // 移動しなかった方向についても押し戻しは適用
                 }
-                else if (!this.hitWall(chara, moveX, 0)[0]) {
-                  chara.x += moveX
-                  chara.y += (moveY - excessY) // 移動しなかった方向についても押し戻しは適用
+                else if (!this.hitWall(fieldCharacter.character, moveX, 0)[0]) {
+                  fieldCharacter.character.x += moveX
+                  fieldCharacter.character.y += (moveY - excessY) // 移動しなかった方向についても押し戻しは適用
                 }
               }
             }
           }
         }
-        chara.currentDirection = chara.preUpdateInfo.nextDirection
-        chara.preUpdateInfo = null
-        chara.update()
+        fieldCharacter.character.currentDirection = fieldCharacter.character.preUpdateInfo.nextDirection
+        fieldCharacter.character.preUpdateInfo = null
+
+        const [oldAreaGridX, oldAreaGridY] = [fieldCharacter.areaGridX, fieldCharacter.areaGridY]
+        fieldCharacter.character.update()
+        ;[fieldCharacter.areaGridX, fieldCharacter.areaGridY] = this.positionToAreaGrid(fieldCharacter.character.x, fieldCharacter.character.y)
+        // キャラの所属AreaGridの変更検知
+        if (fieldCharacter.areaGridX !== oldAreaGridX || fieldCharacter.areaGridY !== oldAreaGridY) {
+          this.removeFieldCharacterFromArea(fieldCharacter, oldAreaGridX, oldAreaGridY)
+          this.addFieldCharacterToArea(fieldCharacter,fieldCharacter.areaGridX, fieldCharacter.areaGridY)
+        }
+        // console.log(`キャラの所属AreaGrid(${fieldCharacter.areaGridX}, ${fieldCharacter.areaGridY})`)
       } else {
-        chara.update()
+        fieldCharacter.character.update()
       }
     })
 
@@ -228,20 +251,23 @@ export class Field extends PIXI.Container {
     this.y = Math.floor(Math.min(0, Math.max(-(this.mapData.tileheight * this.verticalGridNum - 480), this.y)))
     // layerContainerについては自前でソートを行う
     this.layerContainer.sortChildren()
+
+    ++ this.frameCount
+
   }
   // 他キャラとの衝突判定
-  private hitOtherCaracter(targetCharacter: Character, offsetX: number, offsetY: number): [boolean, number] {
-    const targetCircle = targetCharacter.hitCircle.clone()
+  private hitOtherCaracter(targetFieldCharacter: FieldCharacter, offsetX: number, offsetY: number): [boolean, number] {
+    const targetCircle = targetFieldCharacter.character.hitCircle.clone()
     targetCircle.x += offsetX
     targetCircle.y += offsetY
     let hitDistance = 0
-    const hit = this.characters.some(character => {
-      if (targetCharacter === character) {
-        return false
-      }
-      const [x1, y1, x2, y2] = [targetCircle.x, targetCircle.y, character.hitCircle.x, character.hitCircle.y]
+    const otherFieldCharacters = this.getOtherFieldCharactersByAreaGrid(targetFieldCharacter)
+    // const otherFieldCharacters = this.fieldCharacters.filter(fieldCharacter => targetFieldCharacter != fieldCharacter)
+    // console.log(otherFieldCharacters.length)
+    const hit = otherFieldCharacters.some(fieldCharacter => {
+      const [x1, y1, x2, y2] = [targetCircle.x, targetCircle.y, fieldCharacter.character.hitCircle.x, fieldCharacter.character.hitCircle.y]
       // めり込んだ距離(の2乗)
-      hitDistance = (targetCircle.radius + character.hitCircle.radius) - Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))
+      hitDistance = (targetCircle.radius + fieldCharacter.character.hitCircle.radius) - Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))
       const hit = hitDistance >= 0
       return hit
     })
@@ -249,10 +275,10 @@ export class Field extends PIXI.Container {
   }
   private hitWall(targetCharacter: Character, offsetX: number, offsetY: number): [boolean, number, number] {
     const [gridX, gridY] = [Math.floor(targetCharacter.x / this.mapData.tilewidth), Math.floor(targetCharacter.y / this.mapData.tileheight)]
-    const areaGrid = [Math.floor(gridX / AREA_DIVIDE_GRID_NUM), Math.floor(gridY / AREA_DIVIDE_GRID_NUM)]
+    const areaGrid = this.girdToAreaGrid(Math.floor(gridX / AREA_DIVIDE_GRID_NUM), Math.floor(gridY / AREA_DIVIDE_GRID_NUM))
     const collisions = this.getCollisionsByAreaGrid(areaGrid)
     // const collisions = this.collisions
-    console.log(collisions.length)
+    // console.log(collisions.length)
 
     const targetRect = targetCharacter.hitRect.clone()
     targetRect.x += offsetX
@@ -282,6 +308,27 @@ export class Field extends PIXI.Container {
     })
     return [hit, excessX, excessY]
   }
+  private getOtherFieldCharactersByAreaGrid(fieldCharacter: FieldCharacter) {
+    const otherFieldCharacters: Array<FieldCharacter> = []
+    const areaGrid = [fieldCharacter.areaGridX, fieldCharacter.areaGridY]
+    const areaGridStrings = [
+      areaGrid.toString(),
+      [areaGrid[0] - 1, areaGrid[1]].toString(),
+      [areaGrid[0] - 1, areaGrid[1] - 1].toString(),
+      [areaGrid[0], areaGrid[1] - 1].toString(),
+      [areaGrid[0] + 1, areaGrid[1] - 1].toString(),
+      [areaGrid[0] + 1, areaGrid[1]].toString(),
+      [areaGrid[0] + 1, areaGrid[1] + 1].toString(),
+      [areaGrid[0], areaGrid[1] + 1].toString(),
+      [areaGrid[0] - 1, areaGrid[1] + 1].toString()
+    ]
+    areaGridStrings.forEach(areaGridString => {
+      if (this.fieldCharactersByArea.has(areaGridString)) {
+        Array.prototype.push.apply(otherFieldCharacters, this.fieldCharactersByArea.get(areaGridString)!)
+      }
+    })
+    return otherFieldCharacters.filter(fieldCharacter2 => fieldCharacter2 !== fieldCharacter)
+  }
   private getCollisionsByAreaGrid(areaGrid: Array<number>): Array<Collosion> {
     const collisions: Array<Collosion> = []
     const areaGridStrings = [
@@ -301,6 +348,25 @@ export class Field extends PIXI.Container {
       }
     })
     return collisions
+  }
+  private addFieldCharacterToArea(fieldCharacter: FieldCharacter, areaGridX: number, areaGridY: number) {
+    const areaGridString = [areaGridX, areaGridY].toString()
+    if (this.fieldCharactersByArea.has(areaGridString)) {
+      this.fieldCharactersByArea.get(areaGridString)!.push(fieldCharacter)
+    } else {
+      this.fieldCharactersByArea.set(areaGridString, [fieldCharacter])
+    }
+  }
+  private removeFieldCharacterFromArea(fieldCharacter: FieldCharacter, areaGridX: number, areaGridY: number) {
+    const areaGridString = [areaGridX, areaGridY].toString()
+    const fieldCharacters = this.fieldCharactersByArea.get(areaGridString)!
+    this.fieldCharactersByArea.set(areaGridString, fieldCharacters.filter(fieldCharacter2 => fieldCharacter2 !== fieldCharacter))
+  }
+  private girdToAreaGrid(gridX: number, gridY: number) {
+    return [Math.floor(gridX / AREA_DIVIDE_GRID_NUM), Math.floor(gridY / AREA_DIVIDE_GRID_NUM)]
+  }
+  private positionToAreaGrid(x: number, y: number) {
+    return [Math.floor(x / (AREA_DIVIDE_GRID_NUM * this.mapData.tilewidth)), Math.floor(y / (AREA_DIVIDE_GRID_NUM * this.mapData.tileheight))]
   }
   public setDebugMode(flag: boolean) {
     this.debugLayerContainer.visible = flag
