@@ -301,7 +301,7 @@ export class Field extends PIXI.Container {
     })
     return [hit, hit ? hitDistance / Math.sqrt(Math.pow(offsetX, 2) + Math.pow(offsetY, 2)) : 0]
   }
-  private hitWall(targetCharacter: Character, offsetX: number, offsetY: number): [boolean, number, number] {
+  public hitWall(targetCharacter: Character, offsetX: number, offsetY: number): [boolean, number, number] {
     const areaGrid = this.positionToAreaGrid(targetCharacter.x, targetCharacter.y)
     const collisions = this.getCollisionsByAreaGrid(areaGrid)
     // const collisions = this.collisions

@@ -129,20 +129,22 @@ export default Vue.extend({
         chara1.y = 120
         this.field.addCharacter(chara1, true)
 
-        /*
-        const npc = new Character(renderTexture, new PIXI.Point(256 + 192, 0), new UroUroRoutine())
-        npc.x = 300
-        npc.y = 200
-        npc.currentDirection = 4
-        this.field.addCharacter(npc)
-        */
         // NPC
         for (let i = 0; i < 1000; ++i) {
           const npc = new Character(renderTexture, new PIXI.Point(256 + 192, 0), new UroUroRoutine())
-          npc.x = 32 + 16 * Math.floor(Math.random() * (this.field!.horizontalGridNum - 4));
-          npc.y = 32 + 16 * Math.floor(Math.random() * (this.field!.verticalGridNum - 4));
           npc.currentDirection = 4
           this.field.addCharacter(npc)
+          for(;;) {
+            npc.x = 32 + 16 * Math.floor(Math.random() * (this.field!.horizontalGridNum - 4))
+            npc.y = 32 + 16 * Math.floor(Math.random() * (this.field!.verticalGridNum - 4))
+            npc.update()
+            const [hit, x, y] = this.field.hitWall(npc, 0, 0)
+            if (!hit) {
+              break;
+            } else {
+              console.log(hit)
+            }
+          }
         }
       })
 
