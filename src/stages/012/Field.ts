@@ -20,10 +20,11 @@ class Collosion {
 }
 
 class FieldCharacter {
+  public isAdded: boolean = false
   constructor(
     public character: Character,
     public areaGridX: number,
-    public areaGridY: number
+    public areaGridY: number,
   ) {}
 }
 
@@ -36,6 +37,7 @@ export class Field extends PIXI.Container {
   public verticalGridNum = 200
   private targetCharacter: Character | null = null
   private fieldCharacters: Array<FieldCharacter> = []
+  private inSightArea: PIXI.Rectangle = new PIXI.Rectangle()
 
   private walls: Array<PIXI.Rectangle> = []
   private collisions: Array<Collosion> = []
@@ -62,16 +64,12 @@ export class Field extends PIXI.Container {
     this.addChild(this.debugLayerContainer)
 
     this.generateMap()
+    this.inSightArea.width = Math.ceil(GAME_AREA_WIDTH / (AREA_DIVIDE_GRID_NUM * this.mapData.tilewidth)) + 4
+    this.inSightArea.height = Math.ceil(GAME_AREA_HEIGHT / (AREA_DIVIDE_GRID_NUM * this.mapData.tileheight)) + 4
+    this.updateInSightArea()
     this.on('added', () => {
       // 親に追加されたときになにかやるならここで
     })
-  }
-  private addWall(rect: PIXI.Rectangle) {
-    this.walls.push(rect)
-    const wallGraphic = new PIXI.Graphics()
-    wallGraphic.lineStyle(2, 0x5555FF, 1)
-    wallGraphic.drawRect(rect.x + 1, rect.y + 1, rect.width - 2, rect.height - 2)
-    this.debugLayerContainer.addChild(wallGraphic)
   }
   public reloadMap(mapData: any) {
     this.mapData = mapData
@@ -164,11 +162,15 @@ export class Field extends PIXI.Container {
     if (isTarget) {
       this.targetCharacter = character
     }
-    this.layerContainer.addChildZ(character.bodySprite, 1)
-    this.layerContainer.addChildZ(character.shadowSprite, 1)
     character.update()
     this.debugLayerContainer.addChild(character.debugCircle)
     this.debugLayerContainer.addChild(character.debugRect)
+    // TODO:追加時に視界内かを判定して処理
+    if (this.isInSight(fieldCharacter)) {
+      this.layerContainer.addChild(fieldCharacter.character.shadowSprite)
+      this.layerContainer.addChild(fieldCharacter.character.bodySprite)
+      fieldCharacter.isAdded = true
+    }
   }
   public update() {
     const t1 = performance.now()
@@ -230,6 +232,12 @@ export class Field extends PIXI.Container {
         if (fieldCharacter.areaGridX !== oldAreaGridX || fieldCharacter.areaGridY !== oldAreaGridY) {
           this.removeFieldCharacterFromArea(fieldCharacter, oldAreaGridX, oldAreaGridY)
           this.addFieldCharacterToArea(fieldCharacter,fieldCharacter.areaGridX, fieldCharacter.areaGridY)
+          // 視界外になったら非表示
+          if (!this.isInSight(fieldCharacter)) {
+            this.layerContainer.removeChild(fieldCharacter.character.shadowSprite)
+            this.layerContainer.removeChild(fieldCharacter.character.bodySprite)
+            fieldCharacter.isAdded = false
+          }
         }
         // console.log(`キャラの所属AreaGrid(${fieldCharacter.areaGridX}, ${fieldCharacter.areaGridY})`)
       } else {
@@ -257,6 +265,12 @@ export class Field extends PIXI.Container {
       else if (offsetY < topLimitY) {
         this.y = -(this.targetCharacter.y - topLimitY)
       }
+      const [oldInSightAreaX, oldInSightAreaY] = [this.inSightArea.x, this.inSightArea.y]
+      this.updateInSightArea()
+      // 視界外になった領域のキャラを非表示に、視界内になった領域のキャラを表示に
+      const movedAreaX = this.inSightArea.x - oldInSightAreaX
+      const movedAreaY = this.inSightArea.y - oldInSightAreaY
+      this.updateCharacterVisibilityByMovedAreaOffset(movedAreaX, movedAreaY)
     }
     this.x = Math.floor(Math.min(0, Math.max(-(this.mapData.tilewidth * this.horizontalGridNum - GAME_AREA_WIDTH), this.x)))
     this.y = Math.floor(Math.min(0, Math.max(-(this.mapData.tileheight * this.verticalGridNum - GAME_AREA_HEIGHT), this.y)))
@@ -386,13 +400,9 @@ export class Field extends PIXI.Container {
   }
   // 視界内のキャラクター一覧取得
   private getInSightFieldCharacters(): Array<FieldCharacter> {
-    const inSightLeftAreaGridX = Math.max(0, -Math.floor(this.x / (AREA_DIVIDE_GRID_NUM * this.mapData.tilewidth)) - 2)
-    const inSightRightAreaGridX = inSightLeftAreaGridX + Math.ceil(GAME_AREA_WIDTH / (AREA_DIVIDE_GRID_NUM * this.mapData.tilewidth)) + 4
-    const inSightTopAreaGridY = Math.max(0, -Math.floor(this.y / (AREA_DIVIDE_GRID_NUM * this.mapData.tileheight)) - 2)
-    const inSightBottomAreaGridY = inSightTopAreaGridY + Math.ceil(GAME_AREA_HEIGHT / (AREA_DIVIDE_GRID_NUM * this.mapData.tileheight)) + 4
     const fieldCharacters: Array<FieldCharacter> = []
-    for (let areaGridY = inSightTopAreaGridY; areaGridY <= inSightBottomAreaGridY; ++areaGridY) {
-      for (let areaGridX = inSightLeftAreaGridX; areaGridX <= inSightRightAreaGridX; ++areaGridX) {
+    for (let areaGridY = this.inSightArea.top; areaGridY <= this.inSightArea.bottom; ++areaGridY) {
+      for (let areaGridX = this.inSightArea.left; areaGridX <= this.inSightArea.right; ++areaGridX) {
         const areaGridString = [areaGridX, areaGridY].toString()
         if (this.fieldCharactersByArea.has(areaGridString)) {
           Array.prototype.push.apply(fieldCharacters, this.fieldCharactersByArea.get(areaGridString)!)
@@ -400,5 +410,106 @@ export class Field extends PIXI.Container {
       }
     }
     return fieldCharacters
+  }
+  private updateInSightArea() {
+    this.inSightArea.x = Math.max(0, -Math.floor(this.x / (AREA_DIVIDE_GRID_NUM * this.mapData.tilewidth)) - 2)
+    this.inSightArea.y = Math.max(0, -Math.floor(this.y / (AREA_DIVIDE_GRID_NUM * this.mapData.tileheight)) - 2)
+  }
+  private isInSight(fieldCharacter: FieldCharacter): boolean {
+    return fieldCharacter.areaGridX >= this.inSightArea.left && fieldCharacter.areaGridX <= this.inSightArea.right && fieldCharacter.areaGridY >= this.inSightArea.top && fieldCharacter.areaGridY <= this.inSightArea.bottom 
+  }
+  private updateCharacterVisibilityByMovedAreaOffset(movedAreaX: number, movedAreaY: number) {
+    if (movedAreaX !== 0) {
+      // 横方向で視界内になったキャラを表示
+      {
+        let startX = movedAreaX > 0 ? (this.inSightArea.right - movedAreaX) : this.inSightArea.left
+        let endX = movedAreaX > 0 ? this.inSightArea.right : (this.inSightArea.left - movedAreaX)
+        for (let areaX = startX; areaX <= endX; ++areaX) {
+          for (let areaY = this.inSightArea.top; areaY <= this.inSightArea.bottom; ++areaY) {
+            const areaGridString = [areaX, areaY].toString()
+            if (this.fieldCharactersByArea.has(areaGridString)) {
+              this.fieldCharactersByArea.get(areaGridString)!.forEach(fieldCharacter => {
+                if (!fieldCharacter.isAdded) {
+                  this.layerContainer.addChild(fieldCharacter.character.shadowSprite)
+                  this.layerContainer.addChild(fieldCharacter.character.bodySprite)
+                  fieldCharacter.isAdded = true
+                }
+              })
+            }
+          }
+        }
+      }
+      // 横方向で視界外になったキャラを非表示
+      {
+        let startX = movedAreaX > 0 ? (this.inSightArea.left - movedAreaX) : this.inSightArea.right
+        let endX = movedAreaX > 0 ? this.inSightArea.left : (this.inSightArea.right - movedAreaX)
+        for (let areaX = startX; areaX <= endX; ++areaX) {
+          for (let areaY = this.inSightArea.top; areaY <= this.inSightArea.bottom; ++areaY) {
+            const areaGridString = [areaX, areaY].toString()
+            if (this.fieldCharactersByArea.has(areaGridString)) {
+              this.fieldCharactersByArea.get(areaGridString)!.forEach(fieldCharacter => {
+                if (fieldCharacter.isAdded) {
+                  this.layerContainer.removeChild(fieldCharacter.character.shadowSprite)
+                  this.layerContainer.removeChild(fieldCharacter.character.bodySprite)
+                  fieldCharacter.isAdded = false
+                }
+              })
+            }
+          }
+        }
+      }
+    }
+    if (movedAreaY !== 0) {
+      // 縦方向で視界内になったキャラを表示
+      {
+        let startY = movedAreaY > 0 ? (this.inSightArea.bottom - movedAreaY) : this.inSightArea.top
+        let endY = movedAreaY > 0 ? this.inSightArea.bottom : (this.inSightArea.top - movedAreaY)
+        for (let areaY = startY; areaY <= endY; ++areaY) {
+          for (let areaX = this.inSightArea.left; areaX <= this.inSightArea.right; ++areaX) {
+            const areaGridString = [areaX, areaY].toString()
+            if (this.fieldCharactersByArea.has(areaGridString)) {
+              this.fieldCharactersByArea.get(areaGridString)!.forEach(fieldCharacter => {
+                if (!fieldCharacter.isAdded) {
+                  this.layerContainer.addChild(fieldCharacter.character.shadowSprite)
+                  this.layerContainer.addChild(fieldCharacter.character.bodySprite)
+                  fieldCharacter.isAdded = true
+                }
+              })
+            }
+          }
+        }
+      }
+      // 縦方向で視界外になったキャラを非表示
+      {
+        let startY = movedAreaY > 0 ? (this.inSightArea.top - movedAreaY) : this.inSightArea.bottom
+        let endY = movedAreaY > 0 ? this.inSightArea.top : (this.inSightArea.bottom - movedAreaY)
+        for (let areaY = startY; areaY <= endY; ++areaY) {
+          for (let areaX = this.inSightArea.left; areaX <= this.inSightArea.right; ++areaX) {
+            const areaGridString = [areaX, areaY].toString()
+            if (this.fieldCharactersByArea.has(areaGridString)) {
+              this.fieldCharactersByArea.get(areaGridString)!.forEach(fieldCharacter => {
+                if (fieldCharacter.isAdded) {
+                  this.layerContainer.removeChild(fieldCharacter.character.shadowSprite)
+                  this.layerContainer.removeChild(fieldCharacter.character.bodySprite)
+                  fieldCharacter.isAdded = false
+                }
+              })
+            }
+          }
+        }
+      }
+    }
+  }
+  public showCharacter() {
+    this.fieldCharacters.forEach(fieldCharacter => {
+      this.layerContainer.addChild(fieldCharacter.character.bodySprite)
+      this.layerContainer.addChild(fieldCharacter.character.shadowSprite)
+    })
+  }
+  public hideCharacter() {
+    this.fieldCharacters.forEach(fieldCharacter => {
+      this.layerContainer.removeChild(fieldCharacter.character.bodySprite)
+      this.layerContainer.removeChild(fieldCharacter.character.shadowSprite)
+    })
   }
 }

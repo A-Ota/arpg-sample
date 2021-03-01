@@ -8,6 +8,8 @@
     <div style="width: 640px; height: 480px;" ref="pixi_area">
     </div>
     <div v-if="true" style="position: absolute; left: 4px; top: 4px; color: #fff;">{{ (1000 / fpsCounter.averageMs).toFixed(2) }} fps</div>
+    <b-button @click="onHide">キャラクター非表示</b-button>
+    <b-button @click="onShow">キャラクター表示</b-button>
     <!--
     <b-button
       style="margin: 8px;"
@@ -126,9 +128,16 @@ export default Vue.extend({
         chara1.x = 200
         chara1.y = 120
         this.field.addCharacter(chara1, true)
-        
+
+        /*
+        const npc = new Character(renderTexture, new PIXI.Point(256 + 192, 0), new UroUroRoutine())
+        npc.x = 300
+        npc.y = 200
+        npc.currentDirection = 4
+        this.field.addCharacter(npc)
+        */
         // NPC
-        for (let i = 0; i < 500; ++i) {
+        for (let i = 0; i < 1000; ++i) {
           const npc = new Character(renderTexture, new PIXI.Point(256 + 192, 0), new UroUroRoutine())
           npc.x = 16 + 16 * Math.floor(Math.random() * (this.field!.horizontalGridNum - 2));
           npc.y = 16 + 16 * Math.floor(Math.random() * (this.field!.verticalGridNum - 2));
@@ -156,6 +165,12 @@ export default Vue.extend({
     onClickToggleDebugMode() {
       this.isDebugMode = !this.isDebugMode
       this.field!.setDebugMode(this.isDebugMode)
+    },
+    onShow() {
+      this.field!.showCharacter()
+    },
+    onHide() {
+      this.field!.hideCharacter()
     }
   },
   beforeDestroy() {
