@@ -21,7 +21,7 @@ export class Character {
   private _currentDirection = 2
   public preUpdateInfo: PreUpdateInfo | null = null
   public bodySprite!: SortableSprite
-  public shadowSprite!: PIXI.Sprite
+  public shadowSprite!: SortableSprite
   public debugCircle!: PIXI.Graphics
   public debugRect!: PIXI.Graphics
   set currentDirection(value: number) {
@@ -41,7 +41,8 @@ export class Character {
 
     // 影
     const shadowTexture = new PIXI.Texture(texture.baseTexture, new PIXI.Rectangle(224, 0, 32, 32))
-    this.shadowSprite = PIXI.Sprite.from(shadowTexture)
+    this.shadowSprite = new SortableSprite()
+    this.shadowSprite.texture = shadowTexture
     this.shadowSprite.alpha = 0.5
     this.shadowSprite.anchor.set(0.5, 0.5)
 
@@ -106,7 +107,7 @@ export class Character {
     ;[this.debugCircle.x, this.debugCircle.y] = [this.x, this.y]
     ;[this.hitRect.x, this.hitRect.y] = [this.x - 12, this.y - 12]
     ;[this.debugRect.x, this.debugRect.y] = [this.x, this.y]
-    this.bodySprite.zOrder = this.bodySprite.position.y
+    this.bodySprite.zOrder = this.shadowSprite.zOrder = this.bodySprite.position.y
     ++this.animationFrame
     if (this.animationFrame > 30) {
       this.animationFrame = 0
