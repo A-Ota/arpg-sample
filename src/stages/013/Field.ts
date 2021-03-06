@@ -38,7 +38,7 @@ export class Field extends PIXI.Container {
   public targetCharacter: Character | null = null
   private fieldCharacters: Array<FieldCharacter> = []
   private inSightArea: PIXI.Rectangle = new PIXI.Rectangle()
-
+  private targetArrow: PIXI.Sprite | null = null
   private walls: Array<PIXI.Rectangle> = []
   private collisions: Array<Collosion> = []
   private collisionsByArea: Map<string, Array<Collosion>> = new Map()
@@ -62,6 +62,16 @@ export class Field extends PIXI.Container {
     this.addChild(this.layerContainer)
     this.addChild(this.airLayerContainer)
     this.addChild(this.debugLayerContainer)
+
+    // 矢印
+    {
+      const arrowTexture = this.texture.clone()
+      arrowTexture.frame = new PIXI.Rectangle(224, 32, 16, 16)
+      this.targetArrow = new PIXI.Sprite(arrowTexture)
+      this.targetArrow.anchor.set(0.5, 0.5)
+      this.targetArrow.visible = false
+      this.layerContainer.addChild(this.targetArrow!)
+    }
 
     this.generateMap()
     this.inSightArea.width = Math.ceil(GAME_AREA_WIDTH / (AREA_DIVIDE_GRID_NUM * this.mapData.tilewidth)) + 4
@@ -154,13 +164,17 @@ export class Field extends PIXI.Container {
       // console.log(`衝突判定のエリア分けの数:${this.collisionsByArea.size}`)
     }
   }
+  public setTargetCharacter(character: Character) {
+    this.targetCharacter = character
+    this.targetArrow!.visible = true
+  }
   public addCharacter(character: Character, isTarget = false) {
     const [areaGridX, areaGridY] = this.positionToAreaGrid(character.x, character.y)
     const fieldCharacter = new FieldCharacter(character, areaGridX, areaGridY)
     this.fieldCharacters.push(fieldCharacter)
     this.addFieldCharacterToArea(fieldCharacter, areaGridX, areaGridY)
     if (isTarget) {
-      this.targetCharacter = character
+      this.setTargetCharacter(character)
     }
     character.update()
     this.debugLayerContainer.addChild(character.debugCircle)
@@ -264,6 +278,8 @@ export class Field extends PIXI.Container {
     const bottomLimitY = GAME_AREA_HEIGHT - SIGHT_MOVE_Y
     const topLimitY = SIGHT_MOVE_Y
     if (this.targetCharacter) {
+      // 矢印の位置を更新
+      this.targetArrow!.position.set(this.targetCharacter.x, this.targetCharacter.y - 64)
       const offsetX = this.targetCharacter.x + this.x
       if (offsetX > rightLimitX) {
         this.x = -(this.targetCharacter.x - rightLimitX)

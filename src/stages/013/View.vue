@@ -15,7 +15,7 @@
     <div class="left-pane">
       <template v-for="(character, index) in characters">
         <div :key="index">
-          <CharacterCell :character="character" :focused="isFocusedCharacter(character)" />
+          <CharacterCell @click="onClickCharacterCell(character)" :character="character" :focused="isFocusedCharacter(character)" />
         </div>
       </template>
     </div>
@@ -189,6 +189,9 @@ export default Vue.extend({
     },
     isFocusedCharacter(character: Character) {
       return this.field!.targetCharacter === character
+    },
+    onClickCharacterCell(character: Character) {
+      this.field!.setTargetCharacter(character)
     }
   },
   beforeDestroy() {

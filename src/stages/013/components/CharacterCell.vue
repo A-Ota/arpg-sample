@@ -8,7 +8,7 @@
 }
 </style>
 <template>
-  <div class="root" :class="{ 'focused': focused }">
+  <div @click="$emit('click')" class="root" :class="{ 'focused': focused }">
     座標({{ character.x.toFixed(0) }}, {{ character.y.toFixed(0) }})
     <b-button @click="onShow">表示</b-button>
     <b-button @click="onHide">非表示</b-button>
