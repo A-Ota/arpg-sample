@@ -8,27 +8,45 @@
 }
 .left-pane {
   width: 200px;
+  height: 480px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.add-button-area {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  height: 48px;
+}
+.character-area {
+  height: 100%;
+  overflow-y: auto;
 }
 </style>
 <template>
   <div class="root">
     <div class="left-pane">
-      <template v-for="(character, index) in characters">
-        <div :key="index">
-          <CharacterCell @click="onClickCharacterCell(character)" :character="character" :focused="isFocusedCharacter(character)" />
+      <div class="add-button-area">
+        <b-button @click="generateCharacter(0)" style="margin: 4px;"><img src="/arpg-sample/images/stages/013/chara1-icon.png"></b-button>
+        <b-button @click="generateCharacter(1)" style="margin: 4px;"><img src="/arpg-sample/images/stages/013/chara2-icon.png"></b-button>
+      </div>
+      <div class="character-area">
+        <div v-for="(character, index) in characters" :key="index">
+          <CharacterCell
+            :character="character" 
+            @click="onClickCharacterCell(character)"
+            @delete="onClickDeleteCharacter(character)"
+            :focused="isFocusedCharacter(character)" />
         </div>
-      </template>
+      </div>
     </div>
     <div style="position: relative;">
       <div style="width: 640px; height: 480px;" ref="pixi_area">
       </div>
       <div v-if="true" style="position: absolute; left: 4px; top: 4px; color: #fff;">{{ (1000 / fpsCounter.averageMs).toFixed(2) }} fps</div>
-      <!--
-      <b-button
-        style="margin: 8px;"
-        @click="onClickToggleDebugMode"
-      >{{ isDebugMode ? 'デバッグ非表示' : 'デバッグ表示' }}</b-button>
-      -->
     </div>
   </div>
 </template>
@@ -62,6 +80,7 @@ class FpsCounter {
 export default Vue.extend({
   data(): {
     pixiApp: PIXI.Application | null;
+    renderTexture: PIXI.RenderTexture | null;
     field: Field | null;
     pressedKeyCodeSet: Set<number>;
     fpsCounter: FpsCounter;
@@ -70,6 +89,7 @@ export default Vue.extend({
     } {
     return {
       pixiApp: null,
+      renderTexture: null,
       field: null,
       pressedKeyCodeSet: new Set(),
       fpsCounter: new FpsCounter(),
@@ -115,55 +135,32 @@ export default Vue.extend({
       .load(() => {
 
         // RenderTextureに必要な画像すべてを描き込む
-        const renderTexture = PIXI.RenderTexture.create({ width: 1024, height: 1024 })
-        const renderSprite = PIXI.Sprite.from(renderTexture)
+        this.renderTexture = PIXI.RenderTexture.create({ width: 1024, height: 1024 })
+        const renderSprite = PIXI.Sprite.from(this.renderTexture)
 
         // mapchipを描き込む
         const spriteMapChip = PIXI.Sprite.from(PIXI.Loader.shared.resources["/arpg-sample/images/stages/013/mapchip.png"].texture)
-        this.pixiApp!.renderer.render(spriteMapChip, renderTexture, false)
+        this.pixiApp!.renderer.render(spriteMapChip, this.renderTexture, false)
         // chara01を書き込む
         const sprite01 = PIXI.Sprite.from(PIXI.Loader.shared.resources["/arpg-sample/images/stages/009/chara01.png"].texture)
         sprite01.position.set(256, 0)
-        this.pixiApp!.renderer.render(sprite01, renderTexture, false)
+        this.pixiApp!.renderer.render(sprite01, this.renderTexture, false)
         // chara02を書き込む
         const sprite02 = PIXI.Sprite.from(PIXI.Loader.shared.resources["/arpg-sample/images/stages/009/chara02.png"].texture)
         sprite02.position.set(256 + 192, 0)
-        this.pixiApp!.renderer.render(sprite02, renderTexture, false)
+        this.pixiApp!.renderer.render(sprite02, this.renderTexture, false)
 
 
         // フィールド
         this.field = new Field(
-          renderTexture,
+          this.renderTexture,
           PIXI.Loader.shared.resources["/arpg-sample/images/stages/013/mapchip.json"].data,
           PIXI.Loader.shared.resources["/arpg-sample/images/stages/013/map01.json"].data)
         this.pixiApp!.stage.addChild(this.field)
 
-        // プレイヤー
-        /*
-        const chara1 = new Character(renderTexture, new PIXI.Point(256, 0), new PlayerRoutine(this.pressedKeyCodeSet))
-        chara1.x = 200
-        chara1.y = 520
-        this.field.addCharacter(chara1, true)
-        */
-
         // NPC
         for (let i = 0; i < 3; ++i) {
-          const character = new Character(renderTexture, new PIXI.Point(256 + 192, 0), new UroUroRoutine())
-          character.currentDirection = 4
-          const isTarget = (i === 0)
-          for(;;) {
-            character.x = 32 + 16 * Math.floor(Math.random() * (this.field!.horizontalGridNum - 4))
-            character.y = 32 + 16 * Math.floor(Math.random() * (this.field!.verticalGridNum - 4))
-            this.field.addCharacter(character, isTarget)
-            const [hit, x, y] = this.field.hitWall(character, 0, 0)
-            if (!hit) {
-              break;
-            } else {
-              this.field.removeCharacter(character)
-              console.log(hit)
-            }
-          }
-          this.characters.push(character)
+          this.generateCharacter(1)
         }
       })
 
@@ -192,6 +189,29 @@ export default Vue.extend({
     },
     onClickCharacterCell(character: Character) {
       this.field!.setTargetCharacter(character)
+    },
+    onClickDeleteCharacter(character: Character) {
+      this.characters = this.characters.filter(v => v !== character)
+      this.field!.removeCharacter(character)
+    },
+    generateCharacter(type: number) {
+      const textureOffset = (type === 0) ? new PIXI.Point(256, 0) : new PIXI.Point(256 + 192, 0)
+      const character = new Character(this.renderTexture!, textureOffset, new UroUroRoutine())
+      character.currentDirection = 4
+      for(;;) {
+        character.x = 32 + 16 * Math.floor(Math.random() * (this.field!.horizontalGridNum - 4))
+        character.y = 32 + 16 * Math.floor(Math.random() * (this.field!.verticalGridNum - 4))
+        this.field!.addCharacter(character, false)
+        const [hit, x, y] = this.field!.hitWall(character, 0, 0)
+        if (!hit) {
+          break;
+        } else {
+          this.field!.removeCharacter(character)
+          console.log(hit)
+        }
+      }
+      this.characters.push(character)
+      ;(character as any).type = type
     }
   },
   beforeDestroy() {

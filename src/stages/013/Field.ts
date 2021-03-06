@@ -69,7 +69,7 @@ export class Field extends PIXI.Container {
       arrowTexture.frame = new PIXI.Rectangle(224, 32, 16, 16)
       this.targetArrow = new PIXI.Sprite(arrowTexture)
       this.targetArrow.anchor.set(0.5, 0.5)
-      this.targetArrow.visible = false
+      this.targetArrow.alpha = 0
       this.layerContainer.addChild(this.targetArrow!)
     }
 
@@ -166,7 +166,7 @@ export class Field extends PIXI.Container {
   }
   public setTargetCharacter(character: Character) {
     this.targetCharacter = character
-    this.targetArrow!.visible = true
+    this.targetArrow!.alpha = 1
   }
   public addCharacter(character: Character, isTarget = false) {
     const [areaGridX, areaGridY] = this.positionToAreaGrid(character.x, character.y)
@@ -187,6 +187,10 @@ export class Field extends PIXI.Container {
     }
   }
   public removeCharacter(character: Character) {
+    if (this.targetCharacter === character) {
+      this.targetCharacter = null
+      this.targetArrow!.alpha = 0
+    }
     this.debugLayerContainer.removeChild(character.debugCircle)
     this.debugLayerContainer.removeChild(character.debugRect)
     this.layerContainer.removeChild(character.shadowSprite)

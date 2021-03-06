@@ -1,5 +1,7 @@
 <style lang="scss">
-
+body {
+  margin: 0px;
+}
 </style>
 <template>
   <div id="app">
