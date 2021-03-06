@@ -147,29 +147,23 @@ export default Vue.extend({
         */
 
         // NPC
-        for (let i = 0; i < 1; ++i) {
-          // const character = new Character(renderTexture, new PIXI.Point(256 + 192, 0), new UroUroRoutine())
-          const character = new Character(renderTexture, new PIXI.Point(256 + 192, 0), new PlayerRoutine(this.pressedKeyCodeSet))
+        for (let i = 0; i < 3; ++i) {
+          const character = new Character(renderTexture, new PIXI.Point(256 + 192, 0), new UroUroRoutine())
           character.currentDirection = 4
           const isTarget = (i === 0)
-          character.x = 100
-          character.y = 100
-          character.update()
-          this.field.addCharacter(character, isTarget)
-          this.characters.push(character)
           for(;;) {
-            // character.x = 32 + 16 * Math.floor(Math.random() * (this.field!.horizontalGridNum - 4))
-            character.x = 580
-            // character.y = 32 + 16 * Math.floor(Math.random() * (this.field!.verticalGridNum - 4))
-            character.y = 480
-            character.update()
+            character.x = 32 + 16 * Math.floor(Math.random() * (this.field!.horizontalGridNum - 4))
+            character.y = 32 + 16 * Math.floor(Math.random() * (this.field!.verticalGridNum - 4))
+            this.field.addCharacter(character, isTarget)
             const [hit, x, y] = this.field.hitWall(character, 0, 0)
             if (!hit) {
               break;
             } else {
+              this.field.removeCharacter(character)
               console.log(hit)
             }
           }
+          this.characters.push(character)
         }
       })
 

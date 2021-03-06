@@ -172,6 +172,19 @@ export class Field extends PIXI.Container {
       fieldCharacter.isAdded = true
     }
   }
+  public removeCharacter(character: Character) {
+    this.debugLayerContainer.removeChild(character.debugCircle)
+    this.debugLayerContainer.removeChild(character.debugRect)
+    this.layerContainer.removeChild(character.shadowSprite)
+    this.layerContainer.removeChild(character.bodySprite)
+    this.fieldCharacters = this.fieldCharacters.filter(fieldCharacter => {
+      if (fieldCharacter.character === character) {
+        this.removeFieldCharacterFromArea(fieldCharacter, fieldCharacter.areaGridX, fieldCharacter.areaGridY)
+        return false
+      }
+      return true
+    })
+  }
   public update() {
     // const t1 = performance.now()
     const fieldCharacters = this.getInSightFieldCharacters()
