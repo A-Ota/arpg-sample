@@ -159,9 +159,10 @@ export default Vue.extend({
         this.pixiApp!.stage.addChild(this.field)
 
         // NPC
-        for (let i = 0; i < 3; ++i) {
-          this.generateCharacter(1)
+        for (let i = 0; i < 4; ++i) {
+          this.generateCharacter(i % 2)
         }
+        this.field!.setTargetCharacter(this.characters[0])
       })
 
     // メインループ
