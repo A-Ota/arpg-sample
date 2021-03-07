@@ -15,6 +15,8 @@ export class TextureInfo {
   constructor(
     public texture: PIXI.Texture,
     public offset: PIXI.Point,
+    public width: number,
+    public height: number,
     public directionNum: number
   ) {}
 }
@@ -48,7 +50,7 @@ export class Character {
   constructor(private textureInfo: TextureInfo) {
     // 体
     this.bodySprite = new SortableSprite()
-    this.bodySprite.texture = new PIXI.Texture(textureInfo.texture.baseTexture, new PIXI.Rectangle(textureInfo.offset.x, textureInfo.offset.y, 32, 64))
+    this.bodySprite.texture = new PIXI.Texture(textureInfo.texture.baseTexture, new PIXI.Rectangle(textureInfo.offset.x, textureInfo.offset.y, textureInfo.width, textureInfo.height))
     this.bodySprite.anchor.set(0.5, 1)
 
     // 影
@@ -71,41 +73,42 @@ export class Character {
   private syncTexture() {
     let offsetX = 0
     let offsetY = 0
-    switch(this.currentDirection) {
-      case 1:
-        offsetX = 96
-        break;
-      case 2:
-        break;
-      case 3:
-        offsetX = 96
-        offsetY = 64
-        break;
-      case 4:
-        offsetY = 64
-        break;
-      case 6:
-        offsetY = 128
-        break;
-      case 7:
-        offsetX = 96
-        offsetY = 128
-        break;
-      case 8:
-        offsetY = 192
-        break;
-      case 9:
-        offsetX = 96
-        offsetY = 192
-        break;
+    if (this.textureInfo.directionNum === 8) {
+      switch(this.currentDirection) {
+        case 1:
+          offsetX = 96
+          break;
+        case 2:
+          break;
+        case 3:
+          offsetX = 96
+          offsetY = 64
+          break;
+        case 4:
+          offsetY = 64
+          break;
+        case 6:
+          offsetY = 128
+          break;
+        case 7:
+          offsetX = 96
+          offsetY = 128
+          break;
+        case 8:
+          offsetY = 192
+          break;
+        case 9:
+          offsetX = 96
+          offsetY = 192
+          break;
+      }
     }
-
-    offsetX += (this.animationStep === 3 ? 1 : this.animationStep) * 32
+    offsetX += (this.animationStep === 3 ? 1 : this.animationStep) * this.textureInfo.width
     const frame = new PIXI.Rectangle(
       this.textureInfo.offset.x + offsetX,
       this.textureInfo.offset.y + offsetY,
-      32,
-      64
+      this.textureInfo.width,
+      this.textureInfo.height
     )
     this.bodySprite.texture.frame = frame
   }

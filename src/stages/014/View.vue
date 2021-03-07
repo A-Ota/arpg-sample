@@ -90,8 +90,11 @@ export default Vue.extend({
     PIXI.utils.clearTextureCache()
     PIXI.Loader.shared
       .reset()
-      .add("/arpg-sample/images/stages/009/chara01.png")
-      .add("/arpg-sample/images/stages/009/chara02.png")
+      .add("/arpg-sample/images/stages/014/chara01.png")
+      .add("/arpg-sample/images/stages/014/chara02.png")
+      .add("/arpg-sample/images/stages/014/slime-blue.png")
+      .add("/arpg-sample/images/stages/014/slime-red.png")
+      .add("/arpg-sample/images/stages/014/slime-yellow.png")
       .add("/arpg-sample/images/stages/013/mapchip.png")
       .add("/arpg-sample/images/stages/013/mapchip.json")
       .add("/arpg-sample/images/stages/013/map01.json")
@@ -105,14 +108,25 @@ export default Vue.extend({
         const spriteMapChip = PIXI.Sprite.from(PIXI.Loader.shared.resources["/arpg-sample/images/stages/013/mapchip.png"].texture)
         this.pixiApp!.renderer.render(spriteMapChip, this.renderTexture, false)
         // chara01を書き込む
-        const sprite01 = PIXI.Sprite.from(PIXI.Loader.shared.resources["/arpg-sample/images/stages/009/chara01.png"].texture)
+        const sprite01 = PIXI.Sprite.from(PIXI.Loader.shared.resources["/arpg-sample/images/stages/014/chara01.png"].texture)
         sprite01.position.set(256, 0)
         this.pixiApp!.renderer.render(sprite01, this.renderTexture, false)
         // chara02を書き込む
-        const sprite02 = PIXI.Sprite.from(PIXI.Loader.shared.resources["/arpg-sample/images/stages/009/chara02.png"].texture)
+        const sprite02 = PIXI.Sprite.from(PIXI.Loader.shared.resources["/arpg-sample/images/stages/014/chara02.png"].texture)
         sprite02.position.set(256 + 192, 0)
         this.pixiApp!.renderer.render(sprite02, this.renderTexture, false)
+        // slimeを書き込む
+        const sprite03 = PIXI.Sprite.from(PIXI.Loader.shared.resources["/arpg-sample/images/stages/014/slime-blue.png"].texture)
+        sprite03.position.set(256 + 192 * 2, 0)
+        this.pixiApp!.renderer.render(sprite03, this.renderTexture, false)
 
+        const sprite04 = PIXI.Sprite.from(PIXI.Loader.shared.resources["/arpg-sample/images/stages/014/slime-red.png"].texture)
+        sprite04.position.set(256 + 192 * 2, 32)
+        this.pixiApp!.renderer.render(sprite04, this.renderTexture, false)
+
+        const sprite05 = PIXI.Sprite.from(PIXI.Loader.shared.resources["/arpg-sample/images/stages/014/slime-yellow.png"].texture)
+        sprite05.position.set(256 + 192 * 2, 64)
+        this.pixiApp!.renderer.render(sprite05, this.renderTexture, false)
 
         // フィールド
         this.field = new Field(
@@ -124,6 +138,9 @@ export default Vue.extend({
         // NPC
         this.generateCharacter(0)
         this.generateCharacter(1)
+        this.generateCharacter(2)
+        this.generateCharacter(3)
+        this.generateCharacter(4)
         this.field!.setTargetCharacter(this.characters[0])
       })
 
@@ -163,8 +180,42 @@ export default Vue.extend({
       this.field!.removeCharacter(character)
     },
     generateCharacter(type: number) {
-      const textureOffset = (type === 0) ? new PIXI.Point(256, 0) : new PIXI.Point(256 + 192, 0)
-      const character = new Character(new TextureInfo(this.renderTexture!, textureOffset, 8))
+      let textureOffset: PIXI.Point | null = null
+      let [width, height, directionNum] = [0, 0, 0]
+      switch(type) {
+        case 0:
+        case 1:
+          width = 32
+          height = 64
+          directionNum = 8
+          break;
+        case 2:
+        case 3:
+        case 4:
+          width = 32
+          height = 32
+          directionNum = 1
+          break;
+      }
+      switch(type) {
+        case 0:
+          textureOffset = new PIXI.Point(256, 0)
+          break;
+        case 1:
+          textureOffset = new PIXI.Point(256 + 192, 0)
+          break;
+        case 2:
+          textureOffset = new PIXI.Point(256 + 192 * 2, 0)
+          break;
+        case 3:
+          textureOffset = new PIXI.Point(256 + 192 * 2, 32)
+          break;
+        case 4:
+          textureOffset = new PIXI.Point(256 + 192 * 2, 64)
+          break;
+      }
+
+      const character = new Character(new TextureInfo(this.renderTexture!, textureOffset!, width, height, directionNum))
       character.routine = (type === 0) ? new PlayerRoutine(this.nowPressedKeyCodeSet) : new UroUroRoutine()
       character.currentDirection = 4
       for(;;) {
