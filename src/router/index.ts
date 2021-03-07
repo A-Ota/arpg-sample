@@ -70,6 +70,10 @@ const routes = [
     component: () => import('../stages/013/View.vue')
   },
   {
+    path: '/stages/014',
+    component: () => import('../stages/014/View.vue')
+  },
+  {
     path: '/stages/999',
     component: () => import('../stages/999/View.vue')
   },
