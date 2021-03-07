@@ -11,6 +11,14 @@ class PreUpdateInfo {
     ) {}
 }
 
+export class TextureInfo {
+  constructor(
+    public texture: PIXI.Texture,
+    public offset: PIXI.Point,
+    public directionNum: number
+  ) {}
+}
+
 // キャラクター
 export class Character {
   public x: number = 0
@@ -37,14 +45,14 @@ export class Character {
     this._routine.character = this
   }
   private animationStep = 0
-  constructor(texture: PIXI.Texture, private textureOffset: PIXI.Point) {
+  constructor(private textureInfo: TextureInfo) {
     // 体
     this.bodySprite = new SortableSprite()
-    this.bodySprite.texture = new PIXI.Texture(texture.baseTexture, new PIXI.Rectangle(textureOffset.x, textureOffset.y, 32, 64))
+    this.bodySprite.texture = new PIXI.Texture(textureInfo.texture.baseTexture, new PIXI.Rectangle(textureInfo.offset.x, textureInfo.offset.y, 32, 64))
     this.bodySprite.anchor.set(0.5, 1)
 
     // 影
-    const shadowTexture = new PIXI.Texture(texture.baseTexture, new PIXI.Rectangle(224, 0, 32, 32))
+    const shadowTexture = new PIXI.Texture(textureInfo.texture.baseTexture, new PIXI.Rectangle(224, 0, 32, 32))
     this.shadowSprite = new SortableSprite()
     this.shadowSprite.texture = shadowTexture
     this.shadowSprite.alpha = 0.5
@@ -94,8 +102,8 @@ export class Character {
 
     offsetX += (this.animationStep === 3 ? 1 : this.animationStep) * 32
     const frame = new PIXI.Rectangle(
-      this.textureOffset.x + offsetX,
-      this.textureOffset.y + offsetY,
+      this.textureInfo.offset.x + offsetX,
+      this.textureInfo.offset.y + offsetY,
       32,
       64
     )

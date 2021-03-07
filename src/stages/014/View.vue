@@ -18,7 +18,7 @@
 // 高速歩きで壁にぶつかった場合、移動しないのではなくx, yについて移動できるところまで戻してあげる。
 import Vue from "vue"
 import * as PIXI from "pixi.js"
-import { Character, PlayerRoutine, UroUroRoutine } from '@/stages/014/Character'
+import { Character, PlayerRoutine, UroUroRoutine, TextureInfo } from '@/stages/014/Character'
 import { Field } from '@/stages/014/Field'
 class FpsCounter {
   private ms = 0
@@ -164,7 +164,7 @@ export default Vue.extend({
     },
     generateCharacter(type: number) {
       const textureOffset = (type === 0) ? new PIXI.Point(256, 0) : new PIXI.Point(256 + 192, 0)
-      const character = new Character(this.renderTexture!, textureOffset)
+      const character = new Character(new TextureInfo(this.renderTexture!, textureOffset, 8))
       character.routine = (type === 0) ? new PlayerRoutine(this.nowPressedKeyCodeSet) : new UroUroRoutine()
       character.currentDirection = 4
       for(;;) {
