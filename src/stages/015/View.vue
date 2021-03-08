@@ -227,7 +227,7 @@ export default Vue.extend({
           break;
       }
 
-      const character = new Character(new TextureInfo(this.renderTexture!, textureOffset!, width, height, directionNum))
+      const character = new Character(new TextureInfo(this.renderTexture!, textureOffset!, width, height, directionNum), this.field!)
       character.routine = (type === 0) ? new PlayerRoutine(this.inputManager) : new UroUroRoutine()
       character.currentDirection = 4
       for(;;) {

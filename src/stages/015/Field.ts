@@ -167,7 +167,7 @@ export class Field extends PIXI.Container {
     character.update()
     // 追加時に視界内かを判定して処理
     if (this.isInSight(fieldCharacter)) {
-      character.onAddToField(this)
+      character.onAddToField()
       fieldCharacter.isAdded = true
     }
   }
@@ -175,7 +175,7 @@ export class Field extends PIXI.Container {
     if (this.targetCharacter === character) {
       this.targetCharacter = null
     }
-    character.onRemoveFromField(this)
+    character.onRemoveFromField()
     this.fieldCharacters = this.fieldCharacters.filter(fieldCharacter => {
       if (fieldCharacter.character === character) {
         this.removeFieldCharacterFromArea(fieldCharacter, fieldCharacter.areaGridX, fieldCharacter.areaGridY)
@@ -246,7 +246,7 @@ export class Field extends PIXI.Container {
           this.addFieldCharacterToArea(fieldCharacter,fieldCharacter.areaGridX, fieldCharacter.areaGridY)
           // 視界外になったら非表示
           if (!this.isInSight(fieldCharacter)) {
-            fieldCharacter.character.onRemoveFromField(this)
+            fieldCharacter.character.onRemoveFromField()
             fieldCharacter.isAdded = false
           }
         }
@@ -441,7 +441,7 @@ export class Field extends PIXI.Container {
             if (this.fieldCharactersByArea.has(areaGridString)) {
               this.fieldCharactersByArea.get(areaGridString)!.forEach(fieldCharacter => {
                 if (!fieldCharacter.isAdded) {
-                  fieldCharacter.character.onAddToField(this)
+                  fieldCharacter.character.onAddToField()
                   fieldCharacter.isAdded = true
                 }
               })
@@ -462,7 +462,7 @@ export class Field extends PIXI.Container {
             if (this.fieldCharactersByArea.has(areaGridString)) {
               this.fieldCharactersByArea.get(areaGridString)!.forEach(fieldCharacter => {
                 if (fieldCharacter.isAdded) {
-                  fieldCharacter.character.onRemoveFromField(this)
+                  fieldCharacter.character.onRemoveFromField()
                   fieldCharacter.isAdded = false
                 }
               })
@@ -482,7 +482,7 @@ export class Field extends PIXI.Container {
             if (this.fieldCharactersByArea.has(areaGridString)) {
               this.fieldCharactersByArea.get(areaGridString)!.forEach(fieldCharacter => {
                 if (!fieldCharacter.isAdded) {
-                  fieldCharacter.character.onAddToField(this)
+                  fieldCharacter.character.onAddToField()
                   fieldCharacter.isAdded = true
                 }
               })
@@ -500,7 +500,7 @@ export class Field extends PIXI.Container {
             if (this.fieldCharactersByArea.has(areaGridString)) {
               this.fieldCharactersByArea.get(areaGridString)!.forEach(fieldCharacter => {
                 if (fieldCharacter.isAdded) {
-                  fieldCharacter.character.onRemoveFromField(this)
+                  fieldCharacter.character.onRemoveFromField()
                   fieldCharacter.isAdded = false
                 }
               })

@@ -49,7 +49,7 @@ export class Character {
     this._routine.character = this
   }
   private animationStep = 0
-  constructor(private textureInfo: TextureInfo) {
+  constructor(private textureInfo: TextureInfo, private field: Field) {
     // 体
     this.bodySprite = new SortableSprite()
     this.bodySprite.texture = new PIXI.Texture(textureInfo.texture.baseTexture, new PIXI.Rectangle(textureInfo.offset.x, textureInfo.offset.y, textureInfo.width, textureInfo.height))
@@ -72,17 +72,17 @@ export class Character {
     this.debugRect.alpha = 0.7
     this.debugRect.drawRect(this.hitRect.x, this.hitRect.y, this.hitRect.width, this.hitRect.height)
   }
-  public onAddToField(field: Field) {
-      field.debugLayerContainer.addChild(this.debugCircle)
-      field.debugLayerContainer.addChild(this.debugRect)
-      field.layerContainer.addChild(this.shadowSprite)
-      field.layerContainer.addChild(this.bodySprite)
+  public onAddToField() {
+    this.field.debugLayerContainer.addChild(this.debugCircle)
+    this.field.debugLayerContainer.addChild(this.debugRect)
+    this.field.layerContainer.addChild(this.shadowSprite)
+    this.field.layerContainer.addChild(this.bodySprite)
   }
-  public onRemoveFromField(field: Field) {
-    field.debugLayerContainer.removeChild(this.debugCircle)
-    field.debugLayerContainer.removeChild(this.debugRect)
-    field.layerContainer.removeChild(this.shadowSprite)
-    field.layerContainer.removeChild(this.bodySprite)
+  public onRemoveFromField() {
+    this.field.debugLayerContainer.removeChild(this.debugCircle)
+    this.field.debugLayerContainer.removeChild(this.debugRect)
+    this.field.layerContainer.removeChild(this.shadowSprite)
+    this.field.layerContainer.removeChild(this.bodySprite)
   }
   private syncTexture() {
     let offsetX = 0
