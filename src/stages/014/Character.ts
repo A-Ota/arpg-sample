@@ -1,6 +1,7 @@
 import * as PIXI from "pixi.js"
 
 import { SortableSprite } from '@/stages/005/SortableSprite'
+import InputManager from '@/stages/014/InputManager'
 
 // 次フレームで行動したい内容
 class PreUpdateInfo {
@@ -169,32 +170,32 @@ const calcMoveXY = function(direction: number, speed: number): [number, number] 
 
 // プレイヤー操作用ルーチン
 export class PlayerRoutine extends BaseRoutine {
-  constructor(private pressedKeyCodeSet: Set<number>) {
+  constructor(private inputManager: InputManager) {
     super()
   }
 
   public preUpdate() {
     let direction: number | null = null 
     // 向き取得
-    if (this.pressedKeyCodeSet.has(KEY_CODE_LEFT)) {
-      if (this.pressedKeyCodeSet.has(KEY_CODE_DOWN)) {
+    if (this.inputManager.isPressing(KEY_CODE_LEFT)) {
+      if (this.inputManager.isPressing(KEY_CODE_DOWN)) {
         direction = 1
-      } else if (this.pressedKeyCodeSet.has(KEY_CODE_UP)) {
+      } else if (this.inputManager.isPressing(KEY_CODE_UP)) {
         direction = 7
       } else {
         direction = 4
       }
-    } else if (this.pressedKeyCodeSet.has(KEY_CODE_RIGHT)) {
-      if (this.pressedKeyCodeSet.has(KEY_CODE_DOWN)) {
+    } else if (this.inputManager.isPressing(KEY_CODE_RIGHT)) {
+      if (this.inputManager.isPressing(KEY_CODE_DOWN)) {
         direction = 3
-      } else if (this.pressedKeyCodeSet.has(KEY_CODE_UP)) {
+      } else if (this.inputManager.isPressing(KEY_CODE_UP)) {
         direction = 9
       } else {
         direction = 6
       }
-    } else if (this.pressedKeyCodeSet.has(KEY_CODE_UP)) {
+    } else if (this.inputManager.isPressing(KEY_CODE_UP)) {
       direction = 8
-    } else if (this.pressedKeyCodeSet.has(KEY_CODE_DOWN)) {
+    } else if (this.inputManager.isPressing(KEY_CODE_DOWN)) {
       direction = 2
     }
     // 向かせたり歩かせたり

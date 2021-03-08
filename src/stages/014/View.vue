@@ -20,6 +20,8 @@ import Vue from "vue"
 import * as PIXI from "pixi.js"
 import { Character, PlayerRoutine, UroUroRoutine, TextureInfo } from '@/stages/014/Character'
 import { Field } from '@/stages/014/Field'
+import InputManager from '@/stages/014/InputManager'
+
 class FpsCounter {
   private ms = 0
   private counter = 0
@@ -43,8 +45,7 @@ export default Vue.extend({
     pixiApp: PIXI.Application | null;
     renderTexture: PIXI.RenderTexture | null;
     field: Field | null;
-    lastPressedKeyCodeSet: Set<number>;
-    nowPressedKeyCodeSet: Set<number>;
+    inputManager: InputManager;
     fpsCounter: FpsCounter;
     characters: Array<Character>;
     isDebugMode: boolean;
@@ -53,8 +54,7 @@ export default Vue.extend({
       pixiApp: null,
       renderTexture: null,
       field: null,
-      lastPressedKeyCodeSet: new Set(),
-      nowPressedKeyCodeSet: new Set(),
+      inputManager: new InputManager(),
       fpsCounter: new FpsCounter(),
       characters: [],
       isDebugMode: false
@@ -149,26 +149,25 @@ export default Vue.extend({
   },
   methods: {
     onKeyDown(event: KeyboardEvent) {
-      this.nowPressedKeyCodeSet.add(event.keyCode)
+      this.inputManager.onKeyDown(event.keyCode)
     },
     onKeyUp(event: any) {
-      console.log(event.keyCode)
-      this.nowPressedKeyCodeSet.delete(event.keyCode)
+      this.inputManager.onKeyUp(event.keyCode)
     },
     update(delta: number) {
       this.fpsCounter.checkPoint()
       // Spaceキーでキャラ切り替え
-      if (!this.nowPressedKeyCodeSet.has(32) && this.lastPressedKeyCodeSet.has(32)) {
+      if (this.inputManager.isReleased(32)) {
         this.toggleCharacter()
       }
       // 1キーでデバッグ表示切り替え
-      if (!this.nowPressedKeyCodeSet.has(49) && this.lastPressedKeyCodeSet.has(49)) {
+      if (this.inputManager.isReleased(49)) {
         this.onClickToggleDebugMode()
       }
       if (this.field != null) {
         this.field.update()
       }
-      this.lastPressedKeyCodeSet = new Set(Array.from(this.nowPressedKeyCodeSet))
+      this.inputManager.endTurn()
     },
     onClickToggleDebugMode() {
       this.isDebugMode = !this.isDebugMode
@@ -221,7 +220,7 @@ export default Vue.extend({
       }
 
       const character = new Character(new TextureInfo(this.renderTexture!, textureOffset!, width, height, directionNum))
-      character.routine = (type === 0) ? new PlayerRoutine(this.nowPressedKeyCodeSet) : new UroUroRoutine()
+      character.routine = (type === 0) ? new PlayerRoutine(this.inputManager) : new UroUroRoutine()
       character.currentDirection = 4
       for(;;) {
         character.x = 32 + 16 * Math.floor(Math.random() * (this.field!.horizontalGridNum - 4))
@@ -249,7 +248,7 @@ export default Vue.extend({
         const oldCharacter = this.characters[index]
         const newCharacter = this.characters[nextIndex]
         oldCharacter.routine = new UroUroRoutine()
-        newCharacter.routine = new PlayerRoutine(this.nowPressedKeyCodeSet)
+        newCharacter.routine = new PlayerRoutine(this.inputManager)
         this.field!.setTargetCharacter(newCharacter)
     }
   },
