@@ -152,6 +152,7 @@ export default Vue.extend({
       this.nowPressedKeyCodeSet.add(event.keyCode)
     },
     onKeyUp(event: any) {
+      console.log(event.keyCode)
       this.nowPressedKeyCodeSet.delete(event.keyCode)
     },
     update(delta: number) {
@@ -159,6 +160,10 @@ export default Vue.extend({
       // Spaceキーでキャラ切り替え
       if (!this.nowPressedKeyCodeSet.has(32) && this.lastPressedKeyCodeSet.has(32)) {
         this.toggleCharacter()
+      }
+      // 1キーでデバッグ表示切り替え
+      if (!this.nowPressedKeyCodeSet.has(49) && this.lastPressedKeyCodeSet.has(49)) {
+        this.onClickToggleDebugMode()
       }
       if (this.field != null) {
         this.field.update()
