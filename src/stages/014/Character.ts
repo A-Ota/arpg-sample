@@ -2,6 +2,7 @@ import * as PIXI from "pixi.js"
 
 import { SortableSprite } from '@/stages/005/SortableSprite'
 import InputManager from '@/stages/014/InputManager'
+import { Field } from '@/stages/014/Field'
 
 // 次フレームで行動したい内容
 class PreUpdateInfo {
@@ -70,6 +71,18 @@ export class Character {
     this.debugRect.lineStyle(2, 0x5555FF, 1)
     this.debugRect.alpha = 0.7
     this.debugRect.drawRect(this.hitRect.x, this.hitRect.y, this.hitRect.width, this.hitRect.height)
+  }
+  public onAddToField(field: Field) {
+      field.debugLayerContainer.addChild(this.debugCircle)
+      field.debugLayerContainer.addChild(this.debugRect)
+      field.layerContainer.addChild(this.shadowSprite)
+      field.layerContainer.addChild(this.bodySprite)
+  }
+  public onRemoveFromField(field: Field) {
+    field.debugLayerContainer.removeChild(this.debugCircle)
+    field.debugLayerContainer.removeChild(this.debugRect)
+    field.layerContainer.removeChild(this.shadowSprite)
+    field.layerContainer.removeChild(this.bodySprite)
   }
   private syncTexture() {
     let offsetX = 0

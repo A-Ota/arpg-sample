@@ -164,6 +164,14 @@ export default Vue.extend({
       if (this.inputManager.isReleased(49)) {
         this.onClickToggleDebugMode()
       }
+      // DELキーでキャラ削除
+      if (this.inputManager.isReleased(46)) {
+        this.characters = this.characters.filter(character => character !== this.field!.targetCharacter!)
+        this.field!.removeCharacter(this.field!.targetCharacter!)
+        if (this.characters.length > 0) {
+          this.toggleCharacter()
+        }
+      }
       if (this.field != null) {
         this.field.update()
       }

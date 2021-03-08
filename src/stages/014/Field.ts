@@ -29,10 +29,10 @@ class FieldCharacter {
 }
 
 export class Field extends PIXI.Container {
-  private bgLayerContainer!: PIXITilemap.CompositeRectTileLayer
-  private airLayerContainer!: PIXITilemap.CompositeRectTileLayer
-  private layerContainer!: SortableParticleContainer
-  private debugLayerContainer!: PIXI.Container
+  public bgLayerContainer!: PIXITilemap.CompositeRectTileLayer
+  public airLayerContainer!: PIXITilemap.CompositeRectTileLayer
+  public layerContainer!: SortableParticleContainer
+  public debugLayerContainer!: PIXI.Container
   public horizontalGridNum = 200
   public verticalGridNum = 200
   public targetCharacter: Character | null = null
@@ -165,12 +165,9 @@ export class Field extends PIXI.Container {
       this.setTargetCharacter(character)
     }
     character.update()
-    this.debugLayerContainer.addChild(character.debugCircle)
-    this.debugLayerContainer.addChild(character.debugRect)
-    // TODO:追加時に視界内かを判定して処理
+    // 追加時に視界内かを判定して処理
     if (this.isInSight(fieldCharacter)) {
-      this.layerContainer.addChild(fieldCharacter.character.shadowSprite)
-      this.layerContainer.addChild(fieldCharacter.character.bodySprite)
+      character.onAddToField(this)
       fieldCharacter.isAdded = true
     }
   }
@@ -178,10 +175,7 @@ export class Field extends PIXI.Container {
     if (this.targetCharacter === character) {
       this.targetCharacter = null
     }
-    this.debugLayerContainer.removeChild(character.debugCircle)
-    this.debugLayerContainer.removeChild(character.debugRect)
-    this.layerContainer.removeChild(character.shadowSprite)
-    this.layerContainer.removeChild(character.bodySprite)
+    character.onRemoveFromField(this)
     this.fieldCharacters = this.fieldCharacters.filter(fieldCharacter => {
       if (fieldCharacter.character === character) {
         this.removeFieldCharacterFromArea(fieldCharacter, fieldCharacter.areaGridX, fieldCharacter.areaGridY)
@@ -252,8 +246,7 @@ export class Field extends PIXI.Container {
           this.addFieldCharacterToArea(fieldCharacter,fieldCharacter.areaGridX, fieldCharacter.areaGridY)
           // 視界外になったら非表示
           if (!this.isInSight(fieldCharacter)) {
-            this.layerContainer.removeChild(fieldCharacter.character.shadowSprite)
-            this.layerContainer.removeChild(fieldCharacter.character.bodySprite)
+            fieldCharacter.character.onRemoveFromField(this)
             fieldCharacter.isAdded = false
           }
         }
@@ -448,8 +441,7 @@ export class Field extends PIXI.Container {
             if (this.fieldCharactersByArea.has(areaGridString)) {
               this.fieldCharactersByArea.get(areaGridString)!.forEach(fieldCharacter => {
                 if (!fieldCharacter.isAdded) {
-                  this.layerContainer.addChild(fieldCharacter.character.shadowSprite)
-                  this.layerContainer.addChild(fieldCharacter.character.bodySprite)
+                  fieldCharacter.character.onAddToField(this)
                   fieldCharacter.isAdded = true
                 }
               })
@@ -470,8 +462,7 @@ export class Field extends PIXI.Container {
             if (this.fieldCharactersByArea.has(areaGridString)) {
               this.fieldCharactersByArea.get(areaGridString)!.forEach(fieldCharacter => {
                 if (fieldCharacter.isAdded) {
-                  this.layerContainer.removeChild(fieldCharacter.character.shadowSprite)
-                  this.layerContainer.removeChild(fieldCharacter.character.bodySprite)
+                  fieldCharacter.character.onRemoveFromField(this)
                   fieldCharacter.isAdded = false
                 }
               })
@@ -491,8 +482,7 @@ export class Field extends PIXI.Container {
             if (this.fieldCharactersByArea.has(areaGridString)) {
               this.fieldCharactersByArea.get(areaGridString)!.forEach(fieldCharacter => {
                 if (!fieldCharacter.isAdded) {
-                  this.layerContainer.addChild(fieldCharacter.character.shadowSprite)
-                  this.layerContainer.addChild(fieldCharacter.character.bodySprite)
+                  fieldCharacter.character.onAddToField(this)
                   fieldCharacter.isAdded = true
                 }
               })
@@ -510,8 +500,7 @@ export class Field extends PIXI.Container {
             if (this.fieldCharactersByArea.has(areaGridString)) {
               this.fieldCharactersByArea.get(areaGridString)!.forEach(fieldCharacter => {
                 if (fieldCharacter.isAdded) {
-                  this.layerContainer.removeChild(fieldCharacter.character.shadowSprite)
-                  this.layerContainer.removeChild(fieldCharacter.character.bodySprite)
+                  fieldCharacter.character.onRemoveFromField(this)
                   fieldCharacter.isAdded = false
                 }
               })
