@@ -23,6 +23,49 @@ export class TextureInfo {
   ) {}
 }
 
+export class Weapon {
+  public character!: Character
+  public field!: Field
+  private sprite!: SortableSprite
+  private frameCount = -1
+  constructor(private textureInfo: TextureInfo) {
+    this.sprite = new SortableSprite()
+    this.sprite.texture = new PIXI.Texture(textureInfo.texture.baseTexture, new PIXI.Rectangle(textureInfo.offset.x, textureInfo.offset.y, textureInfo.width, textureInfo.height))
+    this.sprite.anchor.set(0.5, 0.5)
+  }
+  public onAddToField() {
+    this.frameCount = 0
+    this.sprite.position.x = this.character.x
+    this.sprite.position.y = this.character.y - 44
+    this.sprite.texture.frame = new PIXI.Rectangle(this.textureInfo.offset.x, this.textureInfo.offset.y, this.textureInfo.width, this.textureInfo.height)
+    this.field.layerContainer.addChild(this.sprite)
+  }
+  public onRemoveFromField() {
+    this.field.layerContainer.removeChild(this.sprite)
+  }
+  public update() {
+    // 攻撃してない
+    if (this.frameCount < 0) {
+      return
+    }
+    if (this.frameCount === 5) {
+      this.sprite.texture.frame = new PIXI.Rectangle(this.textureInfo.offset.x + this.textureInfo.width, this.textureInfo.offset.y, this.textureInfo.width, this.textureInfo.height)
+    }
+    else if (this.frameCount === 10) {
+      this.sprite.texture.frame = new PIXI.Rectangle(this.textureInfo.offset.x + this.textureInfo.width * 2, this.textureInfo.offset.y, this.textureInfo.width, this.textureInfo.height)
+    }
+    else if (this.frameCount === 15) {
+      this.sprite.texture.frame = new PIXI.Rectangle(this.textureInfo.offset.x + this.textureInfo.width * 3, this.textureInfo.offset.y, this.textureInfo.width, this.textureInfo.height)
+    }
+    else if (this.frameCount === 20) {
+      this.field.layerContainer.removeChild(this.sprite)
+      this.frameCount = -1
+      return
+    }
+    ++this.frameCount
+  }
+}
+
 // キャラクター
 export class Character {
   public x: number = 0
@@ -37,6 +80,12 @@ export class Character {
   public debugCircle!: PIXI.Graphics
   public debugRect!: PIXI.Graphics
   private _routine!: BaseRoutine
+  private _weapon: Weapon | null = null
+  set weapon(value: Weapon) {
+    this._weapon = value
+    this._weapon.character = this
+    this._weapon.field = this.field
+  }
   set currentDirection(value: number) {
     this._currentDirection = value
     this.syncTexture()
@@ -130,6 +179,7 @@ export class Character {
     this._routine.preUpdate()
   }
   public update() {
+    this._weapon?.update()
     ;[this.bodySprite.x, this.bodySprite.y] = [this.x, this.y + 8]
     ;[this.shadowSprite.x, this.shadowSprite.y] = [this.x, this.y]
     ;[this.hitCircle.x, this.hitCircle.y] = [this.x, this.y]
@@ -142,6 +192,11 @@ export class Character {
       this.animationFrame = 0
       this.animationStep = (this.animationStep + 1) % 4
       this.syncTexture()
+    }
+  }
+  public attack() {
+    if (this._weapon != null) {
+      this._weapon.onAddToField()
     }
   }
 }
@@ -188,33 +243,42 @@ export class PlayerRoutine extends BaseRoutine {
   }
 
   public preUpdate() {
-    let direction: number | null = null 
-    // 向き取得
-    if (this.inputManager.isPressing(KEY_CODE_LEFT)) {
-      if (this.inputManager.isPressing(KEY_CODE_DOWN)) {
-        direction = 1
+    // 移動
+    {
+      let direction: number | null = null 
+      // 向き取得
+      if (this.inputManager.isPressing(KEY_CODE_LEFT)) {
+        if (this.inputManager.isPressing(KEY_CODE_DOWN)) {
+          direction = 1
+        } else if (this.inputManager.isPressing(KEY_CODE_UP)) {
+          direction = 7
+        } else {
+          direction = 4
+        }
+      } else if (this.inputManager.isPressing(KEY_CODE_RIGHT)) {
+        if (this.inputManager.isPressing(KEY_CODE_DOWN)) {
+          direction = 3
+        } else if (this.inputManager.isPressing(KEY_CODE_UP)) {
+          direction = 9
+        } else {
+          direction = 6
+        }
       } else if (this.inputManager.isPressing(KEY_CODE_UP)) {
-        direction = 7
-      } else {
-        direction = 4
+        direction = 8
+      } else if (this.inputManager.isPressing(KEY_CODE_DOWN)) {
+        direction = 2
       }
-    } else if (this.inputManager.isPressing(KEY_CODE_RIGHT)) {
-      if (this.inputManager.isPressing(KEY_CODE_DOWN)) {
-        direction = 3
-      } else if (this.inputManager.isPressing(KEY_CODE_UP)) {
-        direction = 9
-      } else {
-        direction = 6
+      // 向かせたり歩かせたり
+      if (direction != null) {
+        const [moveX, moveY] = calcMoveXY(direction, 3)
+        this.character.preUpdateInfo = new PreUpdateInfo(moveX, moveY, direction)
       }
-    } else if (this.inputManager.isPressing(KEY_CODE_UP)) {
-      direction = 8
-    } else if (this.inputManager.isPressing(KEY_CODE_DOWN)) {
-      direction = 2
     }
-    // 向かせたり歩かせたり
-    if (direction != null) {
-      const [moveX, moveY] = calcMoveXY(direction, 3)
-      this.character.preUpdateInfo = new PreUpdateInfo(moveX, moveY, direction)
+    // 攻撃
+    {
+      if (this.inputManager.isReleased(90)) {
+        this.character.attack()
+      }
     }
   }
 }
