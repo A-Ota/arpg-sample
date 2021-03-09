@@ -23,24 +23,57 @@ export class TextureInfo {
   ) {}
 }
 
+function toRadian(degree: number) {
+  return degree * (Math.PI / 180)
+}
+
+const DIRECTION_RADIAN_MAP = new Map(
+  [
+    [8, 0],
+    [9, toRadian(45)],
+    [6, toRadian(45 * 2)],
+    [3, toRadian(45 * 3)],
+    [2, toRadian(45 * 4)],
+    [1, toRadian(45 * 5)],
+    [4, toRadian(45 * 6)],
+    [7, toRadian(45 * 7)]
+  ])
+
+const DIRECTION_OFFSET_MAP = new Map(
+  [
+    [8, new PIXI.Point(0, -1)],
+    [9, new PIXI.Point(0.7, -0.7)],
+    [6, new PIXI.Point(1, 0)],
+    [3, new PIXI.Point(0.7, 0.7)],
+    [2, new PIXI.Point(0, 1)],
+    [1, new PIXI.Point(-0.7, 0.7)],
+    [4, new PIXI.Point(-1, 0)],
+    [7, new PIXI.Point(-0.7, -0.7)]
+  ])
+
 export class Weapon {
   public character!: Character
   public field!: Field
   private sprite!: SortableSprite
   private frameCount = -1
+  public isAttacking = false
+  public attackCircles: Array<PIXI.Circle> = []
   constructor(private textureInfo: TextureInfo) {
     this.sprite = new SortableSprite()
     this.sprite.texture = new PIXI.Texture(textureInfo.texture.baseTexture, new PIXI.Rectangle(textureInfo.offset.x, textureInfo.offset.y, textureInfo.width, textureInfo.height))
     this.sprite.anchor.set(0.5, 0.5)
   }
   public onAddToField() {
+    this.isAttacking = true
     this.frameCount = 0
-    this.sprite.position.x = this.character.x
-    this.sprite.position.y = this.character.y - 44
+    const offset = DIRECTION_OFFSET_MAP.get(this.character.currentDirection)!
+    ;[this.sprite.position.x, this.sprite.position.y] = [this.character.x + offset.x * 20, this.character.y + offset.y * 20 - 15]
     this.sprite.texture.frame = new PIXI.Rectangle(this.textureInfo.offset.x, this.textureInfo.offset.y, this.textureInfo.width, this.textureInfo.height)
+    this.sprite.rotation = DIRECTION_RADIAN_MAP.get(this.character.currentDirection)!
     this.field.layerContainer.addChild(this.sprite)
   }
   public onRemoveFromField() {
+    this.isAttacking = false
     this.field.layerContainer.removeChild(this.sprite)
   }
   public update() {
@@ -52,6 +85,12 @@ export class Weapon {
       this.sprite.texture.frame = new PIXI.Rectangle(this.textureInfo.offset.x + this.textureInfo.width, this.textureInfo.offset.y, this.textureInfo.width, this.textureInfo.height)
     }
     else if (this.frameCount === 10) {
+      /*
+      this.attackCircles.push(new )
+      this.attackCircleGraphics.forEach(attaattackCircleGraphic => {
+        this.field.debugLayerContainer.addChild(attaattackCircleGraphic)
+      })
+      */
       this.sprite.texture.frame = new PIXI.Rectangle(this.textureInfo.offset.x + this.textureInfo.width * 2, this.textureInfo.offset.y, this.textureInfo.width, this.textureInfo.height)
     }
     else if (this.frameCount === 15) {
@@ -60,6 +99,7 @@ export class Weapon {
     else if (this.frameCount === 20) {
       this.field.layerContainer.removeChild(this.sprite)
       this.frameCount = -1
+      this.onRemoveFromField()
       return
     }
     ++this.frameCount
@@ -176,10 +216,14 @@ export class Character {
     this.bodySprite.texture.frame = frame
   }
   public preUpdate() {
-    this._routine.preUpdate()
+    if (this._weapon != null && !this._weapon.isAttacking) {
+      this._routine.preUpdate()
+    }
   }
   public update() {
-    this._weapon?.update()
+    if (this._weapon != null && this._weapon.isAttacking) {
+      this._weapon.update()
+    }
     ;[this.bodySprite.x, this.bodySprite.y] = [this.x, this.y + 8]
     ;[this.shadowSprite.x, this.shadowSprite.y] = [this.x, this.y]
     ;[this.hitCircle.x, this.hitCircle.y] = [this.x, this.y]

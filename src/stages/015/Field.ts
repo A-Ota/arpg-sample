@@ -53,7 +53,7 @@ export class Field extends PIXI.Container {
 
     this.sortableChildren = true
     this.bgLayerContainer = new PIXITilemap.CompositeRectTileLayer(0, [texture])
-    this.layerContainer = new SortableParticleContainer(20000, { uvs: true, vertices: true, tint: true })
+    this.layerContainer = new SortableParticleContainer(20000, { uvs: true, vertices: true, tint: true, rotation: true })
     this.airLayerContainer = new PIXITilemap.CompositeRectTileLayer(0, [texture])
     this.debugLayerContainer = new PIXI.Container()
     this.debugLayerContainer.visible = false
