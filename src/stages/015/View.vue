@@ -95,7 +95,7 @@ export default Vue.extend({
       .add("/arpg-sample/images/stages/014/slime-blue.png")
       .add("/arpg-sample/images/stages/014/slime-red.png")
       .add("/arpg-sample/images/stages/014/slime-yellow.png")
-      .add("/arpg-sample/images/stages/015/knife.png")
+      .add("/arpg-sample/images/stages/015/sword.png")
       .add("/arpg-sample/images/stages/013/mapchip.png")
       .add("/arpg-sample/images/stages/013/mapchip.json")
       .add("/arpg-sample/images/stages/013/map01.json")
@@ -130,7 +130,7 @@ export default Vue.extend({
         this.pixiApp!.renderer.render(sprite05, this.renderTexture, false)
 
         // Knifeを書き込む
-        const spriteKnife = PIXI.Sprite.from(PIXI.Loader.shared.resources["/arpg-sample/images/stages/015/knife.png"].texture)
+        const spriteKnife = PIXI.Sprite.from(PIXI.Loader.shared.resources["/arpg-sample/images/stages/015/sword.png"].texture)
         spriteKnife.position.set(256 + 192 * 2, 96)
         this.pixiApp!.renderer.render(spriteKnife, this.renderTexture, false)
 
@@ -148,7 +148,7 @@ export default Vue.extend({
         this.generateCharacter(3)
         this.generateCharacter(4)
         this.field!.setTargetCharacter(this.characters[0])
-        this.characters[0].weapon = new Weapon(new TextureInfo(this.renderTexture, new PIXI.Point(256 + 192 * 2, 96), 32, 32, 1))
+        this.characters[0].weapon = new Weapon(new TextureInfo(this.renderTexture, new PIXI.Point(256 + 192 * 2, 96), 64, 64, 1))
       })
 
     // メインループ
