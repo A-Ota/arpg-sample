@@ -73,7 +73,8 @@ export class Weapon {
     ;[this.sprite.position.x, this.sprite.position.y] = [this.character.x + offset.x * Weapon.DISTANCE, this.character.y + offset.y * Weapon.DISTANCE - Weapon.HIT_OFFSET_Y]
     this.sprite.texture.frame = new PIXI.Rectangle(this.textureInfo.offset.x, this.textureInfo.offset.y, this.textureInfo.width, this.textureInfo.height)
     this.sprite.rotation = DIRECTION_RADIAN_MAP.get(this.character.currentDirection)!
-    this.field.layerContainer.addChild(this.sprite)
+    this.field.layerContainer.addChildZ(this.sprite, 0)
+    this.sprite.zOrder = this.sprite.y
   }
   public onRemoveFromField() {
     this.isAttacking = false
@@ -171,8 +172,8 @@ export class Character {
   public onAddToField() {
     this.field.debugLayerContainer.addChild(this.debugCircle)
     this.field.debugLayerContainer.addChild(this.debugRect)
-    this.field.layerContainer.addChild(this.shadowSprite)
-    this.field.layerContainer.addChild(this.bodySprite)
+    this.field.layerContainer.addChildZ(this.shadowSprite, 0)
+    this.field.layerContainer.addChildZ(this.bodySprite, 0)
   }
   public onRemoveFromField() {
     this.field.debugLayerContainer.removeChild(this.debugCircle)
