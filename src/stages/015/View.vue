@@ -153,7 +153,8 @@ export default Vue.extend({
         this.generateCharacter(3)
         this.generateCharacter(4)
         this.field!.setTargetCharacter(this.characters[0])
-        this.characters[0].weapon = new Weapon(new TextureInfo(this.renderTexture, new PIXI.Point(256 + 192 * 2, 96), 64, 64, 1))
+        // this.characters[0].weapon = new Weapon(new TextureInfo(this.renderTexture, new PIXI.Point(256 + 192 * 2, 96), 64, 64, 1))
+        this.characters[0].weapon = new Weapon(new TextureInfo(this.renderTexture, new PIXI.Point(256 + 192 * 2, 96 + 64), 64, 64, 1))
       })
 
     // メインループ

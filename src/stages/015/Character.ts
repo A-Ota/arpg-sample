@@ -59,7 +59,7 @@ export class Weapon {
   public isAttacking = false
   public attackCircles: Array<PIXI.Circle> = []
   public attackCircleGraphics: Array<PIXI.Graphics> = []
-  static HIT_OFFSET_Y = 15
+  static HIT_OFFSET_Y = 10
   static DISTANCE = 26
   constructor(private textureInfo: TextureInfo) {
     this.sprite = new SortableSprite()
@@ -105,6 +105,9 @@ export class Weapon {
       this.attackCircleGraphics.forEach(attackCircleGraphic => this.field.debugLayerContainer.removeChild(attackCircleGraphic))
     }
     else if (this.frameCount === 20) {
+      this.sprite.texture.frame = new PIXI.Rectangle(this.textureInfo.offset.x + this.textureInfo.width * 4, this.textureInfo.offset.y, this.textureInfo.width, this.textureInfo.height)
+    }
+    else if (this.frameCount === 25) {
       this.field.layerContainer.removeChild(this.sprite)
       this.frameCount = -1
       this.onRemoveFromField()
