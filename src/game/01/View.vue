@@ -21,7 +21,7 @@
         <input id="fieldLength" v-model.number="field.maxLength" type="number" step="1"><label for="fieldLength">ステージの長さ</label>
       </div>
       <div>
-        <input style="width: 400px;" id="fieldX" v-model.number="field.x" type="range" value="0" max="0" :min="-field.maxLength"><label for="fieldX">{{ field.x }}</label>
+        <input style="width: 400px;" id="fieldX" v-model.number="field.x" type="range" value="0" max="0" :min="-field.maxLength" @input="onFieldXChanged"><label for="fieldX">{{ field.x }}</label>
       </div>
       <div>
         <img @click="onColorSelected('r')" class="icon-button" :class="{ 'focused': editingInfo.selectedColor === 'r' }" src="/arpg-sample/images/game/01/bubble-r.png">
@@ -66,13 +66,28 @@ class FpsCounter {
 class Field extends PIXI.Container {
   public maxLength = 640 * 10
   private speed = -1
+  private oldX = 0
   private bubblePlaces: Array<[PIXI.Point, ColorType]> = []
   private bubbles: Array<PIXI.Sprite> = []
   constructor() {
     super() 
   }
   update() {
+    this.oldX = this.x
     this.x += this.speed
+    this.createBubble()
+  }
+  createBubble() {
+    const createBubbldePlaces = this.bubblePlaces.filter(bubblePlace => {
+      return bubblePlace[0].x >= -this.oldX + 320 && bubblePlace[0].x < -this.x + 320
+    })
+    createBubbldePlaces.forEach(bubblePlace => {
+      const bubble = PIXI.Sprite.from(PIXI.Loader.shared.resources[`/arpg-sample/images/game/01/bubble-${bubblePlace[1]}.png`].texture)
+      bubble.position = bubblePlace[0]
+      bubble.anchor.set(0.5, 0.5)
+      this.addChild(bubble)
+      this.bubbles.push(bubble)
+    })
   }
   addBubble(color: ColorType, position: PIXI.Point) {
     this.bubblePlaces.push([position, color])
@@ -92,11 +107,14 @@ class Field extends PIXI.Container {
     })
     this.bubbles = []
     this.bubblePlaces.forEach(bubblePlace => {
-      const bubble = PIXI.Sprite.from(PIXI.Loader.shared.resources[`/arpg-sample/images/game/01/bubble-${bubblePlace[1]}.png`].texture)
-      bubble.position = bubblePlace[0]
-      bubble.anchor.set(0.5, 0.5)
-      this.addChild(bubble)
-      this.bubbles.push(bubble)
+      const position = bubblePlace[0]
+      if (position.x >= - this.x && position.x <= - this.x + 320) {
+        const bubble = PIXI.Sprite.from(PIXI.Loader.shared.resources[`/arpg-sample/images/game/01/bubble-${bubblePlace[1]}.png`].texture)
+        bubble.position = position
+        bubble.anchor.set(0.5, 0.5)
+        this.addChild(bubble)
+        this.bubbles.push(bubble)
+      }
     })
   }
 }
@@ -273,6 +291,9 @@ export default Vue.extend({
     },
     onClickToggleEditing() {
       this.editing = !this.editing
+    },
+    onFieldXChanged() {
+      this.field!.reload()
     }
   },
   beforeDestroy() {
