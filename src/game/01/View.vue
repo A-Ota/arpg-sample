@@ -7,6 +7,12 @@
   <div style="position: relative;">
     <div style="width: 640px; height: 480px;" ref="pixi_area">
     </div>
+    <div v-if="field != null">
+      <input id="fieldLength" v-model="field.maxLength" type="number" step="1"><label for="fieldLength">ステージの長さ</label>
+    </div>
+    <div v-if="field != null">
+      <input id="fieldX" v-model="field.x" type="range" value="0" max="0" :min="-field.maxLength"><label for="fieldX">{{ field.x }}</label>
+    </div>
   </div>
 </template>
 <script lang="ts">
@@ -30,6 +36,22 @@ class FpsCounter {
       this.counter = 0
       this.ms = 0
     }
+  }
+}
+
+class Field extends PIXI.Container {
+  public maxLength = 640 * 2
+  private speed = -1
+  constructor() {
+    super() 
+    ;['r', 'g', 'b', 'y', 'lb', 'p', 'w', 'bl'].forEach((c, index) => {
+      const bubble = PIXI.Sprite.from(PIXI.Loader.shared.resources[`/arpg-sample/images/game/01/bubble-${c}.png`].texture)
+      bubble.position.set(120, index * 32)
+      this.addChild(bubble)
+    })
+  }
+  update() {
+    this.x += this.speed
   }
 }
 
@@ -102,13 +124,15 @@ export default Vue.extend({
     pixiApp: PIXI.Application | null;
     inputManager: InputManager;
     fpsCounter: FpsCounter;
+    field: Field | null;
     sakana: Sakana | null;
     } {
     return {
       pixiApp: null,
       inputManager: new InputManager(),
       fpsCounter: new FpsCounter(),
-      sakana: null
+      sakana: null,
+      field: null
     }
   },
   mounted() {
@@ -159,11 +183,9 @@ export default Vue.extend({
       .load(() => {
         this.sakana = new Sakana(this.inputManager)
         this.pixiApp!.stage.addChild(this.sakana!)
-        ;['r', 'g', 'b', 'y', 'lb', 'p', 'w', 'bl'].forEach((c, index) => {
-        const bubble = PIXI.Sprite.from(PIXI.Loader.shared.resources[`/arpg-sample/images/game/01/bubble-${c}.png`].texture)
-        bubble.position.set(120, index * 32)
-        this.pixiApp!.stage.addChild(bubble)
-        })
+        this.field = new Field()
+        this.pixiApp!.stage.addChild(this.field)
+
       })
 
     // メインループ
@@ -178,7 +200,8 @@ export default Vue.extend({
     },
     update(delta: number) {
       this.fpsCounter.checkPoint()
-      this.sakana?.update()
+      // this.field?.update()
+      // this.sakana?.update()
       this.inputManager.endTurn()
     },
   },
