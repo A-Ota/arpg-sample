@@ -2,20 +2,44 @@
 .button {
   margin: 4px;
 }
+.icon-button {
+  box-sizing: border-box;
+  &.focused {
+    border-color: orange;
+    border-width: 2px;
+    border-style: solid;
+  }
+}
 </style>
 <template>
   <div style="position: relative;">
-    <div style="width: 640px; height: 480px;" ref="pixi_area">
+    <div @click="onClickCanvas" style="width: 640px; height: 480px;" ref="pixi_area">
     </div>
-    <div v-if="field != null">
-      <input id="fieldLength" v-model="field.maxLength" type="number" step="1"><label for="fieldLength">ステージの長さ</label>
-    </div>
-    <div v-if="field != null">
-      <input id="fieldX" v-model="field.x" type="range" value="0" max="0" :min="-field.maxLength"><label for="fieldX">{{ field.x }}</label>
-    </div>
+    <template v-if="field != null">
+      <b-button @click="onClickToggleEditing">{{ editing ? '再生' : 'エディット' }}</b-button>
+      <div>
+        <input id="fieldLength" v-model.number="field.maxLength" type="number" step="1"><label for="fieldLength">ステージの長さ</label>
+      </div>
+      <div>
+        <input style="width: 400px;" id="fieldX" v-model.number="field.x" type="range" value="0" max="0" :min="-field.maxLength"><label for="fieldX">{{ field.x }}</label>
+      </div>
+      <div>
+        <img @click="onColorSelected('r')" class="icon-button" :class="{ 'focused': editingInfo.selectedColor === 'r' }" src="/arpg-sample/images/game/01/bubble-r.png">
+        <img @click="onColorSelected('g')" class="icon-button" :class="{ 'focused': editingInfo.selectedColor === 'g' }" src="/arpg-sample/images/game/01/bubble-g.png">
+        <img @click="onColorSelected('b')" class="icon-button" :class="{ 'focused': editingInfo.selectedColor === 'b' }" src="/arpg-sample/images/game/01/bubble-b.png">
+        <img @click="onColorSelected('y')" class="icon-button" :class="{ 'focused': editingInfo.selectedColor === 'y' }" src="/arpg-sample/images/game/01/bubble-y.png">
+        <img @click="onColorSelected('lb')" class="icon-button" :class="{ 'focused': editingInfo.selectedColor === 'lb' }" src="/arpg-sample/images/game/01/bubble-lb.png">
+        <img @click="onColorSelected('p')" class="icon-button" :class="{ 'focused': editingInfo.selectedColor === 'p' }" src="/arpg-sample/images/game/01/bubble-p.png">
+        <img @click="onColorSelected('w')" class="icon-button" :class="{ 'focused': editingInfo.selectedColor === 'w' }" src="/arpg-sample/images/game/01/bubble-w.png">
+        <img @click="onColorSelected('bl')" class="icon-button" :class="{ 'focused': editingInfo.selectedColor === 'bl' }" src="/arpg-sample/images/game/01/bubble-bl.png">
+        <img @click="onColorSelected(null)" class="icon-button" :class="{ 'focused': editingInfo.selectedColor === null }" src="/arpg-sample/images/game/01/trash.png">
+      </div>
+    </template>
   </div>
 </template>
 <script lang="ts">
+const SCALE = 2.0
+
 // 高速歩きで壁にぶつかった場合、移動しないのではなくx, yについて移動できるところまで戻してあげる。
 import Vue from "vue"
 import * as PIXI from "pixi.js"
@@ -40,18 +64,40 @@ class FpsCounter {
 }
 
 class Field extends PIXI.Container {
-  public maxLength = 640 * 2
+  public maxLength = 640 * 10
   private speed = -1
+  private bubblePlaces: Array<[PIXI.Point, ColorType]> = []
+  private bubbles: Array<PIXI.Sprite> = []
   constructor() {
     super() 
-    ;['r', 'g', 'b', 'y', 'lb', 'p', 'w', 'bl'].forEach((c, index) => {
-      const bubble = PIXI.Sprite.from(PIXI.Loader.shared.resources[`/arpg-sample/images/game/01/bubble-${c}.png`].texture)
-      bubble.position.set(120, index * 32)
-      this.addChild(bubble)
-    })
   }
   update() {
     this.x += this.speed
+  }
+  addBubble(color: ColorType, position: PIXI.Point) {
+    this.bubblePlaces.push([position, color])
+    this.reload()
+  }
+  removeBubble(position: PIXI.Point) {
+    this.bubblePlaces = this.bubblePlaces.filter(bubblePlace => {
+      const distance = Math.sqrt(Math.pow(bubblePlace[0].x - position.x, 2) + Math.pow(bubblePlace[0].y - position.y, 2))
+      return distance > 12
+    })
+    this.reload()
+  }
+  reload() {
+    // 現在の視界付近の泡を生成
+    this.bubbles.forEach(bubble => {
+      bubble.parent.removeChild(bubble)
+    })
+    this.bubbles = []
+    this.bubblePlaces.forEach(bubblePlace => {
+      const bubble = PIXI.Sprite.from(PIXI.Loader.shared.resources[`/arpg-sample/images/game/01/bubble-${bubblePlace[1]}.png`].texture)
+      bubble.position = bubblePlace[0]
+      bubble.anchor.set(0.5, 0.5)
+      this.addChild(bubble)
+      this.bubbles.push(bubble)
+    })
   }
 }
 
@@ -119,6 +165,10 @@ class Sakana extends PIXI.Sprite {
   }
 }
 
+class EditingInfo {
+  public selectedColor: ColorType | null = null
+}
+
 export default Vue.extend({
   data(): {
     pixiApp: PIXI.Application | null;
@@ -126,13 +176,17 @@ export default Vue.extend({
     fpsCounter: FpsCounter;
     field: Field | null;
     sakana: Sakana | null;
+    editingInfo: EditingInfo;
+    editing: boolean;
     } {
     return {
       pixiApp: null,
       inputManager: new InputManager(),
       fpsCounter: new FpsCounter(),
       sakana: null,
-      field: null
+      field: null,
+      editingInfo: new EditingInfo(),
+      editing: true
     }
   },
   mounted() {
@@ -158,8 +212,8 @@ export default Vue.extend({
     bg.height = 240
     bg.tint = 0x2f85c8
     this.pixiApp.stage.addChild(bg)
-    this.pixiApp.stage.scale.x = 2.0
-    this.pixiApp.stage.scale.y = 2.0
+    this.pixiApp.stage.scale.x = SCALE
+    this.pixiApp.stage.scale.y = SCALE
 
     PIXI.utils.clearTextureCache()
     PIXI.Loader.shared
@@ -200,10 +254,26 @@ export default Vue.extend({
     },
     update(delta: number) {
       this.fpsCounter.checkPoint()
-      // this.field?.update()
-      // this.sakana?.update()
+      if (!this.editing) {
+        this.field?.update()
+        this.sakana?.update()
+      }
       this.inputManager.endTurn()
     },
+    onColorSelected(color: ColorType | null) {
+      this.editingInfo.selectedColor = color
+    },
+    onClickCanvas(event: MouseEvent) {
+      const point = new PIXI.Point(event.clientX / SCALE - this.field!.position.x, event.clientY / SCALE)
+      if (this.editingInfo.selectedColor != null) {
+        this.field!.addBubble(this.editingInfo.selectedColor, point)
+      } else {
+        this.field!.removeBubble(point)
+      }
+    },
+    onClickToggleEditing() {
+      this.editing = !this.editing
+    }
   },
   beforeDestroy() {
     // this.pixiApp!.ticker.remove(this.update)
