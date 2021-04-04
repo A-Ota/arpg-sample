@@ -33,23 +33,34 @@ class FpsCounter {
   }
 }
 
-class Field extends PIXI.Container {
-  
-}
-
 type ColorType = 'r' | 'g' | 'b' | 'y' | 'lb' | 'p' | 'w' | 'bl'
 const KEY_CODE_RED = 90
 const KEY_CODE_GREEN = 88
 const KEY_CODE_BLUE = 67
 const KEY_CODE_JUMP1 = 38
 const KEY_CODE_JUMP2 = 32
+const MIN_Y_SPEED = -1.6
+const MAX_Y_SPEED = 1.6
 class Sakana extends PIXI.Sprite {
   private color: ColorType = 'bl'
+  private ySpeed = 0;
   constructor(private inputManger: InputManager) {
     super(PIXI.Loader.shared.resources["/arpg-sample/images/game/01/sakana-bl.png"].texture)
+    this.position.x = 50
+    this.anchor.set(0.5, 0.5)
   }
   update() {
     this.refreshColor()
+    this.checkJump()
+    this.ySpeed += 0.1
+    this.ySpeed = Math.min(MAX_Y_SPEED, Math.max(this.ySpeed, MIN_Y_SPEED))
+    this.position.y += this.ySpeed
+    this.rotation = (this.ySpeed * 0.1)
+  }
+  checkJump() {
+    if (this.inputManger.isPressing(KEY_CODE_JUMP1) || this.inputManger.isPressing(KEY_CODE_JUMP2)) {
+      this.ySpeed = MIN_Y_SPEED
+    }
   }
   refreshColor() {
     const oldColor = this.color
@@ -102,6 +113,7 @@ export default Vue.extend({
   },
   mounted() {
     PIXI.settings.RESOLUTION = window.devicePixelRatio
+    // PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.LINEAR
     PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST
     // PIXI.settings.TARGET_FPMS = 1
 
@@ -118,10 +130,12 @@ export default Vue.extend({
 
     // 背景色
     const bg = new PIXI.Sprite(PIXI.Texture.WHITE)
-    bg.width = 640
-    bg.height = 480
+    bg.width = 320
+    bg.height = 240
     bg.tint = 0x2f85c8
     this.pixiApp.stage.addChild(bg)
+    this.pixiApp.stage.scale.x = 2.0
+    this.pixiApp.stage.scale.y = 2.0
 
     PIXI.utils.clearTextureCache()
     PIXI.Loader.shared
@@ -134,9 +148,22 @@ export default Vue.extend({
       .add("/arpg-sample/images/game/01/sakana-p.png")
       .add("/arpg-sample/images/game/01/sakana-w.png")
       .add("/arpg-sample/images/game/01/sakana-bl.png")
+      .add("/arpg-sample/images/game/01/bubble-r.png")
+      .add("/arpg-sample/images/game/01/bubble-g.png")
+      .add("/arpg-sample/images/game/01/bubble-b.png")
+      .add("/arpg-sample/images/game/01/bubble-y.png")
+      .add("/arpg-sample/images/game/01/bubble-lb.png")
+      .add("/arpg-sample/images/game/01/bubble-p.png")
+      .add("/arpg-sample/images/game/01/bubble-w.png")
+      .add("/arpg-sample/images/game/01/bubble-bl.png")
       .load(() => {
         this.sakana = new Sakana(this.inputManager)
         this.pixiApp!.stage.addChild(this.sakana!)
+        ;['r', 'g', 'b', 'y', 'lb', 'p', 'w', 'bl'].forEach((c, index) => {
+        const bubble = PIXI.Sprite.from(PIXI.Loader.shared.resources[`/arpg-sample/images/game/01/bubble-${c}.png`].texture)
+        bubble.position.set(120, index * 32)
+        this.pixiApp!.stage.addChild(bubble)
+        })
       })
 
     // メインループ
