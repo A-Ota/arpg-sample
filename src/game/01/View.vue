@@ -10,13 +10,26 @@
     border-style: solid;
   }
 }
+.stage-select {
+  margin: 4px;
+  &.focused {
+    border-color: orange;
+    border-width: 2px;
+    border-style: solid;
+  }
+}
 </style>
 <template>
   <div style="position: relative;">
     <div @click="onClickCanvas" style="width: 640px; height: 480px;" ref="pixi_area">
     </div>
     <template v-if="field != null">
-      <b-button @click="onClickToggleEditing">{{ editing ? '再生' : 'エディット' }}</b-button>
+      <b-button style="margin: 4px;" @click="onClickToggleEditing">{{ editing ? '再生' : 'エディット' }}</b-button>
+      <b-button style="margin: 4px;" @click="onClickLoad">読み込み</b-button>
+      <b-button style="margin: 4px;" @click="onClickSave">保存</b-button>
+      <div style="margin-top: 8px; margin-bottom: 8px;">
+        <span @click="onClickStage(index)" class="stage-select" :class="{ 'focused': index === editingInfo.selectedStageInfoIndex }" v-for="(info, index) in editingInfo.stageInfos" :key="index">ステージ{{ index }}</span>
+      </div>
       <div>
         <input id="fieldLength" v-model.number="field.maxLength" type="number" step="1"><label for="fieldLength">ステージの長さ</label>
       </div>
@@ -165,6 +178,7 @@ class Bubble extends PIXI.Sprite {
 }
 const UPPER_LIMIT_Y = 35
 const LOWER_LIMIT_Y = 205
+const SAKANA_X = 50
 
 type ColorType = 'r' | 'g' | 'b' | 'y' | 'lb' | 'p' | 'w' | 'bl'
 const KEY_CODE_RED = 90
@@ -180,7 +194,7 @@ class Sakana extends PIXI.Sprite {
   private coroutine: Generator | null = null
   constructor(private inputManger: InputManager) {
     super(PIXI.Loader.shared.resources["/arpg-sample/images/game/01/sakana-bl.png"].texture)
-    this.position.x = 50
+    this.position.x = SAKANA_X
     this.anchor.set(0.5, 0.5)
   }
   update() {
@@ -254,6 +268,17 @@ class Sakana extends PIXI.Sprite {
   }
 }
 
+class StageInfo {
+  public length = 6400
+  public layout: Array<any> = []
+}
+
+class EditingInfo {
+  public selectedColor: ColorType | null = null
+  public selectedStageInfoIndex = 0
+  public stageInfos: Array<StageInfo> = [new StageInfo(), new StageInfo(), new StageInfo(), new StageInfo(), new StageInfo()]
+}
+
 class Field extends PIXI.Container {
   public maxLength = 640 * 10
   private speed = -0.9
@@ -270,6 +295,9 @@ class Field extends PIXI.Container {
     this.sakana.y = 120
     this.sakana.zIndex = 1
     this.addChild(this.sakana!)
+    this.createWallByX(0)
+    this.createWallByX(128)
+    this.createWallByX(256)
   }
   update() {
     this.oldX = this.x
@@ -300,8 +328,21 @@ class Field extends PIXI.Container {
       this.bubbles.push(bubble)
     })
   }
+  createWallByX(x: number) {
+      const wave = PIXI.Sprite.from('/arpg-sample/images/game/01/wave.png')
+      wave.x = x
+      const ground = PIXI.Sprite.from('/arpg-sample/images/game/01/ground.png')
+      ground.anchor.set(0, 1)
+      ground.y = 240
+      ground.x = x
+      this.addChild(wave)
+      this.addChild(ground)
+      this.walls.push(wave)
+      this.walls.push(ground)
+  }
   updateWall() {
     if (Math.floor(this.oldX / 128) != Math.floor(this.x / 128)) {
+      this.createWallByX(-Math.floor(this.oldX / 128) * 128 + 320)
       const wave = PIXI.Sprite.from('/arpg-sample/images/game/01/wave.png')
       wave.x = -Math.floor(this.oldX / 128) * 128 + 320
       const ground = PIXI.Sprite.from('/arpg-sample/images/game/01/ground.png')
@@ -352,6 +393,7 @@ class Field extends PIXI.Container {
     })
   }
   reload() {
+    this.sakana.x = -this.x + SAKANA_X
     // 現在の視界付近の泡を生成
     this.bubbles.forEach(bubble => {
       bubble.parent.removeChild(bubble)
@@ -367,10 +409,18 @@ class Field extends PIXI.Container {
       }
     })
   }
-}
-
-class EditingInfo {
-  public selectedColor: ColorType | null = null
+  import(stageInfo: StageInfo) {
+    this.maxLength = stageInfo.length
+    this.bubblePlaces = stageInfo.layout.map(value => [new PIXI.Point(value[0], value[1]), value[2]])
+    this.x = 0
+    this.reload()
+  }
+  export(): StageInfo {
+    const stageInfo = new StageInfo()
+    stageInfo.length = this.maxLength
+    stageInfo.layout = this.bubblePlaces.map(bubblePlace => [bubblePlace[0].x, bubblePlace[0].y, bubblePlace[1]])
+    return stageInfo
+  }
 }
 
 export default Vue.extend({
@@ -501,6 +551,20 @@ export default Vue.extend({
     },
     onFieldXChanged() {
       this.field!.reload()
+    },
+    onClickStage(index: number) {
+      this.editingInfo.selectedStageInfoIndex = index
+    },
+    onClickLoad() {
+      const json = localStorage.getItem('game/01/stageInfos')
+      if (json != null) {
+        this.editingInfo.stageInfos = JSON.parse(json)
+        this.field!.import(this.editingInfo.stageInfos[this.editingInfo.selectedStageInfoIndex])
+      }
+    },
+    onClickSave() {
+      this.editingInfo.stageInfos[this.editingInfo.selectedStageInfoIndex] = this.field!.export()
+      localStorage.setItem('game/01/stageInfos', JSON.stringify(this.editingInfo.stageInfos))
     }
   },
   beforeDestroy() {
