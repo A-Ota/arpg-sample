@@ -38,6 +38,7 @@
   </div>
 </template>
 <script lang="ts">
+// TODO:画像非同期読み込みからのゲームスタートだとリプレイのフレーム数がずれるのでは？
 const SCALE = 2.0
 
 // 高速歩きで壁にぶつかった場合、移動しないのではなくx, yについて移動できるところまで戻してあげる。
@@ -63,6 +64,77 @@ class FpsCounter {
   }
 }
 
+class ComboArea extends PIXI.Container {
+  private comboCount = 0
+  private container!: PIXI.Container
+  private num1!: PIXI.Sprite
+  private num2!: PIXI.Sprite
+  private num3!: PIXI.Sprite
+  constructor(private field: Field) {
+    super()
+    this.container = new PIXI.Container()
+    this.container.position.set(0, -26)
+    this.addChild(this.container)
+    const combo = PIXI.Sprite.from("/arpg-sample/images/game/01/combo.png")
+    combo.anchor.set(0.5, 0.5)
+    combo.position.set(0, 0)
+    this.addChild(combo)
+    // 1ケタ目
+    this.num1 = PIXI.Sprite.from("/arpg-sample/images/game/01/num0.png")
+    this.num1.anchor.set(0.5, 0.5)
+    this.num1.position.set(0, 0)
+    this.container.addChild(this.num1)
+    // 2ケタ目
+    this.num2 = PIXI.Sprite.from("/arpg-sample/images/game/01/num0.png")
+    this.num2.anchor.set(0.5, 0.5)
+    this.num2.position.set(-24, 0)
+    this.num2.visible = false
+    this.container.addChild(this.num2)
+    // 3ケタ目
+    this.num3 = PIXI.Sprite.from("/arpg-sample/images/game/01/num0.png")
+    this.num3.anchor.set(0.5, 0.5)
+    this.num3.position.set(-48, 0)
+    this.num3.visible = false
+    this.container.addChild(this.num3)
+    this.visible = false
+  }
+  public update() {
+    if (this.comboCount != this.field.comboCount) {
+      this.comboCount = this.field.comboCount
+      this.refreshNumber()
+      if (this.comboCount >= 2) {
+        this.visible = true
+      }
+    }
+  }
+  private refreshNumber() {
+    const num1 = Math.floor(this.comboCount / 1) % 10
+    const num2 = Math.floor(this.comboCount / 10) % 10
+    const num3 = Math.floor(this.comboCount / 100) % 10
+    this.num1.texture = PIXI.Loader.shared.resources[`/arpg-sample/images/game/01/num${num1}.png`].texture
+    this.num2.texture = PIXI.Loader.shared.resources[`/arpg-sample/images/game/01/num${num2}.png`].texture
+    this.num3.texture = PIXI.Loader.shared.resources[`/arpg-sample/images/game/01/num${num3}.png`].texture
+    if (this.comboCount < 10) {
+      this.container.x = 0
+      this.num1.visible = true
+      this.num2.visible = false
+      this.num3.visible = false
+    }
+    else if (this.comboCount < 100) {
+      this.container.x = 12
+      this.num1.visible = true
+      this.num2.visible = true
+      this.num3.visible = false
+    }
+    else if (this.comboCount < 1000) {
+      this.container.x = 24
+      this.num1.visible = true
+      this.num2.visible = true
+      this.num3.visible = true
+    }
+  }
+}
+
 type ActorStatus = 'active' | 'deleting' | 'deleted'
 class Bubble extends PIXI.Sprite {
   public status: ActorStatus = 'active'
@@ -72,20 +144,19 @@ class Bubble extends PIXI.Sprite {
     this.anchor.set(0.5, 0.5)
     this.texture = PIXI.Loader.shared.resources[`/arpg-sample/images/game/01/bubble-${color}.png`].texture
   }
-  public break() {
+  public break(scaleUp: boolean) {
     this.status = 'deleting'
-    this.coroutine = this.breakCoroutine()
+    this.coroutine = this.breakCoroutine(scaleUp)
   }
   public update() {
-    console.log('2:' + this.coroutine)
     if (this.coroutine != null) {
       this.coroutine.next()
     }
   }
-  public *breakCoroutine() {
+  public *breakCoroutine(scaleUp: boolean) {
     for (let i = 0; i < 5; ++i) {
-      this.scale.x += 0.1
-      this.scale.y += 0.1
+      this.scale.x += scaleUp ? 0.1 : -0.1
+      this.scale.y += scaleUp ? 0.1 : -0.1
       this.alpha -= 0.2
       yield
     }
@@ -103,16 +174,22 @@ const MIN_Y_SPEED = -1.6
 const MAX_Y_SPEED = 1.6
 class Sakana extends PIXI.Sprite {
   public color: ColorType = 'bl'
-  private ySpeed = 0;
+  private ySpeed = 0
+  private coroutine: Generator | null = null
   constructor(private inputManger: InputManager) {
     super(PIXI.Loader.shared.resources["/arpg-sample/images/game/01/sakana-bl.png"].texture)
     this.position.x = 50
     this.anchor.set(0.5, 0.5)
   }
   update() {
+    if (this.coroutine != null) {
+      if (this.coroutine.next().done) {
+        this.coroutine = null
+      }
+    }
     this.refreshColor()
     this.checkJump()
-    this.ySpeed += 0.1
+    this.ySpeed += 0.08
     this.ySpeed = Math.min(MAX_Y_SPEED, Math.max(this.ySpeed, MIN_Y_SPEED))
     this.position.y += this.ySpeed
     this.rotation = (this.ySpeed * 0.1)
@@ -129,6 +206,19 @@ class Sakana extends PIXI.Sprite {
       this.color = newColor
       this.texture = PIXI.Loader.shared.resources[`/arpg-sample/images/game/01/sakana-${this.color}.png`].texture
     }
+  }
+  public damaged() {
+    this.coroutine = this.damageCoroutine()
+  }
+  *damageCoroutine() {
+    this.texture = PIXI.Loader.shared.resources[`/arpg-sample/images/game/01/sakana-${this.color}-d.png`].texture
+    for (let i = 0; i < 3; ++i) {
+      yield; yield; yield; yield;
+      this.visible = false
+      yield; yield; yield; yield;
+      this.visible = true
+    }
+    this.texture = PIXI.Loader.shared.resources[`/arpg-sample/images/game/01/sakana-${this.color}.png`].texture
   }
   colorFromInput(): ColorType {
     if (this.inputManger.isPressing(KEY_CODE_RED)) {
@@ -165,6 +255,7 @@ class Field extends PIXI.Container {
   private bubblePlaces: Array<[PIXI.Point, ColorType]> = []
   private bubbles: Array<Bubble> = []
   private sakana: Sakana
+  public comboCount = 0
   constructor(inputManager: InputManager) {
     super() 
     this.sakana = new Sakana(inputManager)
@@ -215,13 +306,15 @@ class Field extends PIXI.Container {
       if (distance < 28) {
         // 同じ色なら得点
         if (this.sakana.color == (bubble as any).color) {
-          console.log('OK')
+          bubble.break(false)
+          ++this.comboCount
         }
         // 違う色なら減点
         else {
-          console.log('MISS')
+          this.sakana.damaged()
+          bubble.break(true)
+          this.comboCount = 0
         }
-        bubble.break()
       }
     })
   }
@@ -255,6 +348,7 @@ export default Vue.extend({
     field: Field | null;
     editingInfo: EditingInfo;
     editing: boolean;
+    comboArea: ComboArea | null;
     } {
     return {
       pixiApp: null,
@@ -262,7 +356,8 @@ export default Vue.extend({
       fpsCounter: new FpsCounter(),
       field: null,
       editingInfo: new EditingInfo(),
-      editing: true
+      editing: true,
+      comboArea: null
     }
   },
   mounted() {
@@ -302,6 +397,14 @@ export default Vue.extend({
       .add("/arpg-sample/images/game/01/sakana-p.png")
       .add("/arpg-sample/images/game/01/sakana-w.png")
       .add("/arpg-sample/images/game/01/sakana-bl.png")
+      .add("/arpg-sample/images/game/01/sakana-r-d.png")
+      .add("/arpg-sample/images/game/01/sakana-g-d.png")
+      .add("/arpg-sample/images/game/01/sakana-b-d.png")
+      .add("/arpg-sample/images/game/01/sakana-y-d.png")
+      .add("/arpg-sample/images/game/01/sakana-lb-d.png")
+      .add("/arpg-sample/images/game/01/sakana-p-d.png")
+      .add("/arpg-sample/images/game/01/sakana-w-d.png")
+      .add("/arpg-sample/images/game/01/sakana-bl-d.png")
       .add("/arpg-sample/images/game/01/bubble-r.png")
       .add("/arpg-sample/images/game/01/bubble-g.png")
       .add("/arpg-sample/images/game/01/bubble-b.png")
@@ -310,9 +413,23 @@ export default Vue.extend({
       .add("/arpg-sample/images/game/01/bubble-p.png")
       .add("/arpg-sample/images/game/01/bubble-w.png")
       .add("/arpg-sample/images/game/01/bubble-bl.png")
+      .add("/arpg-sample/images/game/01/combo.png")
+      .add("/arpg-sample/images/game/01/num1.png")
+      .add("/arpg-sample/images/game/01/num2.png")
+      .add("/arpg-sample/images/game/01/num3.png")
+      .add("/arpg-sample/images/game/01/num4.png")
+      .add("/arpg-sample/images/game/01/num5.png")
+      .add("/arpg-sample/images/game/01/num6.png")
+      .add("/arpg-sample/images/game/01/num7.png")
+      .add("/arpg-sample/images/game/01/num8.png")
+      .add("/arpg-sample/images/game/01/num9.png")
+      .add("/arpg-sample/images/game/01/num0.png")
       .load(() => {
         this.field = new Field(this.inputManager)
         this.pixiApp!.stage.addChild(this.field)
+        this.comboArea = new ComboArea(this.field)
+        this.comboArea.position.set(260, 48)
+        this.pixiApp!.stage.addChild(this.comboArea)
       })
 
     // メインループ
@@ -329,6 +446,7 @@ export default Vue.extend({
       this.fpsCounter.checkPoint()
       if (!this.editing) {
         this.field?.update()
+        this.comboArea?.update()
       }
       this.inputManager.endTurn()
     },
