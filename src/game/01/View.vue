@@ -63,11 +63,33 @@ class FpsCounter {
   }
 }
 
+type ActorStatus = 'active' | 'deleting' | 'deleted'
 class Bubble extends PIXI.Sprite {
+  public status: ActorStatus = 'active'
+  private coroutine: Generator | null = null
   constructor(public color: ColorType) {
     super()
     this.anchor.set(0.5, 0.5)
     this.texture = PIXI.Loader.shared.resources[`/arpg-sample/images/game/01/bubble-${color}.png`].texture
+  }
+  public break() {
+    this.status = 'deleting'
+    this.coroutine = this.breakCoroutine()
+  }
+  public update() {
+    console.log('2:' + this.coroutine)
+    if (this.coroutine != null) {
+      this.coroutine.next()
+    }
+  }
+  public *breakCoroutine() {
+    for (let i = 0; i < 5; ++i) {
+      this.scale.x += 0.1
+      this.scale.y += 0.1
+      this.alpha -= 0.2
+      yield
+    }
+    this.status = 'deleted'
   }
 }
 
@@ -141,7 +163,7 @@ class Field extends PIXI.Container {
   private speed = -1
   private oldX = 0
   private bubblePlaces: Array<[PIXI.Point, ColorType]> = []
-  private bubbles: Array<PIXI.Sprite> = []
+  private bubbles: Array<Bubble> = []
   private sakana: Sakana
   constructor(inputManager: InputManager) {
     super() 
@@ -153,8 +175,16 @@ class Field extends PIXI.Container {
     this.x += this.speed
     this.sakana.x -= this.speed
     this.sakana.update()
+    this.bubbles.forEach(bubble => bubble.update())
     this.hitCheck()
     this.createBubble()
+    this.bubbles = this.bubbles.filter(bubble => {
+      if (bubble.status == 'deleted') {
+        bubble.parent.removeChild(bubble)
+        return false
+      }
+      return true
+    })
   }
   createBubble() {
     const createBubbldePlaces = this.bubblePlaces.filter(bubblePlace => {
@@ -179,7 +209,7 @@ class Field extends PIXI.Container {
     this.reload()
   }
   hitCheck() {
-    this.bubbles = this.bubbles.filter(bubble => {
+    this.bubbles.filter(bubble => bubble.status == 'active').forEach(bubble => {
       const distance = Math.sqrt(Math.pow(bubble.x - this.sakana.x, 2) + Math.pow(bubble.y - this.sakana.y, 2))
       // 当たった
       if (distance < 28) {
@@ -191,10 +221,7 @@ class Field extends PIXI.Container {
         else {
           console.log('MISS')
         }
-        bubble.parent.removeChild(bubble)
-        return false
-      } else {
-        return true
+        bubble.break()
       }
     })
   }
