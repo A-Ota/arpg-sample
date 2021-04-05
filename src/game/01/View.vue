@@ -63,59 +63,11 @@ class FpsCounter {
   }
 }
 
-class Field extends PIXI.Container {
-  public maxLength = 640 * 10
-  private speed = -1
-  private oldX = 0
-  private bubblePlaces: Array<[PIXI.Point, ColorType]> = []
-  private bubbles: Array<PIXI.Sprite> = []
-  constructor() {
-    super() 
-  }
-  update() {
-    this.oldX = this.x
-    this.x += this.speed
-    this.createBubble()
-  }
-  createBubble() {
-    const createBubbldePlaces = this.bubblePlaces.filter(bubblePlace => {
-      return bubblePlace[0].x >= -this.oldX + 320 && bubblePlace[0].x < -this.x + 320
-    })
-    createBubbldePlaces.forEach(bubblePlace => {
-      const bubble = PIXI.Sprite.from(PIXI.Loader.shared.resources[`/arpg-sample/images/game/01/bubble-${bubblePlace[1]}.png`].texture)
-      bubble.position = bubblePlace[0]
-      bubble.anchor.set(0.5, 0.5)
-      this.addChild(bubble)
-      this.bubbles.push(bubble)
-    })
-  }
-  addBubble(color: ColorType, position: PIXI.Point) {
-    this.bubblePlaces.push([position, color])
-    this.reload()
-  }
-  removeBubble(position: PIXI.Point) {
-    this.bubblePlaces = this.bubblePlaces.filter(bubblePlace => {
-      const distance = Math.sqrt(Math.pow(bubblePlace[0].x - position.x, 2) + Math.pow(bubblePlace[0].y - position.y, 2))
-      return distance > 12
-    })
-    this.reload()
-  }
-  reload() {
-    // 現在の視界付近の泡を生成
-    this.bubbles.forEach(bubble => {
-      bubble.parent.removeChild(bubble)
-    })
-    this.bubbles = []
-    this.bubblePlaces.forEach(bubblePlace => {
-      const position = bubblePlace[0]
-      if (position.x >= - this.x && position.x <= - this.x + 320) {
-        const bubble = PIXI.Sprite.from(PIXI.Loader.shared.resources[`/arpg-sample/images/game/01/bubble-${bubblePlace[1]}.png`].texture)
-        bubble.position = position
-        bubble.anchor.set(0.5, 0.5)
-        this.addChild(bubble)
-        this.bubbles.push(bubble)
-      }
-    })
+class Bubble extends PIXI.Sprite {
+  constructor(public color: ColorType) {
+    super()
+    this.anchor.set(0.5, 0.5)
+    this.texture = PIXI.Loader.shared.resources[`/arpg-sample/images/game/01/bubble-${color}.png`].texture
   }
 }
 
@@ -128,7 +80,7 @@ const KEY_CODE_JUMP2 = 32
 const MIN_Y_SPEED = -1.6
 const MAX_Y_SPEED = 1.6
 class Sakana extends PIXI.Sprite {
-  private color: ColorType = 'bl'
+  public color: ColorType = 'bl'
   private ySpeed = 0;
   constructor(private inputManger: InputManager) {
     super(PIXI.Loader.shared.resources["/arpg-sample/images/game/01/sakana-bl.png"].texture)
@@ -183,6 +135,87 @@ class Sakana extends PIXI.Sprite {
   }
 }
 
+
+class Field extends PIXI.Container {
+  public maxLength = 640 * 10
+  private speed = -1
+  private oldX = 0
+  private bubblePlaces: Array<[PIXI.Point, ColorType]> = []
+  private bubbles: Array<PIXI.Sprite> = []
+  private sakana: Sakana
+  constructor(inputManager: InputManager) {
+    super() 
+    this.sakana = new Sakana(inputManager)
+    this.addChild(this.sakana!)
+  }
+  update() {
+    this.oldX = this.x
+    this.x += this.speed
+    this.sakana.x -= this.speed
+    this.sakana.update()
+    this.hitCheck()
+    this.createBubble()
+  }
+  createBubble() {
+    const createBubbldePlaces = this.bubblePlaces.filter(bubblePlace => {
+      return bubblePlace[0].x >= -this.oldX + 320 && bubblePlace[0].x < -this.x + 320
+    })
+    createBubbldePlaces.forEach(bubblePlace => {
+      const bubble = new Bubble(bubblePlace[1])
+      bubble.position = bubblePlace[0]
+      this.addChild(bubble)
+      this.bubbles.push(bubble)
+    })
+  }
+  addBubble(color: ColorType, position: PIXI.Point) {
+    this.bubblePlaces.push([position, color])
+    this.reload()
+  }
+  removeBubble(position: PIXI.Point) {
+    this.bubblePlaces = this.bubblePlaces.filter(bubblePlace => {
+      const distance = Math.sqrt(Math.pow(bubblePlace[0].x - position.x, 2) + Math.pow(bubblePlace[0].y - position.y, 2))
+      return distance > 12
+    })
+    this.reload()
+  }
+  hitCheck() {
+    this.bubbles = this.bubbles.filter(bubble => {
+      const distance = Math.sqrt(Math.pow(bubble.x - this.sakana.x, 2) + Math.pow(bubble.y - this.sakana.y, 2))
+      // 当たった
+      if (distance < 28) {
+        // 同じ色なら得点
+        if (this.sakana.color == (bubble as any).color) {
+          console.log('OK')
+        }
+        // 違う色なら減点
+        else {
+          console.log('MISS')
+        }
+        bubble.parent.removeChild(bubble)
+        return false
+      } else {
+        return true
+      }
+    })
+  }
+  reload() {
+    // 現在の視界付近の泡を生成
+    this.bubbles.forEach(bubble => {
+      bubble.parent.removeChild(bubble)
+    })
+    this.bubbles = []
+    this.bubblePlaces.forEach(bubblePlace => {
+      const position = bubblePlace[0]
+      if (position.x >= - this.x && position.x <= - this.x + 320) {
+        const bubble = new Bubble(bubblePlace[1])
+        bubble.position = position
+        this.addChild(bubble)
+        this.bubbles.push(bubble)
+      }
+    })
+  }
+}
+
 class EditingInfo {
   public selectedColor: ColorType | null = null
 }
@@ -193,7 +226,6 @@ export default Vue.extend({
     inputManager: InputManager;
     fpsCounter: FpsCounter;
     field: Field | null;
-    sakana: Sakana | null;
     editingInfo: EditingInfo;
     editing: boolean;
     } {
@@ -201,7 +233,6 @@ export default Vue.extend({
       pixiApp: null,
       inputManager: new InputManager(),
       fpsCounter: new FpsCounter(),
-      sakana: null,
       field: null,
       editingInfo: new EditingInfo(),
       editing: true
@@ -253,11 +284,8 @@ export default Vue.extend({
       .add("/arpg-sample/images/game/01/bubble-w.png")
       .add("/arpg-sample/images/game/01/bubble-bl.png")
       .load(() => {
-        this.sakana = new Sakana(this.inputManager)
-        this.pixiApp!.stage.addChild(this.sakana!)
-        this.field = new Field()
+        this.field = new Field(this.inputManager)
         this.pixiApp!.stage.addChild(this.field)
-
       })
 
     // メインループ
@@ -274,7 +302,6 @@ export default Vue.extend({
       this.fpsCounter.checkPoint()
       if (!this.editing) {
         this.field?.update()
-        this.sakana?.update()
       }
       this.inputManager.endTurn()
     },
