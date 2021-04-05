@@ -163,6 +163,8 @@ class Bubble extends PIXI.Sprite {
     this.status = 'deleted'
   }
 }
+const UPPER_LIMIT_Y = 35
+const LOWER_LIMIT_Y = 205
 
 type ColorType = 'r' | 'g' | 'b' | 'y' | 'lb' | 'p' | 'w' | 'bl'
 const KEY_CODE_RED = 90
@@ -188,7 +190,10 @@ class Sakana extends PIXI.Sprite {
       }
     }
     this.refreshColor()
-    this.checkJump()
+    const jumped = this.checkJump()
+    if (!jumped && this.y === UPPER_LIMIT_Y) {
+      this.ySpeed = 0
+    }
     this.ySpeed += 0.08
     this.ySpeed = Math.min(MAX_Y_SPEED, Math.max(this.ySpeed, MIN_Y_SPEED))
     this.position.y += this.ySpeed
@@ -197,7 +202,9 @@ class Sakana extends PIXI.Sprite {
   checkJump() {
     if (this.inputManger.isPressing(KEY_CODE_JUMP1) || this.inputManger.isPressing(KEY_CODE_JUMP2)) {
       this.ySpeed = MIN_Y_SPEED
+      return true
     }
+    return false
   }
   refreshColor() {
     const oldColor = this.color
@@ -247,18 +254,21 @@ class Sakana extends PIXI.Sprite {
   }
 }
 
-
 class Field extends PIXI.Container {
   public maxLength = 640 * 10
-  private speed = -1
+  private speed = -0.9
   private oldX = 0
   private bubblePlaces: Array<[PIXI.Point, ColorType]> = []
   private bubbles: Array<Bubble> = []
+  private walls: Array<PIXI.Sprite> = []
   private sakana: Sakana
   public comboCount = 0
   constructor(inputManager: InputManager) {
     super() 
+    this.sortableChildren = true
     this.sakana = new Sakana(inputManager)
+    this.sakana.y = 120
+    this.sakana.zIndex = 1
     this.addChild(this.sakana!)
   }
   update() {
@@ -266,9 +276,11 @@ class Field extends PIXI.Container {
     this.x += this.speed
     this.sakana.x -= this.speed
     this.sakana.update()
+    this.sakana.y = Math.max(UPPER_LIMIT_Y, Math.min(LOWER_LIMIT_Y, this.sakana.y))
     this.bubbles.forEach(bubble => bubble.update())
     this.hitCheck()
     this.createBubble()
+    this.updateWall()
     this.bubbles = this.bubbles.filter(bubble => {
       if (bubble.status == 'deleted') {
         bubble.parent.removeChild(bubble)
@@ -287,6 +299,27 @@ class Field extends PIXI.Container {
       this.addChild(bubble)
       this.bubbles.push(bubble)
     })
+  }
+  updateWall() {
+    if (Math.floor(this.oldX / 128) != Math.floor(this.x / 128)) {
+      const wave = PIXI.Sprite.from('/arpg-sample/images/game/01/wave.png')
+      wave.x = -Math.floor(this.oldX / 128) * 128 + 320
+      const ground = PIXI.Sprite.from('/arpg-sample/images/game/01/ground.png')
+      ground.anchor.set(0, 1)
+      ground.y = 240
+      ground.x = -Math.floor(this.oldX / 128) * 128 + 320
+      this.addChild(wave)
+      this.addChild(ground)
+      this.walls.push(wave)
+      this.walls.push(ground)
+      this.walls = this.walls.filter(wall => {
+        if (wall.x < -this.x - 128) {
+          wall.parent.removeChild(wall)
+          return false
+        }
+        return true
+      })
+    }
   }
   addBubble(color: ColorType, position: PIXI.Point) {
     this.bubblePlaces.push([position, color])
@@ -424,6 +457,8 @@ export default Vue.extend({
       .add("/arpg-sample/images/game/01/num8.png")
       .add("/arpg-sample/images/game/01/num9.png")
       .add("/arpg-sample/images/game/01/num0.png")
+      .add("/arpg-sample/images/game/01/wave.png")
+      .add("/arpg-sample/images/game/01/ground.png")
       .load(() => {
         this.field = new Field(this.inputManager)
         this.pixiApp!.stage.addChild(this.field)
