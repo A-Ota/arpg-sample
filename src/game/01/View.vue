@@ -47,7 +47,7 @@
         <div class="message">{{ tipsText }}</div>
       </div>
     </div>
-    <template v-if="field != null">
+    <template v-if="field != null && isEditorMode">
       <b-button style="margin: 4px;" @click="onClickToggleEditing">{{ editing ? '再生' : 'エディット' }}</b-button>
       <b-button style="margin: 4px;" @click="onClickLoad">読み込み</b-button>
       <b-button style="margin: 4px;" @click="onClickSave">保存</b-button>
@@ -94,6 +94,7 @@ const SCALE = 2.0
 import Vue from "vue"
 import * as PIXI from "pixi.js"
 import InputManager from '@/stages/014/InputManager'
+import stage0json from '@/assets/game/01/stage0.json'
 
 class FpsCounter {
   private ms = 0
@@ -130,6 +131,7 @@ class TipsManager {
     this.tipsList.push(new Tips('浮上しながら泡を集めよう。', 1700))
     this.tipsList.push(new Tips('潜水しながら泡を集めよう。', 2050))
     this.tipsList.push(new Tips('Z, X, Cを組み合わせて一緒に押すと色々な色になるよ。試してみよう。', 2320))
+    this.tipsList.push(new Tips('チュートリアルはここまで。\n本編に乞うご期待。', 3200))
   }
   checkTips(x: number): string | null {
     if (this.tipsList.length > 0 ) {
@@ -559,7 +561,9 @@ export default Vue.extend({
     // PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.LINEAR
     PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST
     // PIXI.settings.TARGET_FPMS = 1
-
+    if (!this.isEditorMode) {
+      this.editing = false
+    }
     window.onkeydown = this.onKeyDown
     window.onkeyup = this.onKeyUp
 
@@ -639,7 +643,11 @@ export default Vue.extend({
         this.comboArea = new ComboArea(this.field)
         this.comboArea.position.set(260, 48)
         this.pixiApp!.stage.addChild(this.comboArea)
-        this.onClickLoad()
+        if (this.isEditorMode) {
+          this.onClickLoad()
+        } else {
+          this.field!.import(stage0json)
+        }
         // メインループ
         this.pixiApp!.ticker.add(this.update)
       })
@@ -688,6 +696,9 @@ export default Vue.extend({
       this.editingInfo.selectedColor = color
     },
     onClickCanvas(event: MouseEvent) {
+      if (!this.isEditorMode) {
+        return
+      }
       const point = new PIXI.Point(event.clientX / SCALE - this.field!.position.x, event.clientY / SCALE)
       if (this.editingInfo.selectedColor != null) {
         this.field!.addBubble(this.editingInfo.selectedColor, point)
@@ -724,7 +735,11 @@ export default Vue.extend({
     this.pixiApp!.destroy(true)
   },
   components: {},
-  computed: {},
+  computed: {
+    isEditorMode(): boolean {
+      return this.$route.query.editorMode == '1'
+    }
+  },
   props: []
 })
 </script>
