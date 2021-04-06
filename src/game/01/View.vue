@@ -18,10 +18,34 @@
     border-style: solid;
   }
 }
+.canvas {
+  position: relative;
+  width: 640px;
+  height: 480px;
+}
+.tips {
+  position: absolute;
+  background-color: #00000033;
+  width: 100%;
+  height: 100%;
+  >.message {
+    font-size: 28px;
+    background-color: white;
+    border-radius: 16px;
+    padding: 16px;
+    margin-top: 32px;
+    margin-left: 32px;
+    margin-right: 32px;
+    white-space: pre-wrap;
+  }
+}
 </style>
 <template>
   <div style="position: relative;">
-    <div @click="onClickCanvas" style="width: 640px; height: 480px;" ref="pixi_area">
+    <div class="canvas" @click="onClickCanvas" ref="pixi_area">
+      <div v-if="tipsText != null" class="tips">
+        <div class="message">{{ tipsText }}</div>
+      </div>
     </div>
     <template v-if="field != null">
       <b-button style="margin: 4px;" @click="onClickToggleEditing">{{ editing ? '再生' : 'エディット' }}</b-button>
@@ -74,6 +98,29 @@ class FpsCounter {
       this.counter = 0
       this.ms = 0
     }
+  }
+}
+
+
+class Tips {
+  constructor(public message: string, public x: number) {}
+}
+class TipsManager {
+  public tipsList: Array<Tips> = []
+  constructor() {
+    this.tipsList.push(new Tips('Spaceキーか↑キーで浮上、離すと潜水。', 0))
+    this.tipsList.push(new Tips('黒い泡に触れて酸素を補給しよう。', 200))
+    this.tipsList.push(new Tips('連続して泡に触れるとコンボカウントが上がるよ。', 400))
+    this.tipsList.push(new Tips('赤い泡は赤くなってから触れよう。\nZキーを押している間は赤くなるぞ。', 600))
+    this.tipsList.push(new Tips('Xキーを押すと緑になれるよ。', 1700))
+  }
+  checkTips(x: number): string | null {
+    if (this.tipsList.length > 0 ) {
+      if (this.tipsList[0].x <= -x) {
+        return this.tipsList.shift()!.message
+      }
+    }
+    return null
   }
 }
 
@@ -432,6 +479,8 @@ export default Vue.extend({
     editingInfo: EditingInfo;
     editing: boolean;
     comboArea: ComboArea | null;
+    tipsManager: TipsManager;
+    tipsText: string | null;
     } {
     return {
       pixiApp: null,
@@ -440,7 +489,9 @@ export default Vue.extend({
       field: null,
       editingInfo: new EditingInfo(),
       editing: true,
-      comboArea: null
+      comboArea: null,
+      tipsManager: new TipsManager(),
+      tipsText: null
     }
   },
   mounted() {
@@ -515,25 +566,42 @@ export default Vue.extend({
         this.comboArea = new ComboArea(this.field)
         this.comboArea.position.set(260, 48)
         this.pixiApp!.stage.addChild(this.comboArea)
+        // メインループ
+        this.pixiApp!.ticker.add(this.update)
       })
 
-    // メインループ
-    this.pixiApp.ticker.add(this.update)
   },
   methods: {
     onKeyDown(event: KeyboardEvent) {
+      if (this.tipsText != null) {
+        return
+      }
       this.inputManager.onKeyDown(event.keyCode)
     },
     onKeyUp(event: any) {
+      if (this.tipsText != null) {
+        this.tipsText = null
+        return
+      }
       this.inputManager.onKeyUp(event.keyCode)
     },
     update(delta: number) {
-      this.fpsCounter.checkPoint()
-      if (!this.editing) {
-        this.field?.update()
-        this.comboArea?.update()
+      // TIPS表示中や編集中は更新しない
+      if (this.editing || this.tipsText != null) {
+        return
       }
+
+      this.fpsCounter.checkPoint()
+      this.field!.update()
+      this.comboArea!.update()
       this.inputManager.endTurn()
+
+      // TIPS存在チェック
+      const text = this.tipsManager.checkTips(this.field!.x)
+      if (text != null) {
+        this.tipsText = text
+        this.inputManager.reset()
+      }
     },
     onColorSelected(color: ColorType | null) {
       this.editingInfo.selectedColor = color
@@ -565,6 +633,9 @@ export default Vue.extend({
     onClickSave() {
       this.editingInfo.stageInfos[this.editingInfo.selectedStageInfoIndex] = this.field!.export()
       localStorage.setItem('game/01/stageInfos', JSON.stringify(this.editingInfo.stageInfos))
+    },
+    closeTips() {
+      this.tipsText = null
     }
   },
   beforeDestroy() {

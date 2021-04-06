@@ -19,4 +19,8 @@ export default class InputManager {
   public isReleased(keyCode: number) {
     return !this.nowPressedKeyCodeSet.has(keyCode) && this.lastPressedKeyCodeSet.has(keyCode)
   }
+  public reset() {
+    this.lastPressedKeyCodeSet.clear()
+    this.nowPressedKeyCodeSet.clear()
+  }
 }
