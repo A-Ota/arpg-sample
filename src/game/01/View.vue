@@ -108,11 +108,16 @@ class Tips {
 class TipsManager {
   public tipsList: Array<Tips> = []
   constructor() {
-    this.tipsList.push(new Tips('Spaceキーか↑キーで浮上、離すと潜水。', 0))
+    this.tipsList.push(new Tips('Spaceキーか↑キーを押すと浮上、\n離すと潜水するよ。', 0))
     this.tipsList.push(new Tips('黒い泡に触れて酸素を補給しよう。', 200))
-    this.tipsList.push(new Tips('連続して泡に触れるとコンボカウントが上がるよ。', 400))
-    this.tipsList.push(new Tips('赤い泡は赤くなってから触れよう。\nZキーを押している間は赤くなるぞ。', 600))
-    this.tipsList.push(new Tips('Xキーを押すと緑になれるよ。', 1700))
+    this.tipsList.push(new Tips('連続して泡を集めるとコンボカウントが上がるよ。', 400))
+    this.tipsList.push(new Tips('赤い泡は赤くなってから触れよう。\nZキーを押している間は赤くなるよ。', 550))
+    this.tipsList.push(new Tips('Xキーを押すと緑色になれるよ。', 875))
+    this.tipsList.push(new Tips('Cキーを押すと青くなれるよ。', 1150))
+    this.tipsList.push(new Tips('ZキーとXキーを一緒に押すと黄色くなれるよ。', 1400))
+    this.tipsList.push(new Tips('浮上しながら泡を集めよう。', 1700))
+    this.tipsList.push(new Tips('潜水しながら泡を集めよう。', 2050))
+    this.tipsList.push(new Tips('Z, X, Cを組み合わせて押すと色々な色になるよ。試してみよう。', 2320))
   }
   checkTips(x: number): string | null {
     if (this.tipsList.length > 0 ) {
@@ -366,7 +371,7 @@ class Field extends PIXI.Container {
   }
   createBubble() {
     const createBubbldePlaces = this.bubblePlaces.filter(bubblePlace => {
-      return bubblePlace[0].x >= -this.oldX + 320 && bubblePlace[0].x < -this.x + 320
+      return bubblePlace[0].x >= -this.oldX + 320 + 32 && bubblePlace[0].x < -this.x + 320 + 32
     })
     createBubbldePlaces.forEach(bubblePlace => {
       const bubble = new Bubble(bubblePlace[1])
@@ -481,6 +486,7 @@ export default Vue.extend({
     comboArea: ComboArea | null;
     tipsManager: TipsManager;
     tipsText: string | null;
+    tipsTextDelay: number;
     } {
     return {
       pixiApp: null,
@@ -491,7 +497,8 @@ export default Vue.extend({
       editing: true,
       comboArea: null,
       tipsManager: new TipsManager(),
-      tipsText: null
+      tipsText: null,
+      tipsTextDelay: 0
     }
   },
   mounted() {
@@ -566,6 +573,7 @@ export default Vue.extend({
         this.comboArea = new ComboArea(this.field)
         this.comboArea.position.set(260, 48)
         this.pixiApp!.stage.addChild(this.comboArea)
+        this.onClickLoad()
         // メインループ
         this.pixiApp!.ticker.add(this.update)
       })
@@ -579,7 +587,7 @@ export default Vue.extend({
       this.inputManager.onKeyDown(event.keyCode)
     },
     onKeyUp(event: any) {
-      if (this.tipsText != null) {
+      if (this.tipsText != null && this.tipsTextDelay <= 0) {
         this.tipsText = null
         return
       }
@@ -588,6 +596,7 @@ export default Vue.extend({
     update(delta: number) {
       // TIPS表示中や編集中は更新しない
       if (this.editing || this.tipsText != null) {
+        this.tipsTextDelay = Math.max(0, this.tipsTextDelay - 1)
         return
       }
 
@@ -600,6 +609,7 @@ export default Vue.extend({
       const text = this.tipsManager.checkTips(this.field!.x)
       if (text != null) {
         this.tipsText = text
+        this.tipsTextDelay = 30
         this.inputManager.reset()
       }
     },
