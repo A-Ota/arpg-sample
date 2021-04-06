@@ -75,6 +75,18 @@
   </div>
 </template>
 <script lang="ts">
+// 得点システム
+// 1餌で100点、コンボ数で10点づつ上がり200点まで上がる。11コンボ目以降は200点のまま。
+// フルコンボで取れる得点に対して
+// 100%: SSS
+// 99%: SS
+// 95%: S
+// 90%: A
+// 75%: B
+// 60%: C
+// D
+// フルコンボで取れる得点に対して95%を満たせばSランク
+
 // TODO:画像非同期読み込みからのゲームスタートだとリプレイのフレーム数がずれるのでは？
 const SCALE = 2.0
 
@@ -117,7 +129,7 @@ class TipsManager {
     this.tipsList.push(new Tips('ZキーとXキーを一緒に押すと黄色くなれるよ。', 1400))
     this.tipsList.push(new Tips('浮上しながら泡を集めよう。', 1700))
     this.tipsList.push(new Tips('潜水しながら泡を集めよう。', 2050))
-    this.tipsList.push(new Tips('Z, X, Cを組み合わせて押すと色々な色になるよ。試してみよう。', 2320))
+    this.tipsList.push(new Tips('Z, X, Cを組み合わせて一緒に押すと色々な色になるよ。試してみよう。', 2320))
   }
   checkTips(x: number): string | null {
     if (this.tipsList.length > 0 ) {
@@ -126,6 +138,37 @@ class TipsManager {
       }
     }
     return null
+  }
+}
+
+class ScoreArea extends PIXI.Container {
+  private score = 0
+  private numSprites: Array<PIXI.Sprite> = []
+  constructor(private field: Field) {
+    super()
+    for (let i = 0; i < 5; ++i) {
+      const sprite = PIXI.Sprite.from(`/arpg-sample/images/game/01/num0-s.png`)
+      sprite.anchor.set(1, 1)
+      sprite.position.set(-i * 20, 0)
+      this.numSprites.push(sprite)
+      this.addChild(sprite)
+    }
+    this.refreshNumber()
+  }
+  public update() {
+    if (this.score != this.field.score) {
+      this.score = this.field.score
+      this.refreshNumber()
+    }
+  }
+  private refreshNumber() {
+    for (let i = 0; i < 5; ++i) {
+      const tmp = Math.pow(10, i)
+      const num = Math.floor(this.score / tmp) % 10
+      const sprite = this.numSprites[i]
+      sprite.visible = (i === 0 || this.score >= tmp)
+      sprite.texture = PIXI.Loader.shared.resources[`/arpg-sample/images/game/01/num${num}-s.png`].texture
+    }
   }
 }
 
@@ -339,6 +382,7 @@ class Field extends PIXI.Container {
   private bubbles: Array<Bubble> = []
   private walls: Array<PIXI.Sprite> = []
   private sakana: Sakana
+  public score = 0
   public comboCount = 0
   constructor(inputManager: InputManager) {
     super() 
@@ -368,6 +412,9 @@ class Field extends PIXI.Container {
       }
       return true
     })
+  }
+  isEnded() {
+    return -this.x >= this.maxLength
   }
   createBubble() {
     const createBubbldePlaces = this.bubblePlaces.filter(bubblePlace => {
@@ -433,6 +480,7 @@ class Field extends PIXI.Container {
         // 同じ色なら得点
         if (this.sakana.color == (bubble as any).color) {
           bubble.break(false)
+          this.score += (100 * this.calcComboRate())
           ++this.comboCount
         }
         // 違う色なら減点
@@ -443,6 +491,9 @@ class Field extends PIXI.Container {
         }
       }
     })
+  }
+  calcComboRate() {
+    return Math.min(2, 1 + this.comboCount * 0.1)
   }
   reload() {
     this.sakana.x = -this.x + SAKANA_X
@@ -483,6 +534,7 @@ export default Vue.extend({
     field: Field | null;
     editingInfo: EditingInfo;
     editing: boolean;
+    scoreArea: ScoreArea | null;
     comboArea: ComboArea | null;
     tipsManager: TipsManager;
     tipsText: string | null;
@@ -495,6 +547,7 @@ export default Vue.extend({
       field: null,
       editingInfo: new EditingInfo(),
       editing: true,
+      scoreArea: null,
       comboArea: null,
       tipsManager: new TipsManager(),
       tipsText: null,
@@ -565,11 +618,24 @@ export default Vue.extend({
       .add("/arpg-sample/images/game/01/num8.png")
       .add("/arpg-sample/images/game/01/num9.png")
       .add("/arpg-sample/images/game/01/num0.png")
+      .add("/arpg-sample/images/game/01/num1-s.png")
+      .add("/arpg-sample/images/game/01/num2-s.png")
+      .add("/arpg-sample/images/game/01/num3-s.png")
+      .add("/arpg-sample/images/game/01/num4-s.png")
+      .add("/arpg-sample/images/game/01/num5-s.png")
+      .add("/arpg-sample/images/game/01/num6-s.png")
+      .add("/arpg-sample/images/game/01/num7-s.png")
+      .add("/arpg-sample/images/game/01/num8-s.png")
+      .add("/arpg-sample/images/game/01/num9-s.png")
+      .add("/arpg-sample/images/game/01/num0-s.png")
       .add("/arpg-sample/images/game/01/wave.png")
       .add("/arpg-sample/images/game/01/ground.png")
       .load(() => {
         this.field = new Field(this.inputManager)
         this.pixiApp!.stage.addChild(this.field)
+        this.scoreArea = new ScoreArea(this.field)
+        this.scoreArea.position.set(316, 240)
+        this.pixiApp!.stage.addChild(this.scoreArea)
         this.comboArea = new ComboArea(this.field)
         this.comboArea.position.set(260, 48)
         this.pixiApp!.stage.addChild(this.comboArea)
@@ -599,9 +665,14 @@ export default Vue.extend({
         this.tipsTextDelay = Math.max(0, this.tipsTextDelay - 1)
         return
       }
+      // ステージ終了時は更新しない
+      if (this.field!.isEnded()) {
+        return
+      }
 
       this.fpsCounter.checkPoint()
       this.field!.update()
+      this.scoreArea!.update()
       this.comboArea!.update()
       this.inputManager.endTurn()
 
