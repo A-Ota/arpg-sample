@@ -16,6 +16,14 @@ window.PIXI = PIXI
 
 const SHOW_HIT_AREA = false
 
+class Sara extends PIXI.Sprite {
+  constructor (group: PIXI.display.Group) {
+    super(PIXI.Texture.from('/images/mikan/sara.png'))
+    this.anchor.set(0.5, 0.5)
+    this.parentGroup = group
+  }
+}
+
 class Mikan extends PIXI.Container {
   private sprite!: PIXI.Sprite
   private dragStartCursorPoint: PIXI.Point | null = null
@@ -24,7 +32,8 @@ class Mikan extends PIXI.Container {
     group: PIXI.display.Group,
     h: number,
     s: number,
-    b: number
+    b: number,
+    private droppedCallback: (mikan: Mikan) => void
   ) {
     super()
     this.sprite = PIXI.Sprite.from('/images/mikan/mikan.png')
@@ -100,7 +109,8 @@ class Mikan extends PIXI.Container {
   onTouchEnd () {
     console.log('onTouchEnd')
     this.dragStartCursorPoint = this.dragStartPoint = null
-    ease.add(this.sprite, { scale: 1, alpha: 1 }, { duration: 80, ease: 'easeOutQuad' })
+    const endAnimation = ease.add(this.sprite, { scale: 1, alpha: 1 }, { duration: 80, ease: 'easeOutQuad' })
+    endAnimation.once('complete', () => this.droppedCallback(this))
     this.removeListener('touchmove', this.onTouchMove, this)
     this.removeListener('mousemove', this.onTouchMove, this)
     this.zIndex = 0
@@ -131,6 +141,10 @@ export default defineComponent({
   },
   setup (props, context) {
     const canvasRef = ref()
+    const saraList: Array<Sara> = []
+    const mikanDropped = (mikan: Mikan) => {
+      console.log(`mikanDropped: ${mikan}`)
+    }
     onMounted(() => {
       const app = new PIXI.Application({
         width: 1280,
@@ -152,18 +166,20 @@ export default defineComponent({
       bg.zIndex = 0
       app.stage.addChild(bg)
 
-      for (let i = 0; i < 5; ++i) {
-        const mikan = new Mikan(group, Math.random() * 360, 0, 1)
-        mikan.x = Math.random() * 1280
-        mikan.y = Math.random() * 720
+      for (let i = 0; i < 1; ++i) {
+        const mikan = new Mikan(group, Math.random() * 360, 0, 1, mikanDropped)
+        // mikan.x = Math.random() * 1280
+        // mikan.y = Math.random() * 720
+        mikan.x = 200
+        mikan.y = 200
         mikan.updateZOrder()
         app.stage.addChild(mikan)
 
-        const sara = PIXI.Sprite.from('images/mikan/sara.png')
-        sara.x = Math.random() * 1280
-        sara.y = Math.random() * 720
-        sara.parentGroup = group
+        const sara = new Sara(group)
+        sara.x = 200
+        sara.y = 200
         app.stage.addChild(sara)
+        saraList.push(sara)
       }
     })
     return {
