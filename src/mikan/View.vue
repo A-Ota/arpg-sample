@@ -28,7 +28,7 @@ class Mikan extends PIXI.Container {
   ) {
     super()
     this.sprite = PIXI.Sprite.from('/images/mikan/mikan.png')
-    this.sprite.anchor.set(0.5, 0.7)
+    this.sprite.anchor.set(0.5, 0.65)
     this.sprite.parentGroup = group
     this.addChild(this.sprite)
 
@@ -36,7 +36,7 @@ class Mikan extends PIXI.Container {
     const shadow = new PIXI.Graphics()
     shadow.parentGroup = group
     shadow.beginFill(0x000000)
-    shadow.alpha = 0.7
+    shadow.alpha = 0.5
     shadow.drawEllipse(0, 8, 74, 40)
     shadow.endFill()
     shadow.zOrder = 0
@@ -54,7 +54,7 @@ class Mikan extends PIXI.Container {
 
     // タッチ判定
     {
-      const [left, top, width, height] = [-80, -90, 160, 120]
+      const [left, top, width, height] = [-80, -85, 160, 120]
       this.hitArea = new PIXI.Rectangle(left, top, width, height)
       if (SHOW_HIT_AREA) {
         const hitArea = new PIXI.Graphics()
@@ -158,6 +158,12 @@ export default defineComponent({
         mikan.y = Math.random() * 720
         mikan.updateZOrder()
         app.stage.addChild(mikan)
+
+        const sara = PIXI.Sprite.from('images/mikan/sara.png')
+        sara.x = Math.random() * 1280
+        sara.y = Math.random() * 720
+        sara.parentGroup = group
+        app.stage.addChild(sara)
       }
     })
     return {
