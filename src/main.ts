@@ -4,6 +4,14 @@ import router from '@/router'
 import store from '@/store'
 import { BootstrapVue } from 'bootstrap-vue'
 
+
+import VueCompositionAPI from '@vue/composition-api'
+Vue.use(VueCompositionAPI)
+
+import * as PIXI from 'pixi.js'
+window.PIXI = PIXI
+import 'pixi-layers'
+
 console.log('main.ts')
 
 // Install BootstrapVue

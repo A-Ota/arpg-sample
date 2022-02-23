@@ -92,6 +92,10 @@ const routes = [
   {
     path: '/game/01',
     component: () => import('../game/01/View.vue')
+  },
+  {
+    path: '/mikan',
+    component: () => import('../mikan/View.vue')
   }
 ]
 
