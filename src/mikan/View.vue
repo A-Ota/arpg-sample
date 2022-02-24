@@ -14,6 +14,7 @@ import { Easing, ease } from 'pixi-ease'
 import * as PIXI from 'pixi.js'
 import { OutlineFilter } from './filter/OutlineFilter'
 import { CRTFilter } from './filter/CRTFilter'
+import { ReflectionFilter } from './filter/ReflectionFilter'
 window.PIXI = PIXI
 
 const SHOW_HIT_AREA = false
@@ -237,6 +238,14 @@ export default defineComponent({
         ;(crtFilter as any).time += 0.5
       })
       */
+      const reflectionFilter = new ReflectionFilter({
+        mirror: false,
+        boundary: 0
+      })
+      app.stage.filters = [reflectionFilter]
+      app.ticker.add(() => {
+        (reflectionFilter as any).time += 0.1
+      })
     })
     return {
       canvasRef
