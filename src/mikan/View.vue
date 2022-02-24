@@ -187,6 +187,7 @@ export default defineComponent({
       }
       saraList.forEach(sara => sara.showOutline = false)
     }
+
     onMounted(() => {
       const app = new PIXI.Application({
         width: 1280,
@@ -223,7 +224,19 @@ export default defineComponent({
         app.stage.addChild(sara)
         saraList.push(sara)
       }
-      app.stage.filters = [new CRTFilter({})]
+
+      /*
+      const crtFilter = new CRTFilter({
+        lineWidth: 3,
+        noise: 0.3,
+        noiseSize: 1.2
+      })
+      app.stage.filters = [crtFilter]
+      app.ticker.add(() => {
+        (crtFilter as any).seed = Math.random()
+        ;(crtFilter as any).time += 0.5
+      })
+      */
     })
     return {
       canvasRef
