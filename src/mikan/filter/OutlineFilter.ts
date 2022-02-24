@@ -40,7 +40,6 @@ void main(void) {
 }
 `
 
-
 /**
  * OutlineFilter, originally by mishaa
  * http://www.html5gamedevs.com/topic/10640-outline-a-sprite-change-certain-colors/?p=69966
