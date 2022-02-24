@@ -13,6 +13,7 @@ import { defineComponent, onMounted, ref } from '@vue/composition-api'
 import { Easing, ease } from 'pixi-ease'
 import * as PIXI from 'pixi.js'
 import { OutlineFilter } from './filter/OutlineFilter'
+import { CRTFilter } from './filter/CRTFilter'
 window.PIXI = PIXI
 
 const SHOW_HIT_AREA = false
@@ -222,6 +223,7 @@ export default defineComponent({
         app.stage.addChild(sara)
         saraList.push(sara)
       }
+      app.stage.filters = [new CRTFilter({})]
     })
     return {
       canvasRef
