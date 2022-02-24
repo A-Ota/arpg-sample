@@ -12,15 +12,25 @@
 import { defineComponent, onMounted, ref } from '@vue/composition-api'
 import { Easing, ease } from 'pixi-ease'
 import * as PIXI from 'pixi.js'
+import { OutlineFilter } from './filter/OutlineFilter'
 window.PIXI = PIXI
 
 const SHOW_HIT_AREA = false
-
 class Sara extends PIXI.Sprite {
   constructor (group: PIXI.display.Group) {
     super(PIXI.Texture.from('/images/mikan/sara.png'))
     this.anchor.set(0.5, 0.5)
     this.parentGroup = group
+  }
+  set showOutline(value: boolean) {
+    if (value) {
+      this.filters = [new OutlineFilter(4, 0xF15A22, 1)]
+    } else {
+      this.filters = []
+    }
+  }
+  get showOutline() {
+    return this.filters != null && this.filters.length > 0
   }
 }
 
@@ -33,6 +43,7 @@ class Mikan extends PIXI.Container {
     h: number,
     s: number,
     b: number,
+    private movedCallback: (mikan: Mikan) => void,
     private droppedCallback: (mikan: Mikan) => void
   ) {
     super()
@@ -126,6 +137,7 @@ class Mikan extends PIXI.Container {
       )
       this.x = this.dragStartPoint.x + diff.x
       this.y = this.dragStartPoint.y + diff.y
+      this.movedCallback(this)
     }
   }
 
@@ -142,8 +154,37 @@ export default defineComponent({
   setup (props, context) {
     const canvasRef = ref()
     const saraList: Array<Sara> = []
+    // 吸着する皿で一番近いものを返す
+    const getNearestSara = (mikan: Mikan): Sara | null => {
+      for (let i = 0; i < saraList.length; ++i) {
+        const distance = Math.sqrt(Math.pow(saraList[i].x - mikan.x, 2) + Math.pow(saraList[i].y - mikan.y, 2))
+        if (distance < 100) {
+          return saraList[i]
+        }
+      }
+      return null
+    }
+    // 吸着する皿にアウトラインを表示する
+    const mikanMoved = (mikan: Mikan) => {
+      console.log('moved')
+      const nearestSara = getNearestSara(mikan)
+      if (nearestSara != null && !nearestSara.showOutline) {
+        nearestSara.showOutline = true
+      }
+      saraList.forEach(sara => {
+        if (nearestSara !== sara) {
+          sara.showOutline = false
+        }
+      })
+    }
+    // 吸着する皿に吸着させる
     const mikanDropped = (mikan: Mikan) => {
-      console.log(`mikanDropped: ${mikan}`)
+      const nearestSara = getNearestSara(mikan)
+      if (nearestSara != null) {
+        mikan.x = nearestSara.x
+        mikan.y = nearestSara.y
+      }
+      saraList.forEach(sara => sara.showOutline = false)
     }
     onMounted(() => {
       const app = new PIXI.Application({
@@ -167,7 +208,7 @@ export default defineComponent({
       app.stage.addChild(bg)
 
       for (let i = 0; i < 1; ++i) {
-        const mikan = new Mikan(group, Math.random() * 360, 0, 1, mikanDropped)
+        const mikan = new Mikan(group, Math.random() * 360, 0, 1, mikanMoved, mikanDropped)
         // mikan.x = Math.random() * 1280
         // mikan.y = Math.random() * 720
         mikan.x = 200
