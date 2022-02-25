@@ -3,6 +3,7 @@ import Sara from './Sara'
 import { CRTFilter } from './filter/CRTFilter'
 import { ReflectionFilter } from './filter/ReflectionFilter'
 import Mikan from './Mikan'
+import { ease } from 'pixi-ease'
 
 type StageOptions = {
   mikanNum: number;
@@ -27,23 +28,30 @@ export default class Stage extends PIXI.Container {
     for (let i = 0; i < this.saraList.length; ++i) {
       const distance = Math.sqrt(Math.pow(this.saraList[i].x - mikan.x, 2) + Math.pow(this.saraList[i].y - mikan.y, 2))
       if (distance < 100) {
-        return this.saraList[i]
+        const sara = this.saraList[i]
+        if (sara.mikan === null) {
+          return sara
+        }
       }
     }
     return null
   }
-  
+
   // 吸着する皿にアウトラインを表示する
   mikanMoved (mikan: Mikan): void {
     const nearestSara = this.getNearestSara(mikan)
-    if (nearestSara != null && !nearestSara.showOutline) {
-      nearestSara.showOutline = true
-    }
     this.saraList.forEach(sara => {
       if (nearestSara !== sara) {
         sara.showOutline = false
       }
+      // 移動中のみかんは一旦皿に乗っている扱いからは外す
+      if (sara.mikan === mikan) {
+        sara.mikan = null
+      }
     })
+    if (nearestSara != null && !nearestSara.showOutline) {
+      nearestSara.showOutline = true
+    }
   }
 
   // 吸着する皿に吸着させる
@@ -52,8 +60,10 @@ export default class Stage extends PIXI.Container {
     if (nearestSara != null) {
       mikan.x = nearestSara.x
       mikan.y = nearestSara.y
+      nearestSara.mikan = mikan
     }
     this.saraList.forEach(sara => sara.showOutline = false)
+    this.checkClear()
   }
 
   initialize () {
@@ -87,7 +97,7 @@ export default class Stage extends PIXI.Container {
       if (options.startB != null && options.endB != null) {
         b = options.startB + (options.endB - options.startB) * (i / (options.mikanNum - 1))
       }
-      const mikan = new Mikan(this.group, h, s, b, this.mikanMoved.bind(this), this.mikanDropped.bind(this))
+      const mikan = new Mikan(this.group, i, h, s, b, this.mikanMoved.bind(this), this.mikanDropped.bind(this))
       mikan.x = 240 + Math.random() * 800
       mikan.y = 100 + Math.random() * 400
       mikan.updateZOrder()
@@ -131,7 +141,36 @@ export default class Stage extends PIXI.Container {
     }
     this.filters.push(filter)
   }
-  update () {
+
+  private checkClear () {
+    // 全ての皿にみかんが乗っている必要がある
+    if (!this.saraList.every(sara => sara.mikan != null)) {
+      return
+    }
+    // 昇順か降順で並んでいる必要がある
+    let ascOrderCheck = true
+    let dscOrderCheck = true
+    for (let i = 0, j = this.saraList.length - 1; i < this.saraList.length; ++i, --j) {
+      if (this.saraList[i].mikan!.index !== i) {
+        ascOrderCheck = false
+      }
+      if (this.saraList[i].mikan!.index !== j) {
+        dscOrderCheck = false
+      }
+    }
+    if (ascOrderCheck || dscOrderCheck) {
+      const seikai = PIXI.Sprite.from('/images/mikan/clear.png')
+      seikai.anchor.set(0.5, 0.5)
+      seikai.position.set(1280 / 2, 300 - 4)
+      seikai.scale.set(0)
+      ease.add(seikai, { scale: 1 }, { duration: 120, ease: 'easeOutQuad'})
+      const animation = ease.add(seikai, { y: 300 + 4 }, { wait: 120, repeat: 2, reverse: true, duration: 1000, ease: 'easeInOutQuad' })
+      animation.once('complete', () => seikai.parent.removeChild(seikai))
+      this.addChild(seikai)
+    }
+  }
+
+  private update () {
     if (this.filters != null) {
       this.filters.forEach(filter => {
         if (filter instanceof ReflectionFilter) {

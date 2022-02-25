@@ -33,7 +33,7 @@ export default defineComponent({
       app.stage = new PIXI.display.Stage()
       const stage = new Stage()
       // stage.addReflectionFilter()
-      stage.addCrtFilter()
+      // stage.addCrtFilter()
       // stage.addBlurFilter()
       // stage.addNoiseFilter()
       stage.start({

@@ -5,8 +5,10 @@ export default class Mikan extends PIXI.Container {
   private sprite!: PIXI.Sprite
   private dragStartCursorPoint: PIXI.Point | null = null
   private dragStartPoint: PIXI.Point | null = null
+  private touched = false
   constructor (
     group: PIXI.display.Group,
+    public index: number,
     h: number,
     s: number,
     b: number,
@@ -74,6 +76,7 @@ export default class Mikan extends PIXI.Container {
 
   onTouchStart (event: PIXI.InteractionEvent) {
     console.log('onTouchStart')
+    this.touched = true
     ease.removeEase(this.sprite)
     this.dragStartPoint = new PIXI.Point(this.x, this.y)
     this.dragStartCursorPoint = new PIXI.Point(event.data.global.x, event.data.global.y)
@@ -85,6 +88,10 @@ export default class Mikan extends PIXI.Container {
   }
 
   onTouchEnd () {
+    if (!this.touched) {
+      return
+    }
+    this.touched = false
     console.log('onTouchEnd')
     this.dragStartCursorPoint = this.dragStartPoint = null
     const endAnimation = ease.add(this.sprite, { scale: 1, alpha: 1 }, { duration: 80, ease: 'easeOutQuad' })
