@@ -31,8 +31,17 @@ export default defineComponent({
       })
       // pixi-layer周り
       app.stage = new PIXI.display.Stage()
-      app.stage.sortableChildren = true
       const stage = new Stage()
+      // stage.addReflectionFilter()
+      // stage.addCrtFilter()
+      stage.addBlurFilter()
+      stage.start({
+        mikanNum: 6,
+        // startB: 0.5,
+        // endB: 1,
+        startH: 0,
+        endH: 20
+      })
       app.stage.addChild(stage)
     })
     return {
