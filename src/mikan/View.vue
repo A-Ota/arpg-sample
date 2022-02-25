@@ -33,15 +33,17 @@ export default defineComponent({
       app.stage = new PIXI.display.Stage()
       const stage = new Stage()
       // stage.addReflectionFilter()
-      // stage.addCrtFilter()
+      stage.addCrtFilter()
       // stage.addBlurFilter()
       // stage.addNoiseFilter()
       stage.start({
         mikanNum: 6,
         // startB: 0.5,
         // endB: 1,
+        // startS: -1,
+        // endS: -1,
         startH: 0,
-        endH: 20
+        endH: 30
       })
       app.stage.addChild(stage)
     })

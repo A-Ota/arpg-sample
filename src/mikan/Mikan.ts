@@ -1,6 +1,6 @@
 import { Easing, ease } from 'pixi-ease'
 
-const SHOW_HIT_AREA = false
+const SHOW_HIT_AREA = true
 export default class Mikan extends PIXI.Container {
   private sprite!: PIXI.Sprite
   private dragStartCursorPoint: PIXI.Point | null = null
@@ -42,18 +42,7 @@ export default class Mikan extends PIXI.Container {
     this.updateZOrder()
 
     // タッチ判定
-    {
-      const [left, top, width, height] = [-80, -85, 160, 120]
-      this.hitArea = new PIXI.Rectangle(left, top, width, height)
-      if (SHOW_HIT_AREA) {
-        const hitArea = new PIXI.Graphics()
-        hitArea.beginFill(0xFF0000)
-        hitArea.alpha = 0.5
-        hitArea.drawRect(left, top, width, height)
-        hitArea.endFill()
-        this.addChild(hitArea)
-      }
-    }
+    this.setHitArea(false)
 
     this.interactive = true
     this
@@ -74,9 +63,23 @@ export default class Mikan extends PIXI.Container {
     ease.add(this.sprite, { y: 0 }, { wait: Math.random() * 100, duration: 400 })
   }
 
+  setHitArea (isLarge: boolean) {
+    const [left, top, width, height] = isLarge ? [-80 * 3, -85 * 3, 160* 3, 120 * 4] : [-80, -85, 160, 120]
+    this.hitArea = new PIXI.Rectangle(left, top, width, height)
+    if (SHOW_HIT_AREA) {
+      const hitArea = new PIXI.Graphics()
+      hitArea.beginFill(0xFF0000)
+      hitArea.alpha = 0.5
+      hitArea.drawRect(left, top, width, height)
+      hitArea.endFill()
+      this.addChild(hitArea)
+    }
+  }
+
   onTouchStart (event: PIXI.InteractionEvent) {
     console.log('onTouchStart')
     this.touched = true
+    this.setHitArea(true)
     ease.removeEase(this.sprite)
     this.dragStartPoint = new PIXI.Point(this.x, this.y)
     this.dragStartCursorPoint = new PIXI.Point(event.data.global.x, event.data.global.y)
@@ -92,6 +95,7 @@ export default class Mikan extends PIXI.Container {
       return
     }
     this.touched = false
+    this.setHitArea(false)
     console.log('onTouchEnd')
     this.dragStartCursorPoint = this.dragStartPoint = null
     const endAnimation = ease.add(this.sprite, { scale: 1, alpha: 1 }, { duration: 80, ease: 'easeOutQuad' })
