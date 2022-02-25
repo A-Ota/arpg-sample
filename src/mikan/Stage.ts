@@ -105,10 +105,7 @@ export default class Stage extends PIXI.Container {
       mirror: false,
       boundary: 0
     })
-    if (this.filters == null) {
-      this.filters = []
-    }
-    this.filters.push(reflectionFilter)
+    this.addFilter(reflectionFilter)
   }
 
   public addCrtFilter () {
@@ -117,20 +114,23 @@ export default class Stage extends PIXI.Container {
       noise: 0.3,
       noiseSize: 1.2
     })
-    if (this.filters == null) {
-      this.filters = []
-    }
-    this.filters.push(crtFilter)
+    this.addFilter(crtFilter)
   }
 
   public addBlurFilter () {
-    const blurFilter = new PIXI.filters.BlurFilter(4, 2)
+    this.addFilter(new PIXI.filters.BlurFilter(4, 2))
+  }
+
+  public addNoiseFilter () {
+    this.addFilter(new PIXI.filters.NoiseFilter(1.5))
+  }
+
+  private addFilter (filter: PIXI.Filter) {
     if (this.filters == null) {
       this.filters = []
     }
-    this.filters.push(blurFilter)
+    this.filters.push(filter)
   }
-
   update () {
     if (this.filters != null) {
       this.filters.forEach(filter => {
@@ -139,6 +139,8 @@ export default class Stage extends PIXI.Container {
         } else if (filter instanceof CRTFilter) {
           (filter as any).seed = Math.random()
           ;(filter as any).time += 0.5
+        } else if (filter instanceof PIXI.filters.NoiseFilter) {
+          (filter as any).seed = Math.random()
         } else if (filter instanceof PIXI.filters.BlurFilter) {
           if (this.frameCount % 240 < 120) {
             (filter as any).blurXFilter.strength += 0.06
