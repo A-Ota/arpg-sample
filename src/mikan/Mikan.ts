@@ -1,6 +1,6 @@
 import { Easing, ease } from 'pixi-ease'
 
-const SHOW_HIT_AREA = true
+const SHOW_HIT_AREA = false
 export default class Mikan extends PIXI.Container {
   private sprite!: PIXI.Sprite
   private dragStartCursorPoint: PIXI.Point | null = null
@@ -64,6 +64,7 @@ export default class Mikan extends PIXI.Container {
   }
 
   setHitArea (isLarge: boolean) {
+
     const [left, top, width, height] = isLarge ? [-80 * 3, -85 * 3, 160* 3, 120 * 4] : [-80, -85, 160, 120]
     this.hitArea = new PIXI.Rectangle(left, top, width, height)
     if (SHOW_HIT_AREA) {

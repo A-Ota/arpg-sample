@@ -17,6 +17,7 @@ type StageOptions = {
 
 export default class Stage extends PIXI.Container {
   private saraList: Array<Sara>  = []
+  private mikanList: Array<Mikan> = []
   private group!:  PIXI.display.Group
   private frameCount = 0
   constructor () {
@@ -82,6 +83,10 @@ export default class Stage extends PIXI.Container {
   }
 
   public start(options: StageOptions) {
+    this.saraList.forEach(sara => this.removeChild(sara))
+    this.saraList.length = 0
+    this.mikanList.forEach(mikan => this.removeChild(mikan))
+    this.mikanList.length = 0
     const saraStartX = (1280 / 2) - ((options.mikanNum - 1) * 160) / 2
 
     for (let i = 0; i < options.mikanNum; ++i) {
@@ -102,6 +107,7 @@ export default class Stage extends PIXI.Container {
       mikan.y = 100 + Math.random() * 400
       mikan.updateZOrder()
       this.addChild(mikan)
+      this.mikanList.push(mikan)
       const sara = new Sara(this.group)
       sara.x = saraStartX + (160 * i)
       sara.y = 560
@@ -164,8 +170,17 @@ export default class Stage extends PIXI.Container {
       seikai.position.set(1280 / 2, 300 - 4)
       seikai.scale.set(0)
       ease.add(seikai, { scale: 1 }, { duration: 120, ease: 'easeOutQuad'})
-      const animation = ease.add(seikai, { y: 300 + 4 }, { wait: 120, repeat: 2, reverse: true, duration: 1000, ease: 'easeInOutQuad' })
-      animation.once('complete', () => seikai.parent.removeChild(seikai))
+      const animation = ease.add(seikai, { y: 300 + 4 }, { wait: 120, repeat: 2, reverse: true, duration: 800, ease: 'easeInOutQuad' })
+      animation.once('complete', () => {
+        seikai.parent.removeChild(seikai)
+        this.start({
+          mikanNum: 4,
+          startB: 0.5,
+          endB: 1,
+          startS: -1,
+          endS: -1
+          })
+      })
       this.addChild(seikai)
     }
   }
