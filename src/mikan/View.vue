@@ -1,6 +1,5 @@
 <style scoped lang="scss">
 .root {
-  background-color: green;
 }
 </style>
 <template>
@@ -36,6 +35,7 @@ export default defineComponent({
       // stage.addCrtFilter()
       // stage.addBlurFilter()
       // stage.addNoiseFilter()
+      /*
       stage.start({
         mikanNum: 6,
         // startB: 0.5,
@@ -45,7 +45,10 @@ export default defineComponent({
         startH: 0,
         endH: 30
       })
+      */
       app.stage.addChild(stage)
+      stage.startOpening()
+      // app.stage.addChild(ui)
     })
     return {
       canvasRef

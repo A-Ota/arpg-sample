@@ -19,6 +19,8 @@ export default class Stage extends PIXI.Container {
   private saraList: Array<Sara>  = []
   private mikanList: Array<Mikan> = []
   private group!:  PIXI.display.Group
+  private bg!: PIXI.Sprite
+  private fg!: PIXI.Sprite
   private frameCount = 0
   constructor () {
     super()
@@ -74,12 +76,31 @@ export default class Stage extends PIXI.Container {
     this.addChild(layer)
 
     // 背景
-    const bg = PIXI.Sprite.from('/images/mikan/dohyou.png')
-    bg.parentGroup = this.group
-    bg.zIndex = 0
-    this.addChild(bg)
+    this.bg = PIXI.Sprite.from('/images/mikan/dohyou.png')
+    this.bg.parentGroup = this.group
+    this.bg.zIndex = 0
+    this.addChild(this.bg)
+
+    // 背景
+    this.fg = PIXI.Sprite.from('/images/mikan/yane.png')
+    this.fg.anchor.x = 0.5
+    this.fg.x = 1280 / 2
+    this.fg.parentGroup = this.group
+    this.fg.zIndex = 100
+    this.addChild(this.fg)
 
     PIXI.Ticker.shared.add(this.update.bind(this))
+  }
+
+  public startOpening() {
+    ease.add(this.bg, { y: -(1280 - 720) }, { duration: 9000, ease: 'linear' })
+    ease.add(this.fg, { y: -(1280 - 500) }, { duration: 9000, ease: 'linear' })
+    const titleA = PIXI.Sprite.from('/images/mikan/title_a.png')
+    titleA.position.set(50, 50)
+    const titleB = PIXI.Sprite.from('/images/mikan/title_b.png')
+    titleB.position.set(1000, 124)
+    this.addChild(titleA)
+    this.addChild(titleB)
   }
 
   public start(options: StageOptions) {
