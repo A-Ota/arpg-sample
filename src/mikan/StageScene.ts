@@ -15,17 +15,19 @@ type StageOptions = {
   endB?: number;
 }
 
-export default class Stage extends PIXI.Container {
+class UiLayer extends PIXI.Container {
+  constructor () {
+    super()
+    this.addChild(PIXI.Sprite.from('/images/mikan/clear.png'))
+  }
+}
+
+class StageLayer extends PIXI.Container {
+  private frameCount = 0
   private saraList: Array<Sara>  = []
   private mikanList: Array<Mikan> = []
   private group!:  PIXI.display.Group
   private bg!: PIXI.Sprite
-  private fg!: PIXI.Sprite
-  private frameCount = 0
-  constructor () {
-    super()
-    this.initialize()
-  }
   // 吸着する皿で一番近いものを返す
   getNearestSara (mikan: Mikan): Sara | null {
     for (let i = 0; i < this.saraList.length; ++i) {
@@ -77,30 +79,21 @@ export default class Stage extends PIXI.Container {
 
     // 背景
     this.bg = PIXI.Sprite.from('/images/mikan/dohyou.png')
+    this.bg.y = -520
     this.bg.parentGroup = this.group
     this.bg.zIndex = 0
     this.addChild(this.bg)
 
-    // 背景
-    this.fg = PIXI.Sprite.from('/images/mikan/yane.png')
-    this.fg.anchor.x = 0.5
-    this.fg.x = 1280 / 2
-    this.fg.parentGroup = this.group
-    this.fg.zIndex = 100
-    this.addChild(this.fg)
-
     PIXI.Ticker.shared.add(this.update.bind(this))
-  }
-
-  public startOpening() {
-    ease.add(this.bg, { y: -(1280 - 720) }, { duration: 9000, ease: 'linear' })
-    ease.add(this.fg, { y: -(1280 - 500) }, { duration: 9000, ease: 'linear' })
-    const titleA = PIXI.Sprite.from('/images/mikan/title_a.png')
-    titleA.position.set(50, 50)
-    const titleB = PIXI.Sprite.from('/images/mikan/title_b.png')
-    titleB.position.set(1000, 124)
-    this.addChild(titleA)
-    this.addChild(titleB)
+    this.start({
+      mikanNum: 6,
+      // startB: 0.5,
+      // endB: 1,
+      // startS: -1,
+      // endS: -1,
+      startH: 0,
+      endH: 30
+    })
   }
 
   public start(options: StageOptions) {
@@ -228,5 +221,16 @@ export default class Stage extends PIXI.Container {
       })
     }
     ++this.frameCount
+  }
+}
+
+export default class Scene extends PIXI.Container {
+  constructor () {
+    super()
+    const stageLayer = new StageLayer()
+    this.addChild(stageLayer)
+    stageLayer.initialize()
+    stageLayer.addCrtFilter()
+    this.addChild(new UiLayer())
   }
 }

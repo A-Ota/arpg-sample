@@ -11,7 +11,8 @@
 import { defineComponent, onMounted, ref } from '@vue/composition-api'
 import { Easing, ease } from 'pixi-ease'
 import * as PIXI from 'pixi.js'
-import Stage from './Stage'
+import TitleScene from './TitleScene'
+import StageScene from './StageScene'
 
 export default defineComponent({
   props: {
@@ -30,7 +31,8 @@ export default defineComponent({
       })
       // pixi-layer周り
       app.stage = new PIXI.display.Stage()
-      const stage = new Stage()
+      const scene = new TitleScene()
+      // const scene = new StageScene()
       // stage.addReflectionFilter()
       // stage.addCrtFilter()
       // stage.addBlurFilter()
@@ -46,8 +48,8 @@ export default defineComponent({
         endH: 30
       })
       */
-      app.stage.addChild(stage)
-      stage.startOpening()
+      app.stage.addChild(scene)
+      // stage.startOpening()
       // app.stage.addChild(ui)
     })
     return {
