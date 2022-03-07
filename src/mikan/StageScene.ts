@@ -4,8 +4,11 @@ import { CRTFilter } from './filter/CRTFilter'
 import { ReflectionFilter } from './filter/ReflectionFilter'
 import Mikan from './Mikan'
 import { ease } from 'pixi-ease'
+import { generateStageOptions } from './Util'
 
-type StageOptions = {
+type FilterType = 'crt' | 'noise' | 'blur' | 'refrection'
+
+export type StageOptions = {
   mikanNum: number;
   startH?: number;
   endH?: number;
@@ -13,12 +16,28 @@ type StageOptions = {
   endS?: number;
   startB?: number;
   endB?: number;
+  filterTypes?: Array<FilterType>;
 }
 
 class UiLayer extends PIXI.Container {
-  constructor () {
+  constructor (
+    private clearAnimationCompleteCallback: () => void)
+  {
     super()
-    this.addChild(PIXI.Sprite.from('/images/mikan/clear.png'))
+  }
+  showClearAnimation () {
+    const seikai = 
+    PIXI.Sprite.from('/images/mikan/clear.png')
+    seikai.anchor.set(0.5, 0.5)
+    seikai.position.set(1280 / 2, 300 - 4)
+    seikai.scale.set(0)
+    ease.add(seikai, { scale: 1 }, { duration: 120, ease: 'easeOutQuad'})
+    const animation = ease.add(seikai, { y: 300 + 4 }, { wait: 120, repeat: 2, reverse: true, duration: 800, ease: 'easeInOutQuad' })
+    animation.once('complete', () => {
+      seikai.parent.removeChild(seikai)
+      this.clearAnimationCompleteCallback()
+    })
+    this.addChild(seikai)
   }
 }
 
@@ -28,6 +47,11 @@ class StageLayer extends PIXI.Container {
   private mikanList: Array<Mikan> = []
   private group!:  PIXI.display.Group
   private bg!: PIXI.Sprite
+  constructor (
+    private clearCallback: () => void
+  ) {
+    super()
+  }
   // 吸着する皿で一番近いものを返す
   getNearestSara (mikan: Mikan): Sara | null {
     for (let i = 0; i < this.saraList.length; ++i) {
@@ -85,22 +109,14 @@ class StageLayer extends PIXI.Container {
     this.addChild(this.bg)
 
     PIXI.Ticker.shared.add(this.update.bind(this))
-    this.start({
-      mikanNum: 6,
-      // startB: 0.5,
-      // endB: 1,
-      // startS: -1,
-      // endS: -1,
-      startH: 0,
-      endH: 30
-    })
   }
 
-  public start(options: StageOptions) {
+  public nextStage(options: StageOptions) {
     this.saraList.forEach(sara => this.removeChild(sara))
     this.saraList.length = 0
     this.mikanList.forEach(mikan => this.removeChild(mikan))
     this.mikanList.length = 0
+    this.filters = []
     const saraStartX = (1280 / 2) - ((options.mikanNum - 1) * 160) / 2
 
     for (let i = 0; i < options.mikanNum; ++i) {
@@ -127,6 +143,24 @@ class StageLayer extends PIXI.Container {
       sara.y = 560
       this.addChild(sara)
       this.saraList.push(sara)
+    }
+    if (options.filterTypes != null) {
+      options.filterTypes.forEach(filterType => {
+        switch (filterType) {
+          case 'crt':
+            this.addCrtFilter()
+            break;
+          case 'blur':
+            this.addBlurFilter()
+            break;
+          case 'noise':
+            this.addNoiseFilter()
+            break;
+          case 'refrection':
+            this.addReflectionFilter()
+            break;
+        }
+      })
     }
   }
 
@@ -179,23 +213,7 @@ class StageLayer extends PIXI.Container {
       }
     }
     if (ascOrderCheck || dscOrderCheck) {
-      const seikai = PIXI.Sprite.from('/images/mikan/clear.png')
-      seikai.anchor.set(0.5, 0.5)
-      seikai.position.set(1280 / 2, 300 - 4)
-      seikai.scale.set(0)
-      ease.add(seikai, { scale: 1 }, { duration: 120, ease: 'easeOutQuad'})
-      const animation = ease.add(seikai, { y: 300 + 4 }, { wait: 120, repeat: 2, reverse: true, duration: 800, ease: 'easeInOutQuad' })
-      animation.once('complete', () => {
-        seikai.parent.removeChild(seikai)
-        this.start({
-          mikanNum: 4,
-          startB: 0.5,
-          endB: 1,
-          startS: -1,
-          endS: -1
-          })
-      })
-      this.addChild(seikai)
+      this.clearCallback()
     }
   }
 
@@ -225,12 +243,26 @@ class StageLayer extends PIXI.Container {
 }
 
 export default class Scene extends PIXI.Container {
+  private stageNum = 0
+  private stageLayer!: StageLayer
+  private uiLayer!: UiLayer
   constructor () {
     super()
-    const stageLayer = new StageLayer()
-    this.addChild(stageLayer)
-    stageLayer.initialize()
-    stageLayer.addCrtFilter()
-    this.addChild(new UiLayer())
+    this.stageLayer = new StageLayer(this.onClear.bind(this))
+    this.addChild(this.stageLayer)
+    this.stageLayer.initialize()
+    // stageLayer.addCrtFilter()
+    this.uiLayer = new UiLayer(this.onClearAnimationComplete.bind(this))
+    this.addChild(this.uiLayer)
+    const stageOptions = generateStageOptions(this.stageNum)
+    this.stageLayer.nextStage(stageOptions)
+  }
+  onClear() {
+    this.uiLayer.showClearAnimation()
+  }
+  onClearAnimationComplete() {
+    ++this.stageNum
+    const stageOptions = generateStageOptions(this.stageNum)
+    this.stageLayer.nextStage(stageOptions)
   }
 }
