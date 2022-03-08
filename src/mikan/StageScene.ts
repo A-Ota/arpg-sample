@@ -31,16 +31,21 @@ class UiLayer extends PIXI.Container {
 
 // 描画領域にマスクを設定
 container.mask = new PIXI.Graphics()
-	.beginFill(0xffffff)
-	.drawCircle(150, 150, 200)
-	.endFill();
+    .beginFill(0xff0000)
+    .moveTo(0, 0)
+    .lineTo(0, 30)
+    .lineTo(30, 40)
+    .lineTo(30, 0)
+    .lineTo(0, 0)
+    .endFill()
+  container.x = 70
+  container.y = 50
+
 // 動かすオブジェクトを定義
 let obj = new PIXI.Graphics();
-obj.beginFill(0xFFFFFF, 1);
-obj.drawRoundedRect(0, 0, 100, 100, 16);
-obj.endFill();
-obj.pivot.x = 50;
-obj.pivot.y = 50;
+    obj.beginFill(0x00FF00);
+    obj.drawCircle(0, 0, 60);
+    obj.endFill();
 
 container.addChild(obj);
 
