@@ -57,8 +57,7 @@ export default class Scene extends PIXI.Container {
   }
 
   private onTouchStart() {
-    const scene = new StageScene()
-    this.parent.addChild(scene)
-    this.parent.removeChild(this)
+    (window as any).app.stage.removeChildren()
+    ;(window as any).app.stage.addChild(new StageScene())
   }
 }

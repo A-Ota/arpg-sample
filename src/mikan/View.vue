@@ -29,28 +29,14 @@ export default defineComponent({
         transparent: true,
         autoStart: true
       })
+      app.ticker.maxFPS = 60
+      app.ticker.minFPS = 60
+
       // pixi-layer周り
       app.stage = new PIXI.display.Stage()
-      const scene = new TitleScene()
-      // const scene = new StageScene()
-      // stage.addReflectionFilter()
-      // stage.addCrtFilter()
-      // stage.addBlurFilter()
-      // stage.addNoiseFilter()
-      /*
-      stage.start({
-        mikanNum: 6,
-        // startB: 0.5,
-        // endB: 1,
-        // startS: -1,
-        // endS: -1,
-        startH: 0,
-        endH: 30
-      })
-      */
+      const scene = new StageScene()
       app.stage.addChild(scene)
-      // stage.startOpening()
-      // app.stage.addChild(ui)
+      ;(window as any).app = app
     })
     return {
       canvasRef
