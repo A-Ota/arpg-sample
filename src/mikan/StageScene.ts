@@ -3,6 +3,7 @@ import Sara from './Sara'
 import { CRTFilter } from './filter/CRTFilter'
 import { ReflectionFilter } from './filter/ReflectionFilter'
 import Mikan from './Mikan'
+import TitleScene from './TitleScene'
 import { ease } from 'pixi-ease'
 import { generateStageOptions } from './Util'
 
@@ -24,6 +25,95 @@ class UiLayer extends PIXI.Container {
     private clearAnimationCompleteCallback: () => void)
   {
     super()
+    // 描画領域にマスクを設定
+
+    const container = new PIXI.Container();
+
+// 描画領域にマスクを設定
+container.mask = new PIXI.Graphics()
+	.beginFill(0xffffff)
+	.drawCircle(150, 150, 200)
+	.endFill();
+// 動かすオブジェクトを定義
+let obj = new PIXI.Graphics();
+obj.beginFill(0xFFFFFF, 1);
+obj.drawRoundedRect(0, 0, 100, 100, 16);
+obj.endFill();
+obj.pivot.x = 50;
+obj.pivot.y = 50;
+
+container.addChild(obj);
+
+let radius = 10;
+const speed = 3;
+let angle = 0;
+
+PIXI.Ticker.shared.add((delta) => {
+	angle += speed;
+    obj.x = radius * Math.sin(angle * Math.PI / 180);
+    obj.y = radius * Math.cos(angle * Math.PI / 180);
+});
+this.addChild(container)
+    /*
+    const hoge = new PIXI.Graphics()
+    hoge.beginFill(0xff0000);
+    hoge.moveTo(0, 0)
+    hoge.lineTo(0, 30)
+    hoge.lineTo(30, 30)
+    hoge.lineTo(30, 0)
+    hoge.lineTo(0, 0)
+    hoge.endFill()
+    // container.addChild(hoge)
+    // container.mask = hoge
+    */
+    /*
+    const semicircle = new PIXI.Graphics();
+    semicircle.beginFill(0xffffff, 1);
+    semicircle.arc(0, 0, 60, 0.2, Math.PI); // cx, cy, radius, startAngle, endAngle
+    semicircle.position.set(0, 0)
+    container.mask = semicircle
+    */
+    // container.addChild(semicircle);
+    /*
+    const mask  = new PIXI.Graphics()
+      .beginFill(0xFF0000, 1)
+      .drawCircle(0, 0, 100)
+      .endFill()
+    mask
+      .beginFill(0x000000, 1)
+      .drawCircle(0, 0, 50)
+      .endFill()
+    // container.addChild(mask)
+    */
+
+    // 動かすオブジェクトを定義
+    /*
+    const obj = new PIXI.Graphics();
+    obj.beginFill(0x00FF00);
+    obj.drawCircle(0, 0, 60);
+    obj.endFill();
+
+    container.addChild(obj);
+    this.addChild(container)
+    */
+    /*
+    const container = new PIXI.Container()
+    const greenCircle = PIXI.Sprite.from('/images/mikan/mikan.png')
+    greenCircle.x = 100
+    greenCircle.y = 100
+    const mask = new PIXI.Graphics()
+    mask.beginFill(0xFFFFFF)
+    mask.drawCircle(0, 0, 100)
+    mask.endFill()
+    container.mask = mask
+    greenCircle.beginFill(0x00FF00)
+    greenCircle.drawCircle(0, 0, 20)
+    greenCircle.endFill()
+    greenCircle.x = 0
+    greenCircle.y = 0
+    container.addChild(greenCircle)
+    this.addChild(container)
+    */
   }
   showClearAnimation () {
     const seikai = 
@@ -107,8 +197,6 @@ class StageLayer extends PIXI.Container {
     this.bg.parentGroup = this.group
     this.bg.zIndex = 0
     this.addChild(this.bg)
-
-    PIXI.Ticker.shared.add(this.update.bind(this))
   }
 
   public nextStage(options: StageOptions) {
@@ -217,7 +305,7 @@ class StageLayer extends PIXI.Container {
     }
   }
 
-  private update () {
+  public update () {
     if (this.filters != null) {
       this.filters.forEach(filter => {
         if (filter instanceof ReflectionFilter) {
@@ -246,6 +334,7 @@ export default class Scene extends PIXI.Container {
   private stageNum = 0
   private stageLayer!: StageLayer
   private uiLayer!: UiLayer
+  private restFrameCount = 60 * 10
   constructor () {
     super()
     this.stageLayer = new StageLayer(this.onClear.bind(this))
@@ -256,6 +345,18 @@ export default class Scene extends PIXI.Container {
     this.addChild(this.uiLayer)
     const stageOptions = generateStageOptions(this.stageNum)
     this.stageLayer.nextStage(stageOptions)
+    PIXI.Ticker.shared.add(this.update, this)
+  }
+  update (delta: number) {
+    this.stageLayer.update()
+    this.restFrameCount -= delta
+    /*
+    if (this.restFrameCount <= 0) {
+      PIXI.Ticker.shared.remove(this.update, this)
+      ;(window as any).app.stage.removeChildren()
+      ;(window as any).app.stage.addChild(new TitleScene())
+    }
+    */
   }
   onClear() {
     this.uiLayer.showClearAnimation()
