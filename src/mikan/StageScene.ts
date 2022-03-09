@@ -6,6 +6,7 @@ import Mikan from './Mikan'
 import TitleScene from './TitleScene'
 import { ease } from 'pixi-ease'
 import { generateStageOptions } from './Util'
+import { sound } from '@pixi/sound'
 
 const MAX_FRAME_COUNT =  60 * 60
 type FilterType = 'crt' | 'noise' | 'blur' | 'refrection'
@@ -141,6 +142,7 @@ class StageLayer extends PIXI.Container {
       mikan.x = nearestSara.x
       mikan.y = nearestSara.y
       nearestSara.mikan = mikan
+      sound.play('set')
     }
     this.saraList.forEach(sara => sara.showOutline = false)
     this.checkClear()
@@ -296,6 +298,7 @@ export default class Scene extends PIXI.Container {
   private stageLayer!: StageLayer
   private uiLayer!: UiLayer
   private restFrameCount = MAX_FRAME_COUNT
+  private stopTimer = false
   constructor () {
     super()
     this.stageLayer = new StageLayer(this.onClear.bind(this))
@@ -307,10 +310,15 @@ export default class Scene extends PIXI.Container {
     const stageOptions = generateStageOptions(this.stageNum)
     this.stageLayer.nextStage(stageOptions)
     PIXI.Ticker.shared.add(this.update, this)
+    sound.add('clear', '/sounds/quiz1.wav')
+    sound.add('set', '/sounds/cursor_01.wav')
+    // sound.add('set', '/sounds/pi73.wav')
   }
   update (delta: number) {
     this.stageLayer.update()
-    this.restFrameCount -= delta
+    if (!this.stopTimer) {
+      this.restFrameCount -= delta
+    }
     this.uiLayer.restTimeRate = (this.restFrameCount / MAX_FRAME_COUNT)
     if (this.restFrameCount <= 0) {
       PIXI.Ticker.shared.remove(this.update, this)
@@ -320,10 +328,15 @@ export default class Scene extends PIXI.Container {
   }
   onClear() {
     this.uiLayer.showClearAnimation()
+    this.stopTimer = true
+    // タイマー回復
+    this.restFrameCount = Math.min(this.restFrameCount + 60 * 5, MAX_FRAME_COUNT)
+    sound.play('clear')
   }
   onClearAnimationComplete() {
     ++this.stageNum
     const stageOptions = generateStageOptions(this.stageNum)
     this.stageLayer.nextStage(stageOptions)
+    this.stopTimer = false
   }
 }
