@@ -30,33 +30,26 @@ class UiLayer extends PIXI.Container {
     const container = new PIXI.Container();
 
 // 描画領域にマスクを設定
-container.mask = new PIXI.Graphics()
-    .beginFill(0xff0000)
-    .moveTo(0, 0)
-    .lineTo(0, 30)
-    .lineTo(30, 40)
-    .lineTo(30, 0)
-    .lineTo(0, 0)
-    .endFill()
-  container.x = 70
-  container.y = 50
+let angle = 360
+const mask = new PIXI.Graphics()
+container.mask = mask
+// container.addChild(mask)
+
 
 // 動かすオブジェクトを定義
-let obj = new PIXI.Graphics();
-    obj.beginFill(0x00FF00);
-    obj.drawCircle(0, 0, 60);
-    obj.endFill();
-
-container.addChild(obj);
-
-let radius = 10;
-const speed = 3;
-let angle = 0;
+const fg = PIXI.Sprite.from('/images/mikan/gauge_fg.png')
+const bg = PIXI.Sprite.from('/images/mikan/gauge_bg.png')
+container.addChild(fg);
+this.addChild(bg);
 
 PIXI.Ticker.shared.add((delta) => {
-	angle += speed;
-    obj.x = radius * Math.sin(angle * Math.PI / 180);
-    obj.y = radius * Math.cos(angle * Math.PI / 180);
+  mask.clear()
+  angle -= 0.05
+  mask
+    .beginFill(0xff0000)
+    .moveTo(48, 48)
+    .arc(48, 48, 100, Math.PI / 180 * -90, Math.PI / 180 * (angle - 90), false)
+    .endFill()
 });
 this.addChild(container)
     /*
