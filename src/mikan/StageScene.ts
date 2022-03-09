@@ -7,6 +7,7 @@ import TitleScene from './TitleScene'
 import { ease } from 'pixi-ease'
 import { generateStageOptions } from './Util'
 
+const MAX_FRAME_COUNT =  60 * 60
 type FilterType = 'crt' | 'noise' | 'blur' | 'refrection'
 
 export type StageOptions = {
@@ -20,98 +21,60 @@ export type StageOptions = {
   filterTypes?: Array<FilterType>;
 }
 
+class Gauge extends PIXI.Container {
+  private gaugeAngle_ = 360
+  set gaugeAngle(value: number) {
+    this.gaugeAngle_ = value
+    this.refresh()
+  }
+  public lv = 1
+  private gaugeMask!: PIXI.Graphics
+  constructor () {
+    super()
+    this.addChild(PIXI.Sprite.from('/images/mikan/gauge_bg.png'))
+    const container = new PIXI.Container()
+    container.addChild(PIXI.Sprite.from('/images/mikan/gauge.png'))
+    this.addChild(container)
+    this.addChild(PIXI.Sprite.from('/images/mikan/gauge_fg.png'))
+
+    // マスク
+    this.gaugeMask = new PIXI.Graphics()
+    container.addChild(this.gaugeMask)
+    container.mask = this.gaugeMask
+
+    const lvTitle = new PIXI.Text('LV', { fontSize: 30, fill : 0x444444, align : 'center'})
+    lvTitle.anchor.set(0.5, 0.5)
+    lvTitle.x = 90
+    lvTitle.y = 54
+    this.addChild(lvTitle)
+    const lvNum = new PIXI.Text(this.lv.toString(), { fontSize: 60, fill : 0x444444, align : 'center'})
+    lvNum.anchor.set(0.5, 0.5)
+    lvNum.x = 90
+    lvNum.y = 100
+    this.addChild(lvNum)
+  }
+  private refresh() {
+    this.gaugeMask.clear()
+    this.gaugeMask
+      .beginFill(0xff0000)
+      .moveTo(90, 90)
+      .arc(90, 90, 100, Math.PI / 180 * -90, Math.PI / 180 * (this.gaugeAngle_ - 90), false)
+      .endFill()
+  }
+}
+
 class UiLayer extends PIXI.Container {
+  private gauge!: Gauge
   constructor (
     private clearAnimationCompleteCallback: () => void)
   {
     super()
-    // 描画領域にマスクを設定
-
-    const container = new PIXI.Container();
-
-// 描画領域にマスクを設定
-let angle = 360
-const mask = new PIXI.Graphics()
-container.mask = mask
-// container.addChild(mask)
-
-
-// 動かすオブジェクトを定義
-const fg = PIXI.Sprite.from('/images/mikan/gauge_fg.png')
-const bg = PIXI.Sprite.from('/images/mikan/gauge_bg.png')
-container.addChild(fg);
-this.addChild(bg);
-
-PIXI.Ticker.shared.add((delta) => {
-  mask.clear()
-  angle -= 0.05
-  mask
-    .beginFill(0xff0000)
-    .moveTo(48, 48)
-    .arc(48, 48, 100, Math.PI / 180 * -90, Math.PI / 180 * (angle - 90), false)
-    .endFill()
-});
-this.addChild(container)
-    /*
-    const hoge = new PIXI.Graphics()
-    hoge.beginFill(0xff0000);
-    hoge.moveTo(0, 0)
-    hoge.lineTo(0, 30)
-    hoge.lineTo(30, 30)
-    hoge.lineTo(30, 0)
-    hoge.lineTo(0, 0)
-    hoge.endFill()
-    // container.addChild(hoge)
-    // container.mask = hoge
-    */
-    /*
-    const semicircle = new PIXI.Graphics();
-    semicircle.beginFill(0xffffff, 1);
-    semicircle.arc(0, 0, 60, 0.2, Math.PI); // cx, cy, radius, startAngle, endAngle
-    semicircle.position.set(0, 0)
-    container.mask = semicircle
-    */
-    // container.addChild(semicircle);
-    /*
-    const mask  = new PIXI.Graphics()
-      .beginFill(0xFF0000, 1)
-      .drawCircle(0, 0, 100)
-      .endFill()
-    mask
-      .beginFill(0x000000, 1)
-      .drawCircle(0, 0, 50)
-      .endFill()
-    // container.addChild(mask)
-    */
-
-    // 動かすオブジェクトを定義
-    /*
-    const obj = new PIXI.Graphics();
-    obj.beginFill(0x00FF00);
-    obj.drawCircle(0, 0, 60);
-    obj.endFill();
-
-    container.addChild(obj);
-    this.addChild(container)
-    */
-    /*
-    const container = new PIXI.Container()
-    const greenCircle = PIXI.Sprite.from('/images/mikan/mikan.png')
-    greenCircle.x = 100
-    greenCircle.y = 100
-    const mask = new PIXI.Graphics()
-    mask.beginFill(0xFFFFFF)
-    mask.drawCircle(0, 0, 100)
-    mask.endFill()
-    container.mask = mask
-    greenCircle.beginFill(0x00FF00)
-    greenCircle.drawCircle(0, 0, 20)
-    greenCircle.endFill()
-    greenCircle.x = 0
-    greenCircle.y = 0
-    container.addChild(greenCircle)
-    this.addChild(container)
-    */
+    this.gauge = new Gauge()
+    this.gauge.position.set(1080, 20)
+    this.addChild(this.gauge)
+  }
+  set restTimeRate (value: number) {
+    this.gauge.gaugeAngle = 360 * value
   }
   showClearAnimation () {
     const seikai = 
@@ -332,7 +295,7 @@ export default class Scene extends PIXI.Container {
   private stageNum = 0
   private stageLayer!: StageLayer
   private uiLayer!: UiLayer
-  private restFrameCount = 60 * 10
+  private restFrameCount = MAX_FRAME_COUNT
   constructor () {
     super()
     this.stageLayer = new StageLayer(this.onClear.bind(this))
@@ -348,13 +311,12 @@ export default class Scene extends PIXI.Container {
   update (delta: number) {
     this.stageLayer.update()
     this.restFrameCount -= delta
-    /*
+    this.uiLayer.restTimeRate = (this.restFrameCount / MAX_FRAME_COUNT)
     if (this.restFrameCount <= 0) {
       PIXI.Ticker.shared.remove(this.update, this)
       ;(window as any).app.stage.removeChildren()
       ;(window as any).app.stage.addChild(new TitleScene())
     }
-    */
   }
   onClear() {
     this.uiLayer.showClearAnimation()
