@@ -132,6 +132,7 @@ class UiLayer extends PIXI.Container {
 }
 
 class StageLayer extends PIXI.Container {
+  private container!: PIXI.Container
   private frameCount = 0
   private saraList: Array<Sara>  = []
   private mikanList: Array<Mikan> = []
@@ -188,29 +189,31 @@ class StageLayer extends PIXI.Container {
   }
 
   initialize () {
+    this.container = new PIXI.Container()
+    this.addChild(this.container)
     this.sortableChildren = true
     this.group = new PIXI.display.Group(0, true)
     const layer = new PIXI.display.Layer(this.group)
-    this.addChild(layer)
+    this.container.addChild(layer)
 
     // 背景
     this.bg = PIXI.Sprite.from('/images/mikan/dohyou.png')
     this.bg.y = -520
     this.bg.parentGroup = this.group
     this.bg.zIndex = 0
-    this.addChild(this.bg)
+    this.container.addChild(this.bg)
   }
 
   public nextStage(options: StageOptions) {
-    this.saraList.forEach(sara => this.removeChild(sara))
+    this.saraList.forEach(sara => this.container.removeChild(sara))
     this.saraList.length = 0
     if (this.spotlightContainer != null) {
       this.removeChild(this.spotlightContainer)
       this.spotlightContainer = null
     }
-    this.mikanList.forEach(mikan => this.removeChild(mikan))
+    this.mikanList.forEach(mikan => this.container.removeChild(mikan))
     this.mikanList.length = 0
-    this.filters = []
+    this.container.filters = []
     const saraStartX = (SCREEN_WIDTH / 2) - ((options.mikanNum - 1) * 160) / 2
 
     for (let i = 0; i < options.mikanNum; ++i) {
@@ -230,12 +233,12 @@ class StageLayer extends PIXI.Container {
       mikan.x = 240 + Math.random() * 800
       mikan.y = 100 + Math.random() * 400
       mikan.updateZOrder()
-      this.addChild(mikan)
+      this.container.addChild(mikan)
       this.mikanList.push(mikan)
       const sara = new Sara(this.group)
       sara.x = saraStartX + (160 * i)
       sara.y = 560
-      this.addChild(sara)
+      this.container.addChild(sara)
       this.saraList.push(sara)
     }
     if (options.filterTypes != null) {
@@ -308,10 +311,10 @@ class StageLayer extends PIXI.Container {
   }
 
   private addFilter (filter: PIXI.Filter) {
-    if (this.filters == null) {
-      this.filters = []
+    if (this.container.filters == null) {
+      this.container.filters = []
     }
-    this.filters.push(filter)
+    this.container.filters.push(filter)
   }
 
   private checkClear () {
@@ -336,8 +339,8 @@ class StageLayer extends PIXI.Container {
   }
 
   public update () {
-    if (this.filters != null) {
-      this.filters.forEach(filter => {
+    if (this.container.filters != null) {
+      this.container.filters.forEach(filter => {
         if (filter instanceof ReflectionFilter) {
           (filter as any).time += 0.1
         } else if (filter instanceof CRTFilter) {

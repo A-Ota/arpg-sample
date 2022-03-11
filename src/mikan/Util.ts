@@ -5,7 +5,8 @@ export const generateStageOptions: (stageNum: number) => StageOptions = (stageNu
     return {
       mikanNum: 4,
       startH: 0,
-      endH: 40
+      endH: 40,
+      filterTypes: ['spotlight', 'crt']
     }
   }
   else if (stageNum === 1) {
