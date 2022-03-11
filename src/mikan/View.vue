@@ -34,7 +34,7 @@ export default defineComponent({
 
       // pixi-layer周り
       app.stage = new PIXI.display.Stage()
-      const scene = new StageScene()
+      const scene = new TitleScene()
       app.stage.addChild(scene)
       ;(window as any).app = app
     })

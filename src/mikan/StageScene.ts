@@ -8,9 +8,9 @@ import { ease, Easing } from 'pixi-ease'
 import { generateStageOptions } from './Util'
 import { sound } from '@pixi/sound'
 
-const MAX_FRAME_COUNT =  60 * 60
-const RECOVER_FRAME_COUNT = 60 * 10
-type FilterType = 'crt' | 'noise' | 'blur' | 'refrection' | 'spotlight'
+const MAX_FRAME_COUNT =  60 * 40
+const RECOVER_FRAME_COUNT = 60 * 5
+export type FilterType = 'crt' | 'noise' | 'blur' | 'refrection' | 'spotlight'
 const SCREEN_WIDTH = 1280
 const SCREEN_HEIGHT = 720
 
@@ -190,7 +190,7 @@ class StageLayer extends PIXI.Container {
   initialize () {
     this.container = new PIXI.Container()
     this.addChild(this.container)
-    this.sortableChildren = true
+    this.container.sortableChildren = true
     this.group = new PIXI.display.Group(0, true)
     const layer = new PIXI.display.Layer(this.group)
     this.container.addChild(layer)
@@ -381,6 +381,7 @@ export default class Scene extends PIXI.Container {
     this.uiLayer = new UiLayer(this.onClearAnimationComplete.bind(this))
     this.addChild(this.uiLayer)
     const stageOptions = generateStageOptions(this.stageNum)
+    console.dir(stageOptions)
     this.stageLayer.nextStage(stageOptions)
     PIXI.Ticker.shared.add(this.update, this)
     sound.add('clear', '/sounds/quiz1.wav')
@@ -410,6 +411,7 @@ export default class Scene extends PIXI.Container {
     this.restFrameCount = Math.min(this.restFrameCount + RECOVER_FRAME_COUNT, MAX_FRAME_COUNT)
     this.uiLayer.lv = this.stageNum + 1
     const stageOptions = generateStageOptions(this.stageNum)
+    console.dir(stageOptions)
     this.stageLayer.nextStage(stageOptions)
     this.stopTimer = false
   }

@@ -78,7 +78,7 @@ export default class Mikan extends PIXI.Container {
   }
 
   onTouchStart (event: PIXI.InteractionEvent) {
-    console.log('onTouchStart')
+    // console.log('onTouchStart')
     this.touched = true
     this.setHitArea(true)
     ease.removeEase(this.sprite)
@@ -97,7 +97,7 @@ export default class Mikan extends PIXI.Container {
     }
     this.touched = false
     this.setHitArea(false)
-    console.log('onTouchEnd')
+    // console.log('onTouchEnd')
     this.dragStartCursorPoint = this.dragStartPoint = null
     const endAnimation = ease.add(this.sprite, { scale: 1, alpha: 1 }, { duration: 80, ease: 'easeOutQuad' })
     endAnimation.once('complete', () => this.droppedCallback(this))
@@ -108,7 +108,7 @@ export default class Mikan extends PIXI.Container {
   }
 
   onTouchMove (event: PIXI.InteractionEvent) {
-    console.log('onTouchMove')
+    // console.log('onTouchMove')
     if (this.dragStartCursorPoint != null && this.dragStartPoint != null) {
       const diff = new PIXI.Point(
         event.data.global.x - this.dragStartCursorPoint.x,
