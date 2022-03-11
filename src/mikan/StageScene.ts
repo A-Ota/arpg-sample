@@ -114,7 +114,6 @@ class UiLayer extends PIXI.Container {
     animation.on('each', (easing: Easing) => {
       // ゲージの回復アニメーション
       if (step < 80) {
-        console.log(this.gauge)
         this.gauge.gaugeAngle += addAngle
         this.gauge.refresh()
         step++
@@ -207,13 +206,8 @@ class StageLayer extends PIXI.Container {
   public nextStage(options: StageOptions) {
     this.saraList.forEach(sara => this.container.removeChild(sara))
     this.saraList.length = 0
-    if (this.spotlightContainer != null) {
-      this.removeChild(this.spotlightContainer)
-      this.spotlightContainer = null
-    }
     this.mikanList.forEach(mikan => this.container.removeChild(mikan))
     this.mikanList.length = 0
-    this.container.filters = []
     const saraStartX = (SCREEN_WIDTH / 2) - ((options.mikanNum - 1) * 160) / 2
 
     for (let i = 0; i < options.mikanNum; ++i) {
@@ -317,6 +311,14 @@ class StageLayer extends PIXI.Container {
     this.container.filters.push(filter)
   }
 
+  private clearFilters() {
+    if (this.spotlightContainer != null) {
+      this.removeChild(this.spotlightContainer)
+      this.spotlightContainer = null
+    }
+    this.container.filters = []
+  }
+
   private checkClear () {
     // 全ての皿にみかんが乗っている必要がある
     if (!this.saraList.every(sara => sara.mikan != null)) {
@@ -335,6 +337,7 @@ class StageLayer extends PIXI.Container {
     }
     if (ascOrderCheck || dscOrderCheck) {
       this.clearCallback()
+      this.clearFilters()
     }
   }
 
