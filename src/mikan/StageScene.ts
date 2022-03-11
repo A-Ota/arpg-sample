@@ -10,7 +10,9 @@ import { sound } from '@pixi/sound'
 
 const MAX_FRAME_COUNT =  60 * 60
 const RECOVER_FRAME_COUNT = 60 * 10
-type FilterType = 'crt' | 'noise' | 'blur' | 'refrection'
+type FilterType = 'crt' | 'noise' | 'blur' | 'refrection' | 'spotlight'
+const SCREEN_WIDTH = 1280
+const SCREEN_HEIGHT = 720
 
 export type StageOptions = {
   mikanNum: number;
@@ -102,7 +104,7 @@ class UiLayer extends PIXI.Container {
     const seikai = 
     PIXI.Sprite.from('/images/mikan/clear.png')
     seikai.anchor.set(0.5, 0.5)
-    seikai.position.set(1280 / 2, 300 - 4)
+    seikai.position.set(SCREEN_WIDTH / 2, 300 - 4)
     seikai.scale.set(0)
     ease.add(seikai, { scale: 1 }, { duration: 120, ease: 'easeOutQuad'})
     const animation = ease.add(seikai, { y: 300 + 4 }, { wait: 120, repeat: 1, reverse: true, duration: 800, ease: 'easeInOutQuad' })
@@ -135,6 +137,7 @@ class StageLayer extends PIXI.Container {
   private mikanList: Array<Mikan> = []
   private group!:  PIXI.display.Group
   private bg!: PIXI.Sprite
+  private spotlightContainer: PIXI.Container | null = null
   constructor (
     private clearCallback: () => void
   ) {
@@ -201,10 +204,14 @@ class StageLayer extends PIXI.Container {
   public nextStage(options: StageOptions) {
     this.saraList.forEach(sara => this.removeChild(sara))
     this.saraList.length = 0
+    if (this.spotlightContainer != null) {
+      this.removeChild(this.spotlightContainer)
+      this.spotlightContainer = null
+    }
     this.mikanList.forEach(mikan => this.removeChild(mikan))
     this.mikanList.length = 0
     this.filters = []
-    const saraStartX = (1280 / 2) - ((options.mikanNum - 1) * 160) / 2
+    const saraStartX = (SCREEN_WIDTH / 2) - ((options.mikanNum - 1) * 160) / 2
 
     for (let i = 0; i < options.mikanNum; ++i) {
       let h = 0
@@ -246,6 +253,9 @@ class StageLayer extends PIXI.Container {
           case 'refrection':
             this.addReflectionFilter()
             break;
+          case 'spotlight':
+            this.addSpotlightFilter()
+            break;
         }
       })
     }
@@ -274,6 +284,27 @@ class StageLayer extends PIXI.Container {
 
   public addNoiseFilter () {
     this.addFilter(new PIXI.filters.NoiseFilter(1.5))
+  }
+
+  private addSpotlightFilter () {
+    this.spotlightContainer = new PIXI.Container()
+    const black = new PIXI.Graphics()
+    black
+      .beginFill(0x000000)
+      .drawRect(-256 - 900, -256 - 300, 900, 512 + 600)
+      .drawRect(256, -256 - 300, 900, 512 + 600)
+      .drawRect(-256, -256 - 300, 512, 300)
+      .drawRect(-256, 256, 512, 300)
+      .endFill()
+    this.spotlightContainer.addChild(black)
+    const sprite = PIXI.Sprite.from('/images/mikan/spotlight.png')
+    sprite.anchor.set(0.5, 0.5)
+    this.spotlightContainer.addChild(sprite)
+    this.spotlightContainer.x = (SCREEN_WIDTH / 2) - 430
+    this.spotlightContainer.y = (SCREEN_HEIGHT / 2) - 140
+    ease.add(this.spotlightContainer, { x: (SCREEN_WIDTH / 2) + 430 }, { repeat: -1, reverse: true, duration: 4000, ease: 'linear' })
+    ease.add(this.spotlightContainer, { y: (SCREEN_HEIGHT / 2) + 140 }, { repeat: -1, reverse: true, duration: 900, ease: 'linear' })
+    this.addChild(this.spotlightContainer)
   }
 
   private addFilter (filter: PIXI.Filter) {
