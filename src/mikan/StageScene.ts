@@ -4,11 +4,12 @@ import { CRTFilter } from './filter/CRTFilter'
 import { ReflectionFilter } from './filter/ReflectionFilter'
 import Mikan from './Mikan'
 import TitleScene from './TitleScene'
-import { ease } from 'pixi-ease'
+import { ease, Easing } from 'pixi-ease'
 import { generateStageOptions } from './Util'
 import { sound } from '@pixi/sound'
 
 const MAX_FRAME_COUNT =  60 * 60
+const RECOVER_FRAME_COUNT = 60 * 10
 type FilterType = 'crt' | 'noise' | 'blur' | 'refrection'
 
 export type StageOptions = {
@@ -23,18 +24,20 @@ export type StageOptions = {
 }
 
 class Gauge extends PIXI.Container {
-  private gaugeAngle_ = 360
-  set gaugeAngle(value: number) {
-    this.gaugeAngle_ = value
-    this.refresh()
-  }
+  public gaugeAngle = 360
+  public gaugeRecoverAngle = 0
   public lv = 1
   private gaugeMask!: PIXI.Graphics
+  private gaugeRecoverMask!: PIXI.Graphics
+  private lvNumText!: PIXI.Text
   constructor () {
     super()
     this.addChild(PIXI.Sprite.from('/images/mikan/gauge_bg.png'))
     const container = new PIXI.Container()
     container.addChild(PIXI.Sprite.from('/images/mikan/gauge.png'))
+    const containerRecover = new PIXI.Container()
+    containerRecover.addChild(PIXI.Sprite.from('/images/mikan/gauge_recover.png'))
+    this.addChild(containerRecover)
     this.addChild(container)
     this.addChild(PIXI.Sprite.from('/images/mikan/gauge_fg.png'))
 
@@ -42,30 +45,42 @@ class Gauge extends PIXI.Container {
     this.gaugeMask = new PIXI.Graphics()
     container.addChild(this.gaugeMask)
     container.mask = this.gaugeMask
+    // 回復表示用マスク
+    this.gaugeRecoverMask = new PIXI.Graphics()
+    containerRecover.addChild(this.gaugeRecoverMask)
+    containerRecover.mask = this.gaugeRecoverMask
 
     const lvTitle = new PIXI.Text('LV', { fontSize: 30, fill : 0x444444, align : 'center'})
     lvTitle.anchor.set(0.5, 0.5)
     lvTitle.x = 90
     lvTitle.y = 54
     this.addChild(lvTitle)
-    const lvNum = new PIXI.Text(this.lv.toString(), { fontSize: 60, fill : 0x444444, align : 'center'})
-    lvNum.anchor.set(0.5, 0.5)
-    lvNum.x = 90
-    lvNum.y = 100
-    this.addChild(lvNum)
+    this.lvNumText = new PIXI.Text(this.lv.toString(), { fontSize: 60, fill : 0x444444, align : 'center'})
+    this.lvNumText.anchor.set(0.5, 0.5)
+    this.lvNumText.x = 90
+    this.lvNumText.y = 100
+    this.addChild(this.lvNumText)
   }
-  private refresh() {
+  public refresh() {
     this.gaugeMask.clear()
     this.gaugeMask
       .beginFill(0xff0000)
       .moveTo(90, 90)
-      .arc(90, 90, 100, Math.PI / 180 * -90, Math.PI / 180 * (this.gaugeAngle_ - 90), false)
+      .arc(90, 90, 100, Math.PI / 180 * -90, Math.PI / 180 * (this.gaugeAngle - 90), false)
       .endFill()
+    this.gaugeRecoverMask.clear()
+    this.gaugeRecoverMask
+      .beginFill(0xff0000)
+      .moveTo(90, 90)
+      .arc(90, 90, 100, Math.PI / 180 * -90, Math.PI / 180 * (this.gaugeRecoverAngle - 90), false)
+      .endFill()
+    this.lvNumText.text = this.lv.toString()
   }
 }
 
 class UiLayer extends PIXI.Container {
   private gauge!: Gauge
+  private animationLock = false
   constructor (
     private clearAnimationCompleteCallback: () => void)
   {
@@ -75,7 +90,13 @@ class UiLayer extends PIXI.Container {
     this.addChild(this.gauge)
   }
   set restTimeRate (value: number) {
-    this.gauge.gaugeAngle = 360 * value
+    if (!this.animationLock) {
+      this.gauge.gaugeAngle = 360 * value
+      this.gauge.refresh()
+    }
+  }
+  set lv (value: number) {
+    this.gauge.lv = value
   }
   showClearAnimation () {
     const seikai = 
@@ -84,12 +105,27 @@ class UiLayer extends PIXI.Container {
     seikai.position.set(1280 / 2, 300 - 4)
     seikai.scale.set(0)
     ease.add(seikai, { scale: 1 }, { duration: 120, ease: 'easeOutQuad'})
-    const animation = ease.add(seikai, { y: 300 + 4 }, { wait: 120, repeat: 2, reverse: true, duration: 800, ease: 'easeInOutQuad' })
+    const animation = ease.add(seikai, { y: 300 + 4 }, { wait: 120, repeat: 1, reverse: true, duration: 800, ease: 'easeInOutQuad' })
+    let step = 0
+    const addAngle = (360 * (RECOVER_FRAME_COUNT / MAX_FRAME_COUNT)) / 80
+    this.animationLock = true
+    animation.on('each', (easing: Easing) => {
+      // ゲージの回復アニメーション
+      if (step < 80) {
+        console.log(this.gauge)
+        this.gauge.gaugeAngle += addAngle
+        this.gauge.refresh()
+        step++
+      }
+    })
     animation.once('complete', () => {
+      this.animationLock = false
       seikai.parent.removeChild(seikai)
       this.clearAnimationCompleteCallback()
+      this.gauge.gaugeRecoverAngle = 0
     })
     this.addChild(seikai)
+    this.gauge.gaugeRecoverAngle = this.gauge.gaugeAngle + (360 * (RECOVER_FRAME_COUNT / MAX_FRAME_COUNT))
   }
 }
 
@@ -329,12 +365,13 @@ export default class Scene extends PIXI.Container {
   onClear() {
     this.uiLayer.showClearAnimation()
     this.stopTimer = true
-    // タイマー回復
-    this.restFrameCount = Math.min(this.restFrameCount + 60 * 5, MAX_FRAME_COUNT)
     sound.play('clear')
   }
   onClearAnimationComplete() {
     ++this.stageNum
+    // タイマー回復
+    this.restFrameCount = Math.min(this.restFrameCount + RECOVER_FRAME_COUNT, MAX_FRAME_COUNT)
+    this.uiLayer.lv = this.stageNum + 1
     const stageOptions = generateStageOptions(this.stageNum)
     this.stageLayer.nextStage(stageOptions)
     this.stopTimer = false

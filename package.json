@@ -12,6 +12,7 @@
     "postinstall": "patch-package"
   },
   "dependencies": {
+    "@pixi/sound": "^4.2.0",
     "@types/pixi.js": "^5.0.0",
     "@types/query-string": "^6.3.0",
     "@vue/composition-api": "^1.4.6",
