@@ -8,6 +8,7 @@ import TitleScene from './TitleScene'
 import { ease, Easing } from 'pixi-ease'
 import { generateStageOptions } from './Util'
 import { sound } from '@pixi/sound'
+import Button from './Button'
 
 const MAX_FRAME_COUNT =  60 * 40
 const RECOVER_FRAME_COUNT = 60 * 5
@@ -92,7 +93,9 @@ class UiLayer extends PIXI.Container {
   private gauge!: Gauge
   private animationLock = false
   constructor (
-    private clearAnimationCompleteCallback: () => void)
+    private clearAnimationCompleteCallback: () => void,
+    private timeupDialogFinishedCallback: () => void
+  )
   {
     super()
     this.gauge = new Gauge()
@@ -101,6 +104,7 @@ class UiLayer extends PIXI.Container {
   }
   set restTimeRate (value: number) {
     if (!this.animationLock) {
+      value = Math.max(0, value)
       this.gauge.gaugeAngle = 360 * value
       this.gauge.refresh()
     }
@@ -108,12 +112,22 @@ class UiLayer extends PIXI.Container {
   set lv (value: number) {
     this.gauge.lv = value
   }
-  showGameOverAnimation () {
-
+  showTimeupDialog (stageNum: number) {
+    const timeup = PIXI.Sprite.from('/images/mikan/timeup.png')
+    timeup.anchor.set(0.5, 0.5)
+    timeup.position.set(SCREEN_WIDTH / 2, 300 - 4)
+    timeup.scale.set(0)
+    ease.add(timeup, { scale: 1 }, { duration: 120, ease: 'easeOutQuad'})
+    ease.add(timeup, { y: 300 + 4 }, { wait: 120, repeat: -1, reverse: true, duration: 800, ease: 'easeInOutQuad' })
+    this.addChild(timeup)
+    const finishButton = new Button('/images/mikan/btn_finish.png')
+    finishButton.x = 1100
+    finishButton.y = 640
+    this.addChild(finishButton)
+    finishButton.clicked = this.timeupDialogFinishedCallback
   }
   showClearAnimation (stageNum: number) {
-    const seikai = 
-    PIXI.Sprite.from('/images/mikan/clear.png')
+    const seikai = PIXI.Sprite.from('/images/mikan/clear.png')
     seikai.anchor.set(0.5, 0.5)
     seikai.position.set(SCREEN_WIDTH / 2, 300 - 4)
     seikai.scale.set(0)
@@ -149,6 +163,7 @@ class StageLayer extends PIXI.Container {
   private group!:  PIXI.display.Group
   private bg!: PIXI.Sprite
   private spotlightContainer: PIXI.Container | null = null
+  public paused = false
   constructor (
     private clearCallback: () => void
   ) {
@@ -236,7 +251,7 @@ class StageLayer extends PIXI.Container {
       }
       const mikan = new Mikan(this.group, i, h, s, b, this.mikanMoved.bind(this), this.mikanDropped.bind(this))
       mikan.x = 240 + Math.random() * 800
-      mikan.y = 100 + Math.random() * 400
+      mikan.y = 150 + Math.random() * 350
       mikan.updateZOrder()
       this.container.addChild(mikan)
       this.mikanList.push(mikan)
@@ -331,6 +346,9 @@ class StageLayer extends PIXI.Container {
   }
 
   private checkClear () {
+    if (this.paused) {
+      return
+    }
     // 全ての皿にみかんが乗っている必要がある
     if (!this.saraList.every(sara => sara.mikan != null)) {
       return
@@ -383,13 +401,14 @@ export default class Scene extends PIXI.Container {
   private uiLayer!: UiLayer
   private restFrameCount = MAX_FRAME_COUNT
   private stopTimer = false
+  private gameOver = false
   constructor () {
     super()
     this.stageLayer = new StageLayer(this.onClear.bind(this))
     this.addChild(this.stageLayer)
     this.stageLayer.initialize()
     // stageLayer.addCrtFilter()
-    this.uiLayer = new UiLayer(this.onClearAnimationComplete.bind(this))
+    this.uiLayer = new UiLayer(this.onClearAnimationComplete.bind(this), this.onTimeupDialogFinished.bind(this))
     this.addChild(this.uiLayer)
     const stageOptions = generateStageOptions(this.stageNum)
     console.dir(stageOptions)
@@ -397,26 +416,38 @@ export default class Scene extends PIXI.Container {
     PIXI.Ticker.shared.add(this.update, this)
     sound.add('clear', '/sounds/quiz1.wav')
     sound.add('set', '/sounds/cursor_01.wav')
+    sound.add('drop', '/sounds/drop3.mp3')
     // sound.add('set', '/sounds/pi73.wav')
   }
   update (delta: number) {
     this.stageLayer.update()
+    if (this.gameOver) {
+      return
+    }
     if (!this.stopTimer) {
       this.restFrameCount -= delta
     }
     this.uiLayer.restTimeRate = (this.restFrameCount / MAX_FRAME_COUNT)
     if (this.restFrameCount <= 0) {
-      PIXI.Ticker.shared.remove(this.update, this)
-      ;(window as any).app.stage.removeChildren()
-      ;(window as any).app.stage.addChild(new TitleScene())
+      this.uiLayer.showTimeupDialog(this.stageNum)
+      this.stopTimer = true
+      this.gameOver = true
+      this.stageLayer.paused = true
     }
   }
+  onTimeupDialogFinished() {
+    PIXI.Ticker.shared.remove(this.update, this)
+    ;(window as any).app.stage.removeChildren()
+    ;(window as any).app.stage.addChild(new TitleScene())
+  }
   onClear() {
+    this.stageLayer.paused = true
     this.uiLayer.showClearAnimation(this.stageNum)
     this.stopTimer = true
     sound.play('clear')
   }
   onClearAnimationComplete() {
+    this.stageLayer.paused = false
     ++this.stageNum
     // タイマー回復
     this.restFrameCount = Math.min(this.restFrameCount + calcRecoverFrameCount(this.stageNum), MAX_FRAME_COUNT)

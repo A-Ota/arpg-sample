@@ -1,4 +1,5 @@
 import { Easing, ease } from 'pixi-ease'
+import { sound } from '@pixi/sound'
 
 const SHOW_HIT_AREA = false
 export default class Mikan extends PIXI.Container {
@@ -60,7 +61,11 @@ export default class Mikan extends PIXI.Container {
 
   startDropMotion () {
     this.sprite.y = -800
-    ease.add(this.sprite, { y: 0 }, { wait: Math.random() * 100, duration: 400 })
+    const animation = ease.add(this.sprite, { y: 0 }, { wait: Math.random() * 100, duration: 400 })
+    animation.once('complete', () => {
+      console.log('dropped')
+      sound.play('drop')
+    })
   }
 
   setHitArea (isLarge: boolean) {

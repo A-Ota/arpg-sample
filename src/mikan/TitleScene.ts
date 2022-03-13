@@ -1,6 +1,7 @@
 import * as PIXI from 'pixi.js'
 import { ease } from 'pixi-ease'
 import StageScene from './StageScene'
+import Button from './Button'
 
 export default class Scene extends PIXI.Container {
   private group!:  PIXI.display.Group
@@ -42,15 +43,12 @@ export default class Scene extends PIXI.Container {
     titleB.position.set(1000, 124)
     this.addChild(titleA)
     this.addChild(titleB)
-    const startButton = PIXI.Sprite.from('/images/mikan/btn_start.png')
-    startButton.anchor.set(0.5, 0.5)
+    const startButton = new Button('/images/mikan/btn_start.png')
     startButton.x = 1280 / 2
     startButton.y = 450
-    startButton.interactive = true
     this.addChild(startButton)
-    startButton.on('click', this.onTouchStart.bind(this))
-    const howtoButton = PIXI.Sprite.from('/images/mikan/btn_howto.png')
-    howtoButton.anchor.set(0.5, 0.5)
+    startButton.clicked = this.onTouchStart.bind(this)
+    const howtoButton = new Button('/images/mikan/btn_howto.png')
     howtoButton.x = 1280 / 2
     howtoButton.y = 600
     this.addChild(howtoButton)
