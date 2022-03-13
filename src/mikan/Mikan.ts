@@ -17,7 +17,7 @@ export default class Mikan extends PIXI.Container {
     private droppedCallback: (mikan: Mikan) => void
   ) {
     super()
-    this.sprite = PIXI.Sprite.from('/images/mikan/mikan.png')
+    this.sprite = PIXI.Sprite.from('/arpg-sample/images/mikan/mikan.png')
     this.sprite.anchor.set(0.5, 0.65)
     this.sprite.parentGroup = group
     this.addChild(this.sprite)

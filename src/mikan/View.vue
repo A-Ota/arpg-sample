@@ -19,7 +19,7 @@ export default defineComponent({
   },
   components: {
   },
-  setup (props, context) {
+  setup (props: any, context: any) {
     const canvasRef = ref()
     onMounted(() => {
       const app = new PIXI.Application({

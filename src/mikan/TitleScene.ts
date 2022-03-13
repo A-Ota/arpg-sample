@@ -19,13 +19,13 @@ export default class Scene extends PIXI.Container {
     this.addChild(layer)
 
     // 背景
-    this.bg = PIXI.Sprite.from('/images/mikan/dohyou.png')
+    this.bg = PIXI.Sprite.from('/arpg-sample/images/mikan/dohyou.png')
     this.bg.parentGroup = this.group
     this.bg.zIndex = 0
     this.addChild(this.bg)
 
     // 背景
-    this.fg = PIXI.Sprite.from('/images/mikan/yane.png')
+    this.fg = PIXI.Sprite.from('/arpg-sample/images/mikan/yane.png')
     this.fg.anchor.x = 0.5
     this.fg.x = 1280 / 2
     this.fg.parentGroup = this.group
@@ -37,18 +37,18 @@ export default class Scene extends PIXI.Container {
   private startOpening() {
     ease.add(this.bg, { y: -(1280 - 720) }, { duration: 9000, ease: 'linear' })
     ease.add(this.fg, { y: -(1280 - 500) }, { duration: 9000, ease: 'linear' })
-    const titleA = PIXI.Sprite.from('/images/mikan/title_a.png')
+    const titleA = PIXI.Sprite.from('/arpg-sample/images/mikan/title_a.png')
     titleA.position.set(50, 50)
-    const titleB = PIXI.Sprite.from('/images/mikan/title_b.png')
+    const titleB = PIXI.Sprite.from('/arpg-sample/images/mikan/title_b.png')
     titleB.position.set(1000, 124)
     this.addChild(titleA)
     this.addChild(titleB)
-    const startButton = new Button('/images/mikan/btn_start.png')
+    const startButton = new Button('/arpg-sample/images/mikan/btn_start.png')
     startButton.x = 1280 / 2
     startButton.y = 450
     this.addChild(startButton)
     startButton.clicked = this.onTouchStart.bind(this)
-    const howtoButton = new Button('/images/mikan/btn_howto.png')
+    const howtoButton = new Button('/arpg-sample/images/mikan/btn_howto.png')
     howtoButton.x = 1280 / 2
     howtoButton.y = 600
     this.addChild(howtoButton)

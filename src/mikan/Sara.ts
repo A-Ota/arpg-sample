@@ -4,7 +4,7 @@ import Mikan from './Mikan'
 export default class Sara extends PIXI.Sprite {
   public mikan: Mikan | null = null
   constructor (group: PIXI.display.Group) {
-    super(PIXI.Texture.from('/images/mikan/sara.png'))
+    super(PIXI.Texture.from('/arpg-sample/images/mikan/sara.png'))
     this.anchor.set(0.5, 0.5)
     this.parentGroup = group
   }

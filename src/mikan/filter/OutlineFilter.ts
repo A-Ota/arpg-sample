@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
 // import {vertex} from '@tools/fragments';
 // import fragment from './outline.frag';
 import { Filter } from 'pixi.js'
@@ -40,6 +41,15 @@ void main(void) {
 }
 `
 
+const toFragmentSrc = (quality: number) => {
+    const samples =  Math.max(
+        quality * OutlineFilter.MAX_SAMPLES,
+        OutlineFilter.MIN_SAMPLES
+    );
+    const angleStep = (Math.PI * 2 / samples).toFixed(7);
+    return fragment.replace(/\{\{angleStep\}\}/, angleStep)
+}
+
 /**
  * OutlineFilter, originally by mishaa
  * http://www.html5gamedevs.com/topic/10640-outline-a-sprite-change-certain-colors/?p=69966
@@ -79,13 +89,7 @@ class OutlineFilter extends Filter {
  */
  static MAX_SAMPLES = 100;
     constructor(thickness = 1, color = 0x000000, quality = 0.1) {
-        const samples =  Math.max(
-            quality * OutlineFilter.MAX_SAMPLES,
-            OutlineFilter.MIN_SAMPLES
-        );
-        const angleStep = (Math.PI * 2 / samples).toFixed(7);
-
-        super(vertex, fragment.replace(/\{\{angleStep\}\}/, angleStep));
+        super(vertex, toFragmentSrc(quality));
 
         this.uniforms.thickness = new Float32Array([0, 0]);
         this.uniforms.outlineColor = new Float32Array([0, 0, 0, 1]);

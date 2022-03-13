@@ -43,14 +43,14 @@ class Gauge extends PIXI.Container {
   private lvNumText!: PIXI.Text
   constructor () {
     super()
-    this.addChild(PIXI.Sprite.from('/images/mikan/gauge_bg.png'))
+    this.addChild(PIXI.Sprite.from('/arpg-sample/images/mikan/gauge_bg.png'))
     const container = new PIXI.Container()
-    container.addChild(PIXI.Sprite.from('/images/mikan/gauge.png'))
+    container.addChild(PIXI.Sprite.from('/arpg-sample/images/mikan/gauge.png'))
     const containerRecover = new PIXI.Container()
-    containerRecover.addChild(PIXI.Sprite.from('/images/mikan/gauge_recover.png'))
+    containerRecover.addChild(PIXI.Sprite.from('/arpg-sample/images/mikan/gauge_recover.png'))
     this.addChild(containerRecover)
     this.addChild(container)
-    this.addChild(PIXI.Sprite.from('/images/mikan/gauge_fg.png'))
+    this.addChild(PIXI.Sprite.from('/arpg-sample/images/mikan/gauge_fg.png'))
 
     // マスク
     this.gaugeMask = new PIXI.Graphics()
@@ -113,21 +113,21 @@ class UiLayer extends PIXI.Container {
     this.gauge.lv = value
   }
   showTimeupDialog (stageNum: number) {
-    const timeup = PIXI.Sprite.from('/images/mikan/timeup.png')
+    const timeup = PIXI.Sprite.from('/arpg-sample/images/mikan/timeup.png')
     timeup.anchor.set(0.5, 0.5)
     timeup.position.set(SCREEN_WIDTH / 2, 300 - 4)
     timeup.scale.set(0)
     ease.add(timeup, { scale: 1 }, { duration: 120, ease: 'easeOutQuad'})
     ease.add(timeup, { y: 300 + 4 }, { wait: 120, repeat: -1, reverse: true, duration: 800, ease: 'easeInOutQuad' })
     this.addChild(timeup)
-    const finishButton = new Button('/images/mikan/btn_finish.png')
+    const finishButton = new Button('/arpg-sample/images/mikan/btn_finish.png')
     finishButton.x = 1100
     finishButton.y = 640
     this.addChild(finishButton)
     finishButton.clicked = this.timeupDialogFinishedCallback
   }
   showClearAnimation (stageNum: number) {
-    const seikai = PIXI.Sprite.from('/images/mikan/clear.png')
+    const seikai = PIXI.Sprite.from('/arpg-sample/images/mikan/clear.png')
     seikai.anchor.set(0.5, 0.5)
     seikai.position.set(SCREEN_WIDTH / 2, 300 - 4)
     seikai.scale.set(0)
@@ -222,7 +222,7 @@ class StageLayer extends PIXI.Container {
     this.container.addChild(layer)
 
     // 背景
-    this.bg = PIXI.Sprite.from('/images/mikan/dohyou.png')
+    this.bg = PIXI.Sprite.from('/arpg-sample/images/mikan/dohyou.png')
     this.bg.y = -520
     this.bg.parentGroup = this.group
     this.bg.zIndex = 0
@@ -320,7 +320,7 @@ class StageLayer extends PIXI.Container {
       .drawRect(-256, 256, 512, 300)
       .endFill()
     this.spotlightContainer.addChild(black)
-    const sprite = PIXI.Sprite.from('/images/mikan/spotlight.png')
+    const sprite = PIXI.Sprite.from('/arpg-sample/images/mikan/spotlight.png')
     sprite.anchor.set(0.5, 0.5)
     this.spotlightContainer.addChild(sprite)
     this.spotlightContainer.x = (SCREEN_WIDTH / 2) - 430
@@ -414,10 +414,10 @@ export default class Scene extends PIXI.Container {
     console.dir(stageOptions)
     this.stageLayer.nextStage(stageOptions)
     PIXI.Ticker.shared.add(this.update, this)
-    sound.add('clear', '/sounds/quiz1.wav')
-    sound.add('set', '/sounds/cursor_01.wav')
-    sound.add('drop', '/sounds/drop3.mp3')
-    // sound.add('set', '/sounds/pi73.wav')
+    sound.add('clear', '/arpg-sample/sounds/quiz1.wav')
+    sound.add('set', '/arpg-sample/sounds/cursor_01.wav')
+    sound.add('drop', '/arpg-sample/sounds/drop3.mp3')
+    // sound.add('set', '/arpg-sample/sounds/pi73.wav')
   }
   update (delta: number) {
     this.stageLayer.update()
