@@ -1,3 +1,4 @@
+// TODO:みかん落下音
 import * as PIXI from 'pixi.js'
 import Sara from './Sara'
 import { CRTFilter } from './filter/CRTFilter'
@@ -13,6 +14,13 @@ const RECOVER_FRAME_COUNT = 60 * 5
 export type FilterType = 'crt' | 'noise' | 'blur' | 'refrection' | 'spotlight'
 const SCREEN_WIDTH = 1280
 const SCREEN_HEIGHT = 720
+
+const calcRecoverFrameCount = (stageNum: number) => {
+  if (stageNum > 12) {
+    return RECOVER_FRAME_COUNT * 1.5
+  }
+  return RECOVER_FRAME_COUNT
+}
 
 export type StageOptions = {
   mikanNum: number;
@@ -100,7 +108,10 @@ class UiLayer extends PIXI.Container {
   set lv (value: number) {
     this.gauge.lv = value
   }
-  showClearAnimation () {
+  showGameOverAnimation () {
+
+  }
+  showClearAnimation (stageNum: number) {
     const seikai = 
     PIXI.Sprite.from('/images/mikan/clear.png')
     seikai.anchor.set(0.5, 0.5)
@@ -109,7 +120,7 @@ class UiLayer extends PIXI.Container {
     ease.add(seikai, { scale: 1 }, { duration: 120, ease: 'easeOutQuad'})
     const animation = ease.add(seikai, { y: 300 + 4 }, { wait: 120, repeat: 1, reverse: true, duration: 800, ease: 'easeInOutQuad' })
     let step = 0
-    const addAngle = (360 * (RECOVER_FRAME_COUNT / MAX_FRAME_COUNT)) / 80
+    const addAngle = (360 * (calcRecoverFrameCount(stageNum) / MAX_FRAME_COUNT)) / 80
     this.animationLock = true
     animation.on('each', (easing: Easing) => {
       // ゲージの回復アニメーション
@@ -126,7 +137,7 @@ class UiLayer extends PIXI.Container {
       this.gauge.gaugeRecoverAngle = 0
     })
     this.addChild(seikai)
-    this.gauge.gaugeRecoverAngle = this.gauge.gaugeAngle + (360 * (RECOVER_FRAME_COUNT / MAX_FRAME_COUNT))
+    this.gauge.gaugeRecoverAngle = this.gauge.gaugeAngle + (360 * (calcRecoverFrameCount(stageNum) / MAX_FRAME_COUNT))
   }
 }
 
@@ -401,14 +412,14 @@ export default class Scene extends PIXI.Container {
     }
   }
   onClear() {
-    this.uiLayer.showClearAnimation()
+    this.uiLayer.showClearAnimation(this.stageNum)
     this.stopTimer = true
     sound.play('clear')
   }
   onClearAnimationComplete() {
     ++this.stageNum
     // タイマー回復
-    this.restFrameCount = Math.min(this.restFrameCount + RECOVER_FRAME_COUNT, MAX_FRAME_COUNT)
+    this.restFrameCount = Math.min(this.restFrameCount + calcRecoverFrameCount(this.stageNum), MAX_FRAME_COUNT)
     this.uiLayer.lv = this.stageNum + 1
     const stageOptions = generateStageOptions(this.stageNum)
     console.dir(stageOptions)
