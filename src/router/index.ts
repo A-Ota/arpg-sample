@@ -6,7 +6,7 @@ Vue.use(VueRouter)
 const routes = [
   {
     path: '/',
-    redirect: '/list',
+    redirect: '/mikan',
   },
   {
     path: '/list',
