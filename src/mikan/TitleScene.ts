@@ -2,6 +2,7 @@ import * as PIXI from 'pixi.js'
 import { ease } from 'pixi-ease'
 import StageScene from './StageScene'
 import Button from './Button'
+import { TutorialModal } from './TutorialModal'
 
 export default class Scene extends PIXI.Container {
   private group!:  PIXI.display.Group
@@ -51,11 +52,17 @@ export default class Scene extends PIXI.Container {
     const howtoButton = new Button('/arpg-sample/images/mikan/btn_howto.png')
     howtoButton.x = 1280 / 2
     howtoButton.y = 600
+    howtoButton.clicked = this.onTouchHowto.bind(this)
     this.addChild(howtoButton)
   }
 
   private onTouchStart() {
     (window as any).app.stage.removeChildren()
     ;(window as any).app.stage.addChild(new StageScene())
+  }
+
+  private onTouchHowto() {
+    const tutorialModal = new TutorialModal()
+    this.addChild(tutorialModal)
   }
 }
