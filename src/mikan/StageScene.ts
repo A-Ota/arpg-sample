@@ -113,6 +113,7 @@ class UiLayer extends PIXI.Container {
     this.gauge.lv = value
   }
   showTimeupDialog (stageNum: number) {
+    sound.play('finish')
     const timeup = PIXI.Sprite.from('/arpg-sample/images/mikan/timeup.png')
     timeup.anchor.set(0.5, 0.5)
     timeup.position.set(SCREEN_WIDTH / 2, 300 - 4)
@@ -414,10 +415,6 @@ export default class Scene extends PIXI.Container {
     console.dir(stageOptions)
     this.stageLayer.nextStage(stageOptions)
     PIXI.Ticker.shared.add(this.update, this)
-    sound.add('clear', '/arpg-sample/sounds/quiz1.wav')
-    sound.add('set', '/arpg-sample/sounds/cursor_01.wav')
-    sound.add('drop', '/arpg-sample/sounds/drop3.mp3')
-    // sound.add('set', '/arpg-sample/sounds/pi73.wav')
   }
   update (delta: number) {
     this.stageLayer.update()

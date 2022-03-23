@@ -3,6 +3,7 @@ import { ease } from 'pixi-ease'
 import StageScene from './StageScene'
 import Button from './Button'
 import { TutorialModal } from './TutorialModal'
+import { sound } from '@pixi/sound'
 
 export default class Scene extends PIXI.Container {
   private group!:  PIXI.display.Group
@@ -14,6 +15,10 @@ export default class Scene extends PIXI.Container {
   }
 
   initialize () {
+    sound.add('clear', '/arpg-sample/sounds/quiz1.wav')
+    sound.add('set', '/arpg-sample/sounds/cursor_01.wav')
+    sound.add('drop', '/arpg-sample/sounds/drop3.mp3')
+    sound.add('finish', '/arpg-sample/sounds/finish.mp3')
     this.sortableChildren = true
     this.group = new PIXI.display.Group(0, true)
     const layer = new PIXI.display.Layer(this.group)
