@@ -1,4 +1,3 @@
-import { Stage } from "pixi-layers"
 import { FilterType, StageOptions } from "./StageScene"
 
 const stageNumToDifficurityRange = (stageNum: number): [number, number] => {
@@ -99,7 +98,22 @@ const generateHRange = () => {
   // 始点をランダムでずらす
   let additional = 0
   if (Math.random() < 0.5) {
-    additional = Math.floor(Math.random() * 300)
+    // 範囲が80～110, 270～300に被る場合は再計算
+    for (;;) {
+      additional = Math.floor(Math.random() * 300)
+      let ng50_110 = false
+      let ng270_300 = false
+      if ((additional >= 50 && additional <= 110) || ((additional + distance) >= 50 && (additional + distance) <= 110)) {
+        ng50_110 = true
+      }
+      if ((additional >= 270 && additional <= 300) || ((additional + distance) >= 270 && (additional + distance) <= 300)) {
+        ng270_300 = true
+      }
+      // 見づらい範囲には入っていない
+      if (!ng50_110 && !ng270_300) {
+        break
+      }
+    }
   }
   return [0 + additional, distance + additional]
 }
