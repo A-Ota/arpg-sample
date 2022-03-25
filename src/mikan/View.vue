@@ -1,5 +1,10 @@
 <style scoped lang="scss">
 .root {
+  >.canvas {
+    max-width: 100%;
+    max-height: 100vh;
+    vertical-align: bottom;
+  }
 }
 </style>
 <template>
