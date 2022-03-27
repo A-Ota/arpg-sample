@@ -1,5 +1,13 @@
 import { FilterType, StageOptions } from "./StageScene"
 
+export const sleep = (ms: number) => {
+  return new Promise<void>(resolve => {
+    setTimeout(() => {
+      resolve()
+    }, ms)
+  })
+}
+
 const stageNumToDifficurityRange = (stageNum: number): [number, number] => {
   if (stageNum <= 5) {
     return [4, 5]

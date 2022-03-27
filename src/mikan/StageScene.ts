@@ -6,7 +6,7 @@ import { ReflectionFilter } from './filter/ReflectionFilter'
 import Mikan from './Mikan'
 import TitleScene from './TitleScene'
 import { ease, Easing } from 'pixi-ease'
-import { generateStageOptions } from './Util'
+import { generateStageOptions, sleep } from './Util'
 import { sound } from '@pixi/sound'
 import Button from './Button'
 
@@ -94,7 +94,8 @@ class UiLayer extends PIXI.Container {
   private animationLock = false
   constructor (
     private clearAnimationCompleteCallback: () => void,
-    private timeupDialogFinishedCallback: () => void
+    private timeupDialogFinishedCallback: () => void,
+    private shareCallback: () => void
   )
   {
     super()
@@ -126,6 +127,11 @@ class UiLayer extends PIXI.Container {
     finishButton.y = 640
     this.addChild(finishButton)
     finishButton.clicked = this.timeupDialogFinishedCallback
+    const shareButton = new Button('/arpg-sample/images/mikan/btn_share.png')
+    shareButton.x = 170
+    shareButton.y = 640
+    this.addChild(shareButton)
+    shareButton.clicked = this.shareCallback
   }
   showClearAnimation (stageNum: number) {
     const seikai = PIXI.Sprite.from('/arpg-sample/images/mikan/clear.png')
@@ -409,7 +415,11 @@ export default class Scene extends PIXI.Container {
     this.addChild(this.stageLayer)
     this.stageLayer.initialize()
     // stageLayer.addCrtFilter()
-    this.uiLayer = new UiLayer(this.onClearAnimationComplete.bind(this), this.onTimeupDialogFinished.bind(this))
+    this.uiLayer = new UiLayer(
+      this.onClearAnimationComplete.bind(this),
+      this.onTimeupDialogFinished.bind(this),
+      this.onShare.bind(this)
+    )
     this.addChild(this.uiLayer)
     const stageOptions = generateStageOptions(this.stageNum)
     console.dir(stageOptions)
@@ -453,5 +463,33 @@ export default class Scene extends PIXI.Container {
     console.dir(stageOptions)
     this.stageLayer.nextStage(stageOptions)
     this.stopTimer = false
+  }
+  async onShare() {
+    this.uiLayer.children.forEach(child => {
+      if (!(child instanceof Gauge)) {
+        child.visible = false
+      }
+    })
+    await sleep(20)
+    const app = (window as any).app as PIXI.Application
+    const data = {
+      'base64Image': app.renderer.view.toDataURL()
+    }
+    await sleep(20)
+    this.uiLayer.children.forEach(child => {
+      child.visible = true
+    })
+    // const response = await fetch('http://127.0.0.1:3000/mikan/upload', {
+    const response = await fetch('http://puyo.weakflour.net/mikan/upload', {
+      method: 'POST',
+      mode: 'cors',
+      cache: 'no-cache',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    })
+    const result = await response.json()
+    window.open(`https://twitter.com/intent/tweet?text=みかん奉行HDでLV${this.stageNum + 1}まで到達しました。&url=http://puyo.weakflour.net/mikan/share?t=${result.timestamp}`)
   }
 }

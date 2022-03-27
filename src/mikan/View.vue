@@ -32,7 +32,8 @@ export default defineComponent({
         height: 720,
         view: canvasRef.value,
         transparent: true,
-        autoStart: true
+        autoStart: true,
+        preserveDrawingBuffer: true
       })
       app.ticker.maxFPS = 60
       app.ticker.minFPS = 60
