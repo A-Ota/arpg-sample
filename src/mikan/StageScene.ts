@@ -487,7 +487,7 @@ export default class Scene extends PIXI.Container {
       child.visible = true
     })
     // const response = await fetch('http://127.0.0.1:3000/mikan/upload', {
-    const response = await fetch('http://puyo.weakflour.net/mikan/upload', {
+    const response = await fetch('https://puyo.weakflour.net/mikan/upload', {
       method: 'POST',
       mode: 'cors',
       cache: 'no-cache',
