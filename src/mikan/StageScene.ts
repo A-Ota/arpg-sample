@@ -465,16 +465,23 @@ export default class Scene extends PIXI.Container {
     this.stopTimer = false
   }
   async onShare() {
+    const app = (window as any).app as PIXI.Application
     this.uiLayer.children.forEach(child => {
       if (!(child instanceof Gauge)) {
         child.visible = false
       }
     })
     await sleep(20)
-    const app = (window as any).app as PIXI.Application
+
+    const resizedCanvas = document.createElement("canvas") as HTMLCanvasElement
+    const resizedContext = resizedCanvas.getContext("2d") as CanvasRenderingContext2D
+    resizedCanvas.width = SCREEN_WIDTH / 2
+    resizedCanvas.height = SCREEN_HEIGHT / 2
+    resizedContext.drawImage(app.renderer.view, 0, 0, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
     const data = {
-      'base64Image': app.renderer.view.toDataURL()
+      'base64Image': resizedCanvas.toDataURL()
     }
+
     await sleep(20)
     this.uiLayer.children.forEach(child => {
       child.visible = true
