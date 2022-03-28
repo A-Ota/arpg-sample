@@ -501,6 +501,8 @@ export default class Scene extends PIXI.Container {
 #みかん奉行HD
 `)
     const message = `https://twitter.com/intent/tweet?text=${text}&url=http://puyo.weakflour.net/mikan/share?t=${result.timestamp}`
-    window.open(message)
+    if (!window.open(message)) {
+      window.location.href = message
+    }
   }
 }
