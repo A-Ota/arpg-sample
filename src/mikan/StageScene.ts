@@ -497,6 +497,10 @@ export default class Scene extends PIXI.Container {
       body: JSON.stringify(data)
     })
     const result = await response.json()
-    window.open(`https://twitter.com/intent/tweet?text=みかん奉行HDでLV${this.stageNum + 1}まで到達しました。&url=http://puyo.weakflour.net/mikan/share?t=${result.timestamp}`)
+    const text = encodeURIComponent(`みかん奉行HDでLV${this.stageNum + 1}まで到達しました。
+#みかん奉行HD
+`)
+    const message = `https://twitter.com/intent/tweet?text=${text}&url=http://puyo.weakflour.net/mikan/share?t=${result.timestamp}`
+    window.open(message)
   }
 }
