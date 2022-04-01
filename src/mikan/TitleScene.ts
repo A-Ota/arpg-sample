@@ -40,10 +40,12 @@ export default class Scene extends PIXI.Container {
     this.startOpening()
 
     // 読み込み
-    PIXI.Loader.shared.add('/arpg-sample/images/mikan/mikan.png')
-    PIXI.Loader.shared.add('/arpg-sample/images/mikan/tutorial1.png')
-    PIXI.Loader.shared.add('/arpg-sample/images/mikan/tutorial2.png')
-    PIXI.Loader.shared.add('/arpg-sample/images/mikan/spotlight.png')
+    PIXI.Loader.shared
+      .add('/arpg-sample/images/mikan/mikan.png')
+      .add('/arpg-sample/images/mikan/tutorial1.png')
+      .add('/arpg-sample/images/mikan/tutorial2.png')
+      .add('/arpg-sample/images/mikan/spotlight.png')
+      .load()
   }
 
   private startOpening() {
