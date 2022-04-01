@@ -1,4 +1,3 @@
-// TODO:みかん落下音
 import * as PIXI from 'pixi.js'
 import Sara from './Sara'
 import { CRTFilter } from './filter/CRTFilter'
@@ -432,7 +431,16 @@ export default class Scene extends PIXI.Container {
       return
     }
     if (!this.stopTimer) {
-      this.restFrameCount -= delta
+      // ステージ30を超えると減りが早くなる
+      if (this.stageNum < 30) {
+        this.restFrameCount -= delta
+      } else if (this.stageNum < 40) {
+        this.restFrameCount -= delta * 1.25
+      } else if (this.stageNum < 50) {
+        this.restFrameCount -= delta * 1.5
+      } else {
+        this.restFrameCount -= delta * 2
+      }
     }
     this.uiLayer.restTimeRate = (this.restFrameCount / MAX_FRAME_COUNT)
     if (this.restFrameCount <= 0) {

@@ -38,6 +38,12 @@ export default class Scene extends PIXI.Container {
     this.fg.zIndex = 100
     this.addChild(this.fg)
     this.startOpening()
+
+    // 読み込み
+    PIXI.Loader.shared.add('/arpg-sample/images/mikan/mikan.png')
+    PIXI.Loader.shared.add('/arpg-sample/images/mikan/tutorial1.png')
+    PIXI.Loader.shared.add('/arpg-sample/images/mikan/tutorial2.png')
+    PIXI.Loader.shared.add('/arpg-sample/images/mikan/spotlight.png')
   }
 
   private startOpening() {
