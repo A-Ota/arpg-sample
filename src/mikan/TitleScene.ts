@@ -5,6 +5,8 @@ import Button from './Button'
 import { TutorialModal } from './TutorialModal'
 import { sound } from '@pixi/sound'
 
+let resourcePreloaded = false
+
 export default class Scene extends PIXI.Container {
   private group!:  PIXI.display.Group
   private bg!: PIXI.Sprite
@@ -40,12 +42,14 @@ export default class Scene extends PIXI.Container {
     this.startOpening()
 
     // 読み込み
-    PIXI.Loader.shared
-      .add('/arpg-sample/images/mikan/mikan.png')
-      .add('/arpg-sample/images/mikan/tutorial1.png')
-      .add('/arpg-sample/images/mikan/tutorial2.png')
-      .add('/arpg-sample/images/mikan/spotlight.png')
-      .load()
+    if (!resourcePreloaded) {
+      PIXI.Loader.shared
+        .add('/arpg-sample/images/mikan/mikan.png')
+        .add('/arpg-sample/images/mikan/tutorial1.png')
+        .add('/arpg-sample/images/mikan/tutorial2.png')
+        .add('/arpg-sample/images/mikan/spotlight.png')
+        .load(() => resourcePreloaded = true)
+    }
   }
 
   private startOpening() {
