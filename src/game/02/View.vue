@@ -24,6 +24,11 @@ const KEY_CODE_UP = 38
 const KEY_CODE_RIGHT = 39
 const KEY_CODE_DOWN = 40
 const KEY_CODE_SHOT = 90
+const GAME_PAD_SHOT = 0
+const GAME_PAD_UP = 12
+const GAME_PAD_RIGHT = 15
+const GAME_PAD_DOWN = 13
+const GAME_PAD_LEFT = 14
 
 class Actor extends PIXI.Container {
   private iterator: Generator | null = null
@@ -67,19 +72,19 @@ class PlayerRoutine extends RoutineBase {
   *update () {
     let nextFireFrame = 0
     while (true) {
-      if (this.inputManager.isPressing(KEY_CODE_LEFT)) {
+      if (this.inputManager.isPressing(KEY_CODE_LEFT) || this.inputManager.isPressingGamepad(GAME_PAD_LEFT)) {
         this.actor.x -= 2
       }
-      if (this.inputManager.isPressing(KEY_CODE_RIGHT)) {
+      if (this.inputManager.isPressing(KEY_CODE_RIGHT) || this.inputManager.isPressingGamepad(GAME_PAD_RIGHT)) {
         this.actor.x += 2
       }
-      if (this.inputManager.isPressing(KEY_CODE_UP)) {
+      if (this.inputManager.isPressing(KEY_CODE_UP) || this.inputManager.isPressingGamepad(GAME_PAD_UP)) {
         this.actor.y -= 2
       }
-      if (this.inputManager.isPressing(KEY_CODE_DOWN)) {
+      if (this.inputManager.isPressing(KEY_CODE_DOWN) || this.inputManager.isPressingGamepad(GAME_PAD_DOWN)) {
         this.actor.y += 2
       }
-      if (this.inputManager.isPressing(KEY_CODE_SHOT)) {
+      if (this.inputManager.isPressing(KEY_CODE_SHOT) || this.inputManager.isPressingGamepad(GAME_PAD_SHOT)) {
         if (nextFireFrame === 0) {
           const bullet = new Actor('/images/game/02/shot_red.png', new BulletRoutine(), this.actor.game)
           bullet.position.set(this.actor.x, this.actor.y)
@@ -149,6 +154,7 @@ export default defineComponent({
   components: {
   },
   setup (props: any, context: any) {
+    let gamePads: any = null
     const canvasRef = ref()
     const inputManager = useInputManager()
     let game: Game | null = null
@@ -156,10 +162,20 @@ export default defineComponent({
       if (game == null) {
         return
       }
+      inputManager.enterUpdate()
       game.update(delta)
-      inputManager.endTurn()
+      inputManager.leaveUpdate()
+      /*
+      const debugGamePad = gamePads![0]!
+      debugGamePad.buttons.forEach((button: any) => {
+        buttonStatus += `${button.pressed ? 1 : 0} `
+      })
+      console.log(buttonStatus)
+      */
+      // console.log(navigator.getGamepads()![0]!.buttons[0])
     }
     onMounted(() => {
+      gamePads = navigator.getGamepads()
       const app = new PIXI.Application({
         width: 640,
         height: 480,
