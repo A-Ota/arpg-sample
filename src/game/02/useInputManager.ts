@@ -1,6 +1,6 @@
 import { onMounted, onUnmounted } from '@vue/composition-api'
 
-type ReturnType = {
+export type InputManager = {
   endTurn: () => void;
   isPressing: (keyCode: number) => boolean;
   isPressed: (keyCode: number) => boolean;
@@ -8,7 +8,7 @@ type ReturnType = {
   reset: () => void;
 }
 
-export default (): ReturnType => {
+export default (): InputManager => {
   let lastPressedKeyCodeSet: Set<number> = new Set()
   const nowPressedKeyCodeSet: Set<number> = new Set()
   const onKeyDown = (e: KeyboardEvent) => {
