@@ -3,16 +3,16 @@ import { AppearanceBase } from "../appearance/ApppearanceBase"
 import { RoutineBase } from "../routine/RoutineBase"
 
 export class Actor extends PIXI.Container {
-  private iterator: Generator | null = null
+  private routineUpdater: Generator | null = null
   constructor (private appearance: AppearanceBase, private routine: RoutineBase, public game: Game) {
     super()
     appearance.setup(this)
     this.routine.actor = this
-    this.iterator = this.routine.update()
+    this.routineUpdater = this.routine.generateUpdate()
   }
   update (delta: number) {
-    if (this.iterator != null) {
-      this.iterator.next()
+    if (this.routineUpdater != null) {
+      this.routineUpdater.next()
     }
   }
 }

@@ -1,7 +1,7 @@
 import { RoutineBase } from "./RoutineBase";
 
 export class EmptyRoutine extends RoutineBase {
-  *update () {
+  *generateUpdate () {
     while (true) {
       yield
     }

@@ -4,7 +4,7 @@ export class BulletRoutine extends RoutineBase {
   constructor () {
     super()
   }
-  *update () {
+  *generateUpdate () {
     for (let i = 0; i < 30; ++i) {
       this.actor.y -= 6
       yield

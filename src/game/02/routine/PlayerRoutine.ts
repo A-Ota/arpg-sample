@@ -9,8 +9,22 @@ export class PlayerRoutine extends RoutineBase {
   constructor (private inputManager: InputManager) {
     super()
   }
-  *update () {
+  *generateFire () {
     let nextFireFrame = 0
+    while (true) {
+      if (nextFireFrame === 0) {
+        const bullet = new Actor(new SimpleAppearance('/images/game/02/shot_red.png'), new BulletRoutine(), this.actor.game)
+        bullet.position.set(this.actor.x, this.actor.y)
+        this.actor.game.addActor(bullet, 'playerShot')
+        nextFireFrame = 4
+      } else {
+        nextFireFrame--
+      }
+      yield
+    }
+  }
+  *generateUpdate () {
+    const fire = this.generateFire()
     while (true) {
       if (this.inputManager.isPressing(KEY_CODE_LEFT) || this.inputManager.isPressingGamepad(GAME_PAD_LEFT)) {
         this.actor.x -= 2
@@ -25,14 +39,7 @@ export class PlayerRoutine extends RoutineBase {
         this.actor.y += 2
       }
       if (this.inputManager.isPressing(KEY_CODE_SHOT) || this.inputManager.isPressingGamepad(GAME_PAD_SHOT)) {
-        if (nextFireFrame === 0) {
-          const bullet = new Actor(new SimpleAppearance('/images/game/02/shot_red.png'), new BulletRoutine(), this.actor.game)
-          bullet.position.set(this.actor.x, this.actor.y)
-          this.actor.game.addActor(bullet, 'playerShot')
-          nextFireFrame = 4
-        } else {
-          nextFireFrame--
-        }
+        fire.next()
       }
       yield
     }
