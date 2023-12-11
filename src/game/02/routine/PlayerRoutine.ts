@@ -1,5 +1,6 @@
 import { KEY_CODE_LEFT, KEY_CODE_DOWN, KEY_CODE_RIGHT, KEY_CODE_L_SHOT, KEY_CODE_R_SHOT, KEY_CODE_UP, GAME_PAD_DOWN, GAME_PAD_LEFT, GAME_PAD_RIGHT, GAME_PAD_L_SHOT, GAME_PAD_R_SHOT, GAME_PAD_UP } from "../Game"
 import { Actor } from "../actor/Actor"
+import { RotateAppearance } from "../appearance/RotateAppearance"
 import { SimpleAppearance } from "../appearance/SimpleAppearance"
 import { InputManager } from "../useInputManager"
 import { BulletRoutine } from "./BulletRoutine"
@@ -27,8 +28,8 @@ export class PlayerRoutine extends RoutineBase {
     let nextFireFrame = 0
     while (true) {
       if (nextFireFrame === 0) {
-        const bullet = new Actor(new SimpleAppearance('/images/game/02/shot_green.png'), new BulletRoutine(4, -25 + Math.random() * 50), this.actor.game)
-        bullet.position.set(this.actor.x, this.actor.y)
+        const bullet = new Actor(new RotateAppearance('/images/game/02/shot_blue.png', 10), new BulletRoutine(), this.actor.game)
+        bullet.position.set(this.actor.x + 10, this.actor.y)
         this.actor.game.addActor(bullet, 'playerShot')
         nextFireFrame = 4
       } else {
