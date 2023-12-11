@@ -27,8 +27,8 @@ export class PlayerRoutine extends RoutineBase {
     let nextFireFrame = 0
     while (true) {
       if (nextFireFrame === 0) {
-        const bullet = new Actor(new SimpleAppearance('/images/game/02/shot_red.png'), new BulletRoutine(), this.actor.game)
-        bullet.position.set(this.actor.x + 10, this.actor.y)
+        const bullet = new Actor(new SimpleAppearance('/images/game/02/shot_green.png'), new BulletRoutine(4, -25 + Math.random() * 50), this.actor.game)
+        bullet.position.set(this.actor.x, this.actor.y)
         this.actor.game.addActor(bullet, 'playerShot')
         nextFireFrame = 4
       } else {
