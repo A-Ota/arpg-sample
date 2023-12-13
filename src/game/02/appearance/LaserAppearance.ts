@@ -21,7 +21,7 @@ export class LaserAppearance extends AppearanceBase {
     this.root.addChild(this.sprite1)
     this.sprite2.anchor.set(0.5, 1)
     this.sprite2.scale.y = 20
-    this.sprite2.y = -this.sprite1.height
+    this.sprite2.y = -24
     this.root.addChild(this.sprite2)
   }
   *generateUpdate (): Generator {

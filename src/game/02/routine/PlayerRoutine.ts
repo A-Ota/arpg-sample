@@ -65,7 +65,6 @@ export class PlayerRoutine extends RoutineBase {
     lFire.next()
     const rFire = this.generateLaser()
     rFire.next()
-    // rFire.next()
     while (true) {
       if (this.inputManager.isPressing(KEY_CODE_LEFT) || this.inputManager.isPressingGamepad(GAME_PAD_LEFT)) {
         this.actor.x -= 2
