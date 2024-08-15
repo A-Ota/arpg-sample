@@ -1,4 +1,4 @@
-import { SEND_TEST } from './mutation-types'
+import { SEND_TEST, TEST_STATE } from './mutation-types'
 
 export default {
   namespaced: true,
@@ -6,6 +6,9 @@ export default {
     testState: 0
   },
   getters: {
+    [TEST_STATE](state: any): any {
+      return state.testState
+    }
   },
   mutations: {
     [SEND_TEST](state: any) {

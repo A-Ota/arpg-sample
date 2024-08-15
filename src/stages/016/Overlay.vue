@@ -11,11 +11,15 @@
 import { defineComponent, onMounted, onUnmounted, ref, watch } from '@vue/composition-api'
 import * as PIXI from 'pixi.js'
 import { TransitionObject, preloadAsync } from '@/stages/016/Overlay'
+import { createNamespacedHelpers } from 'vuex-composition-helpers'
+import { STAGE_016_TRANSITION_STATE } from '@/store/stages/mutation-types'
+const { useGetters: useStagesGetters } = createNamespacedHelpers('stages')
 
 export default defineComponent({
   props: {
   },
   setup (props, context) {
+    const { stage016TransitionState } = useStagesGetters([STAGE_016_TRANSITION_STATE])
     const canvasRef = ref<HTMLCanvasElement | null>(null)
     let app: PIXI.Application | null = null
     let transition: TransitionObject | null = null
@@ -44,9 +48,6 @@ export default defineComponent({
         transparent: true
       })
       transition = new TransitionObject(app.renderer, rect.width, rect.height)
-      app.stage.addChild(transition)
-      PIXI.Ticker.shared.add(update)
-      transition.start()
     })
     onUnmounted(() => {
       const ticker = PIXI.Ticker.shared
@@ -60,6 +61,27 @@ export default defineComponent({
         })
       }
     })
+    watch(() => [stage016TransitionState.value],
+      ([newTransitionState]: Array<any>, [oldTransitionState]: Array<any>) => {
+        console.log(newTransitionState)
+        if (app == null || transition == null) {
+          return
+        }
+        if (!oldTransitionState.state && newTransitionState.state) {
+          app.stage.addChild(transition)
+          PIXI.Ticker.shared.add(update)
+          transition.start(newTransitionState.resolve)
+        } else if (oldTransitionState.state && !newTransitionState.state) {
+          transition.finish(() => {
+            if (app == null || transition == null) {
+              return
+            }
+            app.stage.removeChild(transition)
+            PIXI.Ticker.shared.remove(update)
+          })
+        }
+      }
+    )
     return {
       canvasRef
     }

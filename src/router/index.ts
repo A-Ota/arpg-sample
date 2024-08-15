@@ -80,6 +80,7 @@ const routes = [
   {
     path: '/stages/016',
     component: () => import('../stages/016/AppView.vue'),
+    redirect: '/stages/016/title',
     children: [
       {
         path: 'title',

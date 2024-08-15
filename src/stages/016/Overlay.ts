@@ -195,6 +195,7 @@ export class TransitionObject extends PIXI.Container {
   private tilingSprite!: ScrollingTilingSprite
   private _animationMask!: AnimationMask
   private finishCallback: () => void = () => {}
+  private _resolve: ((value: unknown) => void) | null = null
   constructor (private renderer: PIXI.Renderer, private w: number, private h: number) {
     super()
     const texture = PIXI.Texture.from(BG_IMAGE_PATH)
@@ -204,12 +205,13 @@ export class TransitionObject extends PIXI.Container {
     this.mask = this._animationMask = new AnimationMask(renderer, w, h)
   }
 
-  public start (): void {
+  public start (resolve: (value: unknown) => void): void {
     this.finished = false
     this.step = 'starting'
     const rand = Math.floor(Math.random() * 2)
     this._animationMask.transitionMode = (rand === 0 ? 'spotlight' : 'pataPata')
     this._animationMask.forward = true
+    this._resolve = resolve
   }
 
   public finish (callback: () => void): void {
@@ -221,6 +223,10 @@ export class TransitionObject extends PIXI.Container {
     if (this.step === 'starting') {
       if (this._animationMask.finished) {
         this.step = 'started'
+        if (this._resolve != null) {
+          this._resolve(null)
+          this._resolve = null
+        }
       }
     } else if (this.step === 'started') {
       if (this.finished) {

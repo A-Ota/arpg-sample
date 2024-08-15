@@ -1,8 +1,8 @@
 <style lang="scss">
 .root {
   position: relative;
-  width: 400px;
-  height: 400px;
+  width: 640px;
+  height: 1138px;
   >.overlay {
     position: absolute;
     top: 0;
