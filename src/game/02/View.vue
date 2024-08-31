@@ -21,7 +21,6 @@ import { Game } from './Game'
 import { Actor } from './actor/Actor'
 import { SimpleAppearance } from './appearance/SimpleAppearance'
 import { PlayerRoutine } from './routine/PlayerRoutine'
-import { EmptyRoutine } from './routine/EmptyRoutine'
 // import TitleScene from './TitleScene'
 // import StageScene from './StageScene'
 
@@ -72,7 +71,7 @@ export default defineComponent({
       const player = new Actor(new SimpleAppearance('/images/game/02/fighter_a.png'), new PlayerRoutine(inputManager), game)
       player.position.set(320, 400)
       game.addActor(player, 'player')
-      const enemy = new Actor(new SimpleAppearance('https://pixijs.io/examples/examples/assets/bunny.png'), new EmptyRoutine(), game)
+      const enemy = new Actor(new SimpleAppearance('https://pixijs.io/examples/examples/assets/bunny.png'), null, game)
       enemy.position.set(320, 100)
       game.addActor(enemy, 'enemy')
       // const scene = new TitleScene()
