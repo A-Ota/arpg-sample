@@ -1,21 +1,44 @@
 <style scoped lang="scss">
 .message-window-root {
-  border: 2px solid black;
-  background-color: white;
-  padding: 8px;
-  width: 400px;
-  height: 100px;
+  border: 2px solid white;
+  box-sizing: content-box;
+  // 青系の斜めグラデーション背景で半透明
+  background: linear-gradient(135deg, rgba(0, 0, 128, 0.8), rgba(0, 0, 255, 0.8));
+  padding: 12px;
+  border-radius: 16px;
+  width: 480px;
+  height: 24px * 3;
+  display: flex;
+  >.message {
+    width: 100%;
+    color: white;
+    white-space: pre-wrap;
+    font-size: 22px;
+    line-height: 24px;
+    &.fade-out {
+      animation: fadeOut 0.2s forwards;
+    }
+  }
+}
+// フェードアウトアニメーション
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 </style>
 <template>
   <div class="message-window-root" @click="onClickWindow">
-    <div>{{ innerText }}</div>
+    <div class="message" :class="{ 'fade-out': windowState === 'fade-out' }">{{ innerText }}</div>
   </div>
 </template>
 <script lang="ts">
 import { defineComponent, onMounted, reactive, ref, toRefs } from '@vue/composition-api'
 
-type WindowState = 'play' | 'fast-forward' | 'wait'
+type WindowState = 'play' | 'fast-forward' | 'wait' | 'fade-out'
 
 interface StateType {
   innerText: string;
@@ -51,14 +74,13 @@ export default defineComponent({
     }
     const playNextMessage = () => {
       state.innerText = ''
-      state.windowState = 'play'
       playNextMessageSub()
     }
     onMounted(() => {
       playNextMessage()
     })
     // ウィンドウクリックで次のメッセージに行く
-    const onClickWindow = () => {
+    const onClickWindow = async () => {
       switch (state.windowState) {
         case 'play':
           state.windowState = 'fast-forward'
@@ -66,8 +88,15 @@ export default defineComponent({
         case 'fast-forward':
           break
         case 'wait':
+          state.windowState = 'fade-out'
+          await new Promise((resolve) => {
+            setTimeout(() => {
+              resolve(true)
+            }, 240)
+          })
           currentPage++
           if (currentPage < props.messageInfos.length) {
+            state.windowState = 'play'
             playNextMessage()
           }
           break

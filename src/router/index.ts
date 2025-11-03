@@ -94,7 +94,7 @@ const routes = [
   },
   {
     path: '/stages/017',
-    component: () => import('../stages/017/View.vue')
+    component: () => import('../stages/017/AppView.vue')
   },
   {
     path: '/stages/999',
