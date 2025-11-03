@@ -2,8 +2,11 @@
 </style>
 <template>
   <MessageWindow
-    text="This is Stage 017 View.vueですわよ"
-    :messageInfos="[{ text: 'This is Stage 017 View.vueですわよ' }, { text: 'This is the second message.' }] "
+    :messageInfos="[
+      { text: 'This is Stage 017 View.vueですわよ' },
+      { text: 'This is the second message.' },
+      { text: 'This is the third message.' }
+    ]"
   />
 </template>
 <script lang="ts">

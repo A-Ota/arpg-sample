@@ -15,8 +15,11 @@
 <script lang="ts">
 import { defineComponent, onMounted, reactive, ref, toRefs } from '@vue/composition-api'
 
+type WindowState = 'play' | 'fast-forward' | 'wait'
+
 interface StateType {
   innerText: string;
+  windowState: WindowState;
 }
 
 export interface MessageInfo {
@@ -34,29 +37,41 @@ export default defineComponent({
   },
   setup (props: any, context: any) {
     const state = reactive<StateType>({
-      innerText: ''
+      innerText: '',
+      windowState: 'play'
     })
     let currentPage = 0
+    const playNextMessageSub = () => {
+      if (state.innerText.length < props.messageInfos[currentPage].text.length) {
+        state.innerText += props.messageInfos[currentPage].text.charAt(state.innerText.length)
+        setTimeout(playNextMessageSub, state.windowState === 'fast-forward' ? 16.667 : 16.667 * 3)
+      } else {
+        state.windowState = 'wait'
+      }
+    }
+    const playNextMessage = () => {
+      state.innerText = ''
+      state.windowState = 'play'
+      playNextMessageSub()
+    }
     onMounted(() => {
-      const interval = setInterval(() => {
-        if (state.innerText.length < props.messageInfos[currentPage].text.length) {
-          state.innerText += props.messageInfos[currentPage].text.charAt(state.innerText.length)
-        } else {
-          if ((currentPage + 1) >= props.messageInfos.length) {
-            // 最終ページ到達
-            clearInterval(interval)
-            return
-          } else {
-            // 次のページがある
-            state.innerText = ''
-            currentPage++
-          }
-        }
-      }, 16.667 * 3)
+      playNextMessage()
     })
     // ウィンドウクリックで次のメッセージに行く
     const onClickWindow = () => {
-      // TODO
+      switch (state.windowState) {
+        case 'play':
+          state.windowState = 'fast-forward'
+          break
+        case 'fast-forward':
+          break
+        case 'wait':
+          currentPage++
+          if (currentPage < props.messageInfos.length) {
+            playNextMessage()
+          }
+          break
+      }
     }
     return {
       ...toRefs(state),
