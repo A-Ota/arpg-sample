@@ -29,11 +29,19 @@
     opacity: 0;
   }
 }
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.15s ease-out;
+}
+.fade-enter, .fade-leave-to {
+  opacity: 0;
+}
 </style>
 <template>
-  <div class="message-window-root" @click="onClickWindow">
-    <div class="message" :class="{ 'fade-out': windowState === 'fade-out' }">{{ innerText }}</div>
-  </div>
+  <transition name="fade">
+    <div v-if="show" class="message-window-root" @click="onClickWindow">
+      <div class="message" :class="{ 'fade-out': windowState === 'fade-out' }">{{ innerText }}</div>
+    </div>
+  </transition>
 </template>
 <script lang="ts">
 import { defineComponent, onMounted, reactive, ref, toRefs } from '@vue/composition-api'
@@ -41,6 +49,7 @@ import { defineComponent, onMounted, reactive, ref, toRefs } from '@vue/composit
 type WindowState = 'play' | 'fast-forward' | 'wait' | 'fade-out'
 
 interface StateType {
+  show: boolean;
   innerText: string;
   windowState: WindowState;
 }
@@ -60,6 +69,7 @@ export default defineComponent({
   },
   setup (props: any, context: any) {
     const state = reactive<StateType>({
+      show: false,
       innerText: '',
       windowState: 'play'
     })
@@ -76,7 +86,13 @@ export default defineComponent({
       state.innerText = ''
       playNextMessageSub()
     }
-    onMounted(() => {
+    onMounted(async () => {
+      state.show = true
+      await new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(true)
+        }, 200)
+      })
       playNextMessage()
     })
     // ウィンドウクリックで次のメッセージに行く
@@ -89,15 +105,23 @@ export default defineComponent({
           break
         case 'wait':
           state.windowState = 'fade-out'
-          await new Promise((resolve) => {
-            setTimeout(() => {
-              resolve(true)
-            }, 240)
-          })
           currentPage++
           if (currentPage < props.messageInfos.length) {
+            await new Promise((resolve) => {
+              setTimeout(() => {
+                resolve(true)
+              }, 240)
+            })
             state.windowState = 'play'
             playNextMessage()
+          } else {
+            state.show = false
+            await new Promise((resolve) => {
+              setTimeout(() => {
+                resolve(true)
+              }, 200)
+            })
+            context.emit('complete')
           }
           break
       }

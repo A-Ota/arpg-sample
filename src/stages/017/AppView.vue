@@ -17,19 +17,21 @@
     <GameArea />
     <MessageWindow
       class="message-window"
-      :messageInfos="[
-        { text: 'This is Stage 017 View.vueですわよ' },
-        { text: 'This is the second message.\nほげほげ\nふがふが' },
-        { text: 'This is the third message.' }
-      ]"
+      v-if="messageInfos != null"
+      :messageInfos="messageInfos"
+      @complete="messageInfos = null"
     />
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from '@vue/composition-api'
-import MessageWindow from './MessageWindow.vue'
+import { defineComponent, onMounted, reactive, ref, toRefs } from '@vue/composition-api'
+import MessageWindow, { MessageInfo } from './MessageWindow.vue'
 import GameArea from './GameArea.vue'
+
+interface StateType {
+  messageInfos: MessageInfo[] | null;
+} 
 
 export default defineComponent({
   props: {
@@ -39,6 +41,20 @@ export default defineComponent({
     MessageWindow
   },
   setup (props: any, context: any) {
+    const state = reactive<StateType>({
+      messageInfos: null
+    })
+    onMounted(async () => {
+      await new Promise(resolve => setTimeout(resolve, 3000))
+      state.messageInfos = [
+        { text: 'これはメッセージウィンドウのサンプルです。\nクリックして次のメッセージに進みます。' },
+        { text: 'Vue.jsのComposition APIを使って実装しています。\nスタイルも少し変更しました。' },
+        { text: 'ゲーム画面の下部に表示されるようになっています。\nこれでメッセージウィンドウの完成です！' }
+      ]
+    })
+    return {
+      ...toRefs(state)
+    }
   }
 })
 </script>
