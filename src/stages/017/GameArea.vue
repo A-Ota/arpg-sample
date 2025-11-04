@@ -8,11 +8,11 @@
   </div>
 </template>
 <script lang="ts">
-import { defineComponent, onMounted, onBeforeUnmount, ref, reactive } from '@vue/composition-api'
+import { defineComponent, onMounted, onBeforeUnmount, ref, reactive, onUnmounted } from '@vue/composition-api'
 import * as PIXI from "pixi.js"
 import { Character, PlayerRoutine, UroUroRoutine, TextureInfo } from '@/stages/014/Character'
 import { Field } from '@/stages/014/Field'
-import InputManager from '@/stages/014/InputManager'
+import InputManager from '../014/InputManager'
 
 class FpsCounter {
   private ms = 0
@@ -33,7 +33,7 @@ class FpsCounter {
 }
 
 export default defineComponent({
-  setup () {
+  setup (props: any, context: any) {
     // refs - テンプレートで使用するもののみreactive
     const pixiArea = ref<HTMLElement | null>(null)
     const fpsCounter = reactive(new FpsCounter())
@@ -42,18 +42,9 @@ export default defineComponent({
     let pixiApp: PIXI.Application | null = null
     let renderTexture: PIXI.RenderTexture | null = null
     let field: Field | null = null
-    const inputManager = new InputManager()
+    const inputManager = (window as any).inputManager as InputManager
     let characters: Array<Character> = []
     let isDebugMode = false
-
-    // methods
-    const onKeyDown = (event: KeyboardEvent) => {
-      inputManager.onKeyDown(event.keyCode)
-    }
-
-    const onKeyUp = (event: KeyboardEvent) => {
-      inputManager.onKeyUp(event.keyCode)
-    }
 
     const onClickToggleDebugMode = () => {
       isDebugMode = !isDebugMode
@@ -170,15 +161,11 @@ export default defineComponent({
       if (field != null) {
         (field as Field).update()
       }
-      inputManager.endTurn()
     }
 
     onMounted(() => {
       PIXI.settings.RESOLUTION = window.devicePixelRatio
       PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST
-
-      window.onkeydown = onKeyDown
-      window.onkeyup = onKeyUp
 
       const opt = { 
         width: 640,
@@ -186,9 +173,6 @@ export default defineComponent({
         autoDensity: true
       }
       pixiApp = new PIXI.Application(opt)
-      pixiApp.ticker.maxFPS = 60
-      pixiApp.ticker.minFPS = 60
-
       const container = pixiArea.value
       if (container) {
         container.appendChild(pixiApp.view)
@@ -262,7 +246,22 @@ export default defineComponent({
         })
 
       // メインループ
-      pixiApp.ticker.add(update)
+      // PIXI.Ticker.shared.add(update)
+      addEventListener('update', update)
+      setTimeout(() => {
+        context.emit('onEvent', {
+          type: 'message',
+          messages: [
+            'これはメッセージウィンドウのサンプルです!\nクリックして次のメッセージに進みます。',
+            'Vue.jsのComposition APIを使って実装しています。\nスタイルも少し変更しました。',
+            'ゲーム画面の下部に表示されるようになっています。\nこれでメッセージウィンドウの完成です！'
+          ]
+        })
+      }, 3000)
+    })
+    onUnmounted(() => {
+      // PIXI.Ticker.shared.remove(update)
+      removeEventListener('update', update)
     })
 
     onBeforeUnmount(() => {

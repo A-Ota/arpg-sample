@@ -38,13 +38,15 @@
 </style>
 <template>
   <transition name="fade">
-    <div v-if="show" class="message-window-root" @click="onClickWindow">
+    <div v-if="show" class="message-window-root">
       <div class="message" :class="{ 'fade-out': windowState === 'fade-out' }">{{ innerText }}</div>
     </div>
   </transition>
 </template>
 <script lang="ts">
-import { defineComponent, onMounted, reactive, ref, toRefs } from '@vue/composition-api'
+import * as PIXI from "pixi.js"
+import { defineComponent, onMounted, onUnmounted, reactive, ref, toRefs } from '@vue/composition-api'
+import InputManager from '../014/InputManager';
 
 type WindowState = 'play' | 'fast-forward' | 'wait' | 'fade-out'
 
@@ -68,6 +70,7 @@ export default defineComponent({
   components: {
   },
   setup (props: any, context: any) {
+    const inputManager = (window as any).inputManager as InputManager
     const state = reactive<StateType>({
       show: false,
       innerText: '',
@@ -86,15 +89,6 @@ export default defineComponent({
       state.innerText = ''
       playNextMessageSub()
     }
-    onMounted(async () => {
-      state.show = true
-      await new Promise((resolve) => {
-        setTimeout(() => {
-          resolve(true)
-        }, 200)
-      })
-      playNextMessage()
-    })
     // ウィンドウクリックで次のメッセージに行く
     const onClickWindow = async () => {
       switch (state.windowState) {
@@ -126,9 +120,29 @@ export default defineComponent({
           break
       }
     }
+    const update = () => {
+      // GameAreaのupdateで先にinputManager.endTurn()しているのでここでキー入力が取れない。
+      console.log('MessageWindow update')
+      if (inputManager.isPressed(90)) {
+        debugger
+        onClickWindow()
+      }
+    }
+    onMounted(async () => {
+      addEventListener('update', update)
+      state.show = true
+      await new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(true)
+        }, 200)
+      })
+      playNextMessage()
+    })
+    onUnmounted(() => {
+      removeEventListener('update', update)
+    })
     return {
-      ...toRefs(state),
-      onClickWindow
+      ...toRefs(state)
     }
   }
 })

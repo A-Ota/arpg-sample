@@ -14,7 +14,7 @@
 </style>
 <template>
   <div class="app-root">
-    <GameArea />
+    <GameArea @onEvent="handleEvent" />
     <MessageWindow
       class="message-window"
       v-if="messageInfos != null"
@@ -26,8 +26,11 @@
 
 <script lang="ts">
 import { defineComponent, onMounted, reactive, ref, toRefs } from '@vue/composition-api'
+import * as PIXI from "pixi.js"
 import MessageWindow, { MessageInfo } from './MessageWindow.vue'
 import GameArea from './GameArea.vue'
+import { Event } from './Util'
+import InputManager from '../014/InputManager';
 
 interface StateType {
   messageInfos: MessageInfo[] | null;
@@ -41,19 +44,37 @@ export default defineComponent({
     MessageWindow
   },
   setup (props: any, context: any) {
+    PIXI.Ticker.shared.maxFPS = 60
+    PIXI.Ticker.shared.minFPS = 60
+    // キー入力管理
+    const inputManager = (window as any).inputManager = new InputManager()
+    const onKeyDown = (event: KeyboardEvent) => {
+      inputManager.onKeyDown(event.keyCode)
+    }
+    const onKeyUp = (event: KeyboardEvent) => {
+      inputManager.onKeyUp(event.keyCode)
+    }
+    window.onkeydown = onKeyDown
+    window.onkeyup = onKeyUp
+    // state
     const state = reactive<StateType>({
       messageInfos: null
     })
-    onMounted(async () => {
-      await new Promise(resolve => setTimeout(resolve, 3000))
-      state.messageInfos = [
-        { text: 'これはメッセージウィンドウのサンプルです。\nクリックして次のメッセージに進みます。' },
-        { text: 'Vue.jsのComposition APIを使って実装しています。\nスタイルも少し変更しました。' },
-        { text: 'ゲーム画面の下部に表示されるようになっています。\nこれでメッセージウィンドウの完成です！' }
-      ]
+    onMounted(() => {
+      const updateEvent = new CustomEvent('update')
+      PIXI.Ticker.shared.add(() => {
+        dispatchEvent(updateEvent)
+        inputManager.endTurn()
+      })
     })
+    const handleEvent = (event: Event) => {
+      if (event.type === 'message') {
+        state.messageInfos = event.messages.map((text: string) => ({ text }))
+      }
+    }
     return {
-      ...toRefs(state)
+      ...toRefs(state),
+      handleEvent
     }
   }
 })
