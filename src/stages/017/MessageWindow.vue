@@ -124,12 +124,12 @@ export default defineComponent({
       // GameAreaのupdateで先にinputManager.endTurn()しているのでここでキー入力が取れない。
       console.log('MessageWindow update')
       if (inputManager.isPressed(90)) {
-        debugger
         onClickWindow()
       }
     }
     onMounted(async () => {
       addEventListener('update', update)
+      dispatchEvent(new CustomEvent('update-lock', { detail: true }))
       state.show = true
       await new Promise((resolve) => {
         setTimeout(() => {
@@ -140,6 +140,7 @@ export default defineComponent({
     })
     onUnmounted(() => {
       removeEventListener('update', update)
+      dispatchEvent(new CustomEvent('update-lock', { detail: false }))
     })
     return {
       ...toRefs(state)

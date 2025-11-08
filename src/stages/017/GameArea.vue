@@ -10,8 +10,8 @@
 <script lang="ts">
 import { defineComponent, onMounted, onBeforeUnmount, ref, reactive, onUnmounted } from '@vue/composition-api'
 import * as PIXI from "pixi.js"
-import { Character, PlayerRoutine, UroUroRoutine, TextureInfo } from '@/stages/014/Character'
-import { Field } from '@/stages/014/Field'
+import { Character, PlayerRoutine, UroUroRoutine, TextureInfo } from '@/stages/017/Character'
+import { Field } from '@/stages/017/Field'
 import InputManager from '../014/InputManager'
 
 class FpsCounter {
@@ -104,6 +104,23 @@ export default defineComponent({
 
       if (!renderTexture || !textureOffset || !field) return
       const character = new Character(new TextureInfo(renderTexture as PIXI.Texture, textureOffset, width, height, directionNum))
+      switch(type) {
+        case 0:
+          character.name = '女の子'
+          break;
+        case 1:
+          character.name = '男の子'
+          break;
+        case 2:
+          character.name = '青スライム'
+          break;
+        case 3:
+          character.name = '赤スライム'
+          break;
+        case 4:
+          character.name = '黄スライム'
+          break;
+      }
       character.routine = (type === 0) ? new PlayerRoutine(inputManager) : new UroUroRoutine()
       character.currentDirection = 4
       for(;;) {
@@ -138,8 +155,13 @@ export default defineComponent({
       ;(field as Field).setTargetCharacter(newCharacter as any)
     }
 
+    let updateLock = false
     const update = () => {
       fpsCounter.checkPoint()
+      if (updateLock) {
+        return
+      }
+
       // Spaceキーでキャラ切り替え
       if (inputManager.isReleased(32)) {
         toggleCharacter()
@@ -191,6 +213,7 @@ export default defineComponent({
         .add("/arpg-sample/images/stages/014/chara01.png")
         .add("/arpg-sample/images/stages/014/chara02.png")
         .add("/arpg-sample/images/stages/014/slime-blue.png")
+
         .add("/arpg-sample/images/stages/014/slime-red.png")
         .add("/arpg-sample/images/stages/014/slime-yellow.png")
         .add("/arpg-sample/images/stages/013/mapchip.png")
@@ -231,6 +254,12 @@ export default defineComponent({
               renderTexture as any,
               PIXI.Loader.shared.resources["/arpg-sample/images/stages/013/mapchip.json"].data,
               PIXI.Loader.shared.resources["/arpg-sample/images/stages/013/map01.json"].data)
+            field.messageEventHandler = (messageInfos) => {
+              context.emit('onEvent', {
+                type: 'message',
+                messages: messageInfos.map(v => v.text)
+              })
+            }
             pixiApp.stage.addChild(field as any)
 
             // NPC
@@ -248,6 +277,12 @@ export default defineComponent({
       // メインループ
       // PIXI.Ticker.shared.add(update)
       addEventListener('update', update)
+      const updateLockEventHandler = (event: Event) => {
+        const customEvent = event as CustomEvent
+        updateLock = customEvent.detail
+      }
+      addEventListener('update-lock', updateLockEventHandler)
+      /*
       setTimeout(() => {
         context.emit('onEvent', {
           type: 'message',
@@ -258,6 +293,7 @@ export default defineComponent({
           ]
         })
       }, 3000)
+      */
     })
     onUnmounted(() => {
       // PIXI.Ticker.shared.remove(update)
