@@ -257,9 +257,9 @@ export class Field extends PIXI.Container {
           // アクション処理
           console.log('アクション!')
           // 手前にキャラがいる場合はそのキャラのセリフをメッセージウインドウに表示する
-          const characters = this.getNearCharacters(fieldCharacter)
+          const characters = this.getNearFrontCharacters(fieldCharacter)
           if (characters.length > 0) {
-            this.messageEventHandler?.([{ text: `${characters[0].character.name}に話しかけた` }])
+            this.messageEventHandler?.([{ text: `こんにちは！\nわたしは${characters[0].character.name}であります！` }])
           }
           fieldCharacter.character.preUpdateInfo = null
         }
@@ -324,8 +324,8 @@ export class Field extends PIXI.Container {
     })
     return [hit, hit ? hitDistance / Math.sqrt(Math.pow(offsetX, 2) + Math.pow(offsetY, 2)) : 0]
   }
-  // 近いキャラクターを取得
-  private getNearCharacters(fieldCharacter: FieldCharacter): Array<FieldCharacter> {
+  // 前方の近いキャラクターを取得
+  private getNearFrontCharacters(fieldCharacter: FieldCharacter): Array<FieldCharacter> {
     const nearCharacters: Array<FieldCharacter> = []
     const otherFieldCharacters = this.getOtherFieldCharactersByAreaGrid(fieldCharacter)
     const targetCircle = fieldCharacter.character.hitCircle.clone()
@@ -334,7 +334,37 @@ export class Field extends PIXI.Container {
       const distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))
       // 本来の当たり判定の衝突よりも少し広く判定する
       if (distance < (targetCircle.radius + otherFieldCharacter.character.hitCircle.radius + 12)) {
-        nearCharacters.push(otherFieldCharacter)
+        // 自キャラの向いている方向にいるかどうか
+        let isFront = false
+        switch (fieldCharacter.character.currentDirection) {
+          case 2: // 下
+            isFront = y2 > y1
+            break
+          case 4: // 左
+            isFront = x2 < x1
+            break
+          case 6: // 右
+            isFront = x2 > x1
+            break
+          case 8: // 上
+            isFront = y2 < y1
+            break
+          case 1: // 左下
+            isFront = (x2 < x1) && (y2 > y1)
+            break
+          case 3: // 右下
+            isFront = (x2 > x1) && (y2 > y1)
+            break
+          case 7: // 左上
+            isFront = (x2 < x1) && (y2 < y1)
+            break
+          case 9: // 右上
+            isFront = (x2 > x1) && (y2 < y1)
+            break
+        }
+        if (isFront) {
+          nearCharacters.push(otherFieldCharacter)
+        }
       }
     })
     return nearCharacters
