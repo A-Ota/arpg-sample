@@ -12,8 +12,7 @@
     "postinstall": "patch-package"
   },
   "dependencies": {
-    "@pixi/sound": "^4.2.0",
-    "@types/pixi.js": "^5.0.0",
+    "@pixi/sound": "^6.0.0",
     "@types/query-string": "^6.3.0",
     "@vue/composition-api": "^1.4.6",
     "bootstrap": "^4.4.1",
@@ -23,7 +22,7 @@
     "pixi-ease": "^3.0.7",
     "pixi-fps": "^2.0.1",
     "pixi-layers": "^0.3.1",
-    "pixi.js": "^5.3.3",
+    "pixi.js": "^8.0.0",
     "query-string": "^6.13.7",
     "reflect-metadata": "^0.1.13",
     "splitpanes": "^2.2.1",
