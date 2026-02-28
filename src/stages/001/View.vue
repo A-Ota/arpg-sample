@@ -63,9 +63,12 @@ export default Vue.extend({
     await pixiApp.init({
       ...size,
       resolution: window.devicePixelRatio,
-      autoDensity: true
+      autoDensity: true,
+      preference: 'webgpu'
     })
-
+    // レンダラーの確認
+    console.log('Renderer type:', pixiApp.renderer.type)
+    console.log('Renderer name:', pixiApp.renderer.name)
     const container = this.$refs['pixi_area'] as any
     container.appendChild(pixiApp.canvas);
 
