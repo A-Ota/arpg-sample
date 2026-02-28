@@ -37,6 +37,7 @@ export class Character {
   public bodySprite!: SortableSprite
   public shadowSprite!: SortableSprite
   public debugCircle!: PIXI.Graphics
+  public debugFrontNearCircle!: PIXI.Graphics
   public debugRect!: PIXI.Graphics
   private _routine!: BaseRoutine
   set currentDirection(value: number) {
@@ -69,20 +70,28 @@ export class Character {
     this.debugCircle.lineStyle(2, 0xFF5555, 1)
     this.debugCircle.alpha = 0.7
     this.debugCircle.drawCircle(0, 0, 11)
+    
     this.debugRect = new PIXI.Graphics()
     this.debugRect.lineStyle(2, 0x5555FF, 1)
     this.debugRect.alpha = 0.7
     this.debugRect.drawRect(this.hitRect.x, this.hitRect.y, this.hitRect.width, this.hitRect.height)
+    // 円弧
+    this.debugFrontNearCircle = new PIXI.Graphics()
+    this.debugFrontNearCircle.lineStyle(1, 0x55FF55, 1)
+    this.debugFrontNearCircle.alpha = 0.7
+    this.debugFrontNearCircle.arc(0, 0, 20, (Math.PI / 180) * 0, (Math.PI / 180) * 180)
   }
   public onAddToField(field: Field) {
       field.debugLayerContainer.addChild(this.debugCircle)
       field.debugLayerContainer.addChild(this.debugRect)
+      field.debugLayerContainer.addChild(this.debugFrontNearCircle)
       field.layerContainer.addChild(this.shadowSprite)
       field.layerContainer.addChild(this.bodySprite)
   }
   public onRemoveFromField(field: Field) {
     field.debugLayerContainer.removeChild(this.debugCircle)
     field.debugLayerContainer.removeChild(this.debugRect)
+    field.debugLayerContainer.removeChild(this.debugFrontNearCircle)
     field.layerContainer.removeChild(this.shadowSprite)
     field.layerContainer.removeChild(this.bodySprite)
   }
@@ -135,9 +144,10 @@ export class Character {
     ;[this.bodySprite.x, this.bodySprite.y] = [this.x, this.y + 8]
     ;[this.shadowSprite.x, this.shadowSprite.y] = [this.x, this.y]
     ;[this.hitCircle.x, this.hitCircle.y] = [this.x, this.y]
-    ;[this.debugCircle.x, this.debugCircle.y] = [this.x, this.y]
-    ;[this.hitRect.x, this.hitRect.y] = [this.x - 12, this.y - 12]
     ;[this.debugRect.x, this.debugRect.y] = [this.x, this.y]
+    ;[this.debugCircle.x, this.debugCircle.y] = [this.x, this.y]
+    ;[this.debugFrontNearCircle.x, this.debugFrontNearCircle.y] = [this.x, this.y]
+    ;[this.hitRect.x, this.hitRect.y] = [this.x - 12, this.y - 12]
     this.bodySprite.zOrder = this.shadowSprite.zOrder = this.bodySprite.position.y
     ++this.animationFrame
     if (this.animationFrame > 30) {
