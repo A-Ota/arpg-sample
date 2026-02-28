@@ -9,8 +9,7 @@ import VueCompositionAPI from '@vue/composition-api'
 Vue.use(VueCompositionAPI)
 
 import * as PIXI from 'pixi.js'
-window.PIXI = PIXI
-import 'pixi-layers'
+;(window as any).PIXI = PIXI
 
 console.log('main.ts')
 

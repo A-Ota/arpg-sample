@@ -53,18 +53,21 @@ export default Vue.extend({
       pressedKeyCodeSet: new Set()
     }
   },
-  mounted() {
-    PIXI.settings.RESOLUTION = window.devicePixelRatio;
-    PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
-
+  async mounted() {
     window.onkeydown = this.onKeyDown
     window.onkeyup = this.onKeyUp
 
     const size = {width: 320, height: 240}
-    const pixiApp: PIXI.Application = new PIXI.Application(size)
+    const pixiApp: PIXI.Application = new PIXI.Application()
+    
+    await pixiApp.init({
+      ...size,
+      resolution: window.devicePixelRatio,
+      autoDensity: true
+    })
 
     const container = this.$refs['pixi_area'] as any
-    container.appendChild(pixiApp.view);
+    container.appendChild(pixiApp.canvas);
 
     // 背景色
     const bg = new PIXI.Sprite(PIXI.Texture.WHITE)
@@ -73,15 +76,11 @@ export default Vue.extend({
     bg.tint = 0xcccccc
     pixiApp.stage.addChild(bg)
 
-    PIXI.Loader.shared
-      .reset()
-      .add('/arpg-sample/images/chara01.json')
-      .load(() => {
-        const sheet = PIXI.Loader.shared.resources["/arpg-sample/images/chara01.json"].spritesheet;
-        this.chara = new Character(PIXI.Loader.shared.resources["/arpg-sample/images/chara01.json"].spritesheet!)
-        this.chara.position.set(160, 120)
-        pixiApp.stage.addChild(this.chara)
-      })
+    PIXI.Assets.load('/arpg-sample/images/chara01.json').then((sheet: PIXI.Spritesheet) => {
+      this.chara = new Character(sheet)
+      this.chara.position.set(160, 120)
+      pixiApp.stage.addChild(this.chara)
+    })
 
     // アニメーション開始
     pixiApp.ticker.add((delta) => {

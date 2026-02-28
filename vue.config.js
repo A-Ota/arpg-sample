@@ -8,6 +8,18 @@ module.exports = {
     disableHostCheck: true
   },
   configureWebpack: {
-    devtool: 'source-map'
+    devtool: 'source-map',
+    module: {
+      rules: [
+        {
+          test: /\.mjs$/,
+          include: /node_modules/,
+          type: 'javascript/auto'
+        }
+      ]
+    }
   },
+  transpileDependencies: [
+    'pixi.js'
+  ]
 }
